@@ -99,11 +99,11 @@ steps:
         sleep 10
         
         echo "Getting backend service URL..."
-        BACKEND_URL=$(gcloud run services describe craftscape-backend --region us-central1 --format="value(status.url)")
-        echo "Backend URL: $BACKEND_URL"
+        BACKEND_URL=$$(gcloud run services describe craftscape-backend --region us-central1 --format="value(status.url)")
+        echo "Backend URL: $$BACKEND_URL"
         
         echo "Seeding database..."
-        curl -X POST "$BACKEND_URL/admin/seed" \
+        curl -X POST "$$BACKEND_URL/admin/seed" \
           -H "Content-Type: application/json" \
           --fail \
           --show-error \
