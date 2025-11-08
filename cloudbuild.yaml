@@ -89,7 +89,7 @@ steps:
       - '10'
     id: 'deploy-frontend'
 
-  # Wait for backend deployment to be ready
+  # Wait for backend deployment to be ready and seed the database
   - name: 'gcr.io/cloud-builders/gcloud'
     entrypoint: 'bash'
     args:
@@ -97,24 +97,22 @@ steps:
       - |
         echo "Waiting for backend service to be ready..."
         sleep 10
-    id: 'wait-for-deployment'
-
-  # Seed the database
-  - name: 'gcr.io/cloud-builders/curl'
-    args:
-      - '-X'
-      - 'POST'
-      - 'https://craftscape-backend-jekg23xn5a-uc.a.run.app/admin/seed'
-      - '-H'
-      - 'Content-Type: application/json'
-      - '--fail'
-      - '--show-error'
-      - '--retry'
-      - '3'
-      - '--retry-delay'
-      - '5'
-      - '-v'
-    id: 'seed-database'
+        
+        echo "Getting backend service URL..."
+        BACKEND_URL=$(gcloud run services describe craftscape-backend --region us-central1 --format="value(status.url)")
+        echo "Backend URL: $BACKEND_URL"
+        
+        echo "Seeding database..."
+        curl -X POST "$BACKEND_URL/admin/seed" \
+          -H "Content-Type: application/json" \
+          --fail \
+          --show-error \
+          --retry 3 \
+          --retry-delay 5 \
+          -v
+        
+        echo "Database seeding completed!"
+    id: 'wait-and-seed'
 
 images:
   - 'gcr.io/$PROJECT_ID/craftscape-backend:$COMMIT_SHA'
