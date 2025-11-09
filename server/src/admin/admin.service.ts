@@ -4,9 +4,19 @@ import { Repository } from 'typeorm';
 import { Craft } from '../entities/craft.entity';
 import { Product } from '../entities/product.entity';
 import { Event } from '../entities/event.entity';
+import { Artisan } from '../entities/artisan.entity';
+import { Order } from '../entities/order.entity';
+import { MessageThread } from '../entities/message-thread.entity';
 
 // Import seed data from constants.cjs
-const { CRAFTS, PRODUCTS, EVENTS } = require('../../constants.cjs');
+const {
+  CRAFTS,
+  PRODUCTS,
+  EVENTS,
+  ARTISANS,
+  ORDERS,
+  MESSAGE_THREADS,
+} = require('../../constants.cjs');
 
 @Injectable()
 export class AdminService {
@@ -17,6 +27,12 @@ export class AdminService {
     private productRepository: Repository<Product>,
     @InjectRepository(Event)
     private eventRepository: Repository<Event>,
+    @InjectRepository(Artisan)
+    private artisanRepository: Repository<Artisan>,
+    @InjectRepository(Order)
+    private orderRepository: Repository<Order>,
+    @InjectRepository(MessageThread)
+    private messageThreadRepository: Repository<MessageThread>,
   ) {}
 
   async seedDatabase() {
@@ -30,7 +46,10 @@ export class AdminService {
             crafts: count,
             products: await this.productRepository.count(),
             events: await this.eventRepository.count(),
-          }
+            artisans: await this.artisanRepository.count(),
+            orders: await this.orderRepository.count(),
+            messageThreads: await this.messageThreadRepository.count(),
+          },
         };
       }
 
@@ -38,6 +57,9 @@ export class AdminService {
       await this.craftRepository.save(CRAFTS);
       await this.productRepository.save(PRODUCTS);
       await this.eventRepository.save(EVENTS);
+      await this.artisanRepository.save(ARTISANS);
+      await this.orderRepository.save(ORDERS);
+      await this.messageThreadRepository.save(MESSAGE_THREADS);
 
       return {
         message: 'Database seeded successfully! 🌱',
@@ -45,7 +67,10 @@ export class AdminService {
           crafts: await this.craftRepository.count(),
           products: await this.productRepository.count(),
           events: await this.eventRepository.count(),
-        }
+          artisans: await this.artisanRepository.count(),
+          orders: await this.orderRepository.count(),
+          messageThreads: await this.messageThreadRepository.count(),
+        },
       };
     } catch (error) {
       return {
@@ -58,6 +83,9 @@ export class AdminService {
   async reseedDatabase() {
     try {
       // Clear all data first
+      await this.messageThreadRepository.clear();
+      await this.orderRepository.clear();
+      await this.artisanRepository.clear();
       await this.craftRepository.clear();
       await this.productRepository.clear();
       await this.eventRepository.clear();
