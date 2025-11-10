@@ -22,16 +22,33 @@ export async function createNestServer() {
         'http://localhost:5173',
         'http://localhost:3001',
         'https://craftscape-hk.vercel.app',
+        'https://craftscape-backend-998275462099.us-central1.run.app',
         'https://craftscape-backend-jekg23xn5a-uc.a.run.app',
+        // Cloud Run frontend - allow both versioned and latest deployments
         'https://craftscape-frontend-998275462099.us-central1.run.app',
+        /^https:\/\/craftscape-frontend-[a-z0-9-]+\.us-central1\.run\.app$/,
         'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
         'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev:3001',
       ];
-      // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow requests with no origin (mobile apps, Postman, curl, etc.)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      
+      // Check if origin matches any allowed origin (including regex patterns)
+      const isAllowed = allowedOrigins.some(allowed => {
+        if (allowed instanceof RegExp) {
+          return allowed.test(origin);
+        }
+        return allowed === origin;
+      });
+      
+      if (isAllowed) {
         callback(null, true);
       } else {
-        callback(null, true); // In production, you might want to reject: callback(new Error('Not allowed by CORS'))
+        console.warn(`⚠️  CORS request from unauthorized origin: ${origin}`);
+        callback(null, true); // Still allow for development; set to false in strict production
       }
     },
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -80,16 +97,34 @@ if (require.main === module) {
           'http://localhost:5173',
           'http://localhost:3001',
           'https://craftscape-hk.vercel.app',
+          'https://craftscape-backend-998275462099.us-central1.run.app',
           'https://craftscape-backend-jekg23xn5a-uc.a.run.app',
+          // Cloud Run frontend - allow pattern matching for different deployment versions
           'https://craftscape-frontend-998275462099.us-central1.run.app',
+          '/^https:\\/\\/craftscape-frontend-[a-z0-9-]+\\.us-central1\\.run\\.app$/',
           'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev',
           'https://80323cac-9cf1-4503-afba-de3082d32504-00-2vq4n4lqc6zbv.sisko.replit.dev:3001',
         ];
 
     app.enableCors({
       origin: (origin, callback) => {
-        // Allow requests with no origin (mobile apps, Postman, etc.)
-        if (!origin || allowedOrigins.includes(origin)) {
+        // Allow requests with no origin (mobile apps, Postman, curl, etc.)
+        if (!origin) {
+          callback(null, true);
+          return;
+        }
+        
+        // Check if origin matches any allowed origin (including regex patterns)
+        const isAllowed = allowedOrigins.some(allowed => {
+          if (typeof allowed === 'string' && allowed.startsWith('/') && allowed.endsWith('/')) {
+            // Treat as regex pattern
+            const pattern = new RegExp(allowed.slice(1, -1));
+            return pattern.test(origin);
+          }
+          return allowed === origin;
+        });
+        
+        if (isAllowed) {
           callback(null, true);
         } else {
           console.warn(`🚫 Blocked CORS request from origin: ${origin}`);
