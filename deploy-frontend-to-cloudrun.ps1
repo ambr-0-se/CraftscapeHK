@@ -36,12 +36,24 @@ gcloud services enable run.googleapis.com
 gcloud services enable containerregistry.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
 
+# Get backend URL
+Write-Host ""
+Write-Host "Getting backend service URL..." -ForegroundColor Yellow
+$BACKEND_URL = gcloud run services describe craftscape-backend --region $REGION --format="value(status.url)" 2>$null
+
+if ([string]::IsNullOrEmpty($BACKEND_URL)) {
+    Write-Host "⚠ Backend service not found. Using default URL." -ForegroundColor Yellow
+    $BACKEND_URL = "https://craftscape-backend-998275462099.us-central1.run.app"
+}
+
+Write-Host "Backend URL: $BACKEND_URL" -ForegroundColor Cyan
+
 # Build the Docker image
 Write-Host ""
 Write-Host "Building Docker image..." -ForegroundColor Yellow
 Write-Host "Image: $IMAGE_NAME" -ForegroundColor Cyan
 
-docker build -t $IMAGE_NAME .
+docker build -t $IMAGE_NAME --build-arg VITE_API_BASE_URL=$BACKEND_URL .
 
 if ($LASTEXITCODE -ne 0) {
     Write-Host "✗ Docker build failed!" -ForegroundColor Red

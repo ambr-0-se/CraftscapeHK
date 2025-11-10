@@ -13,6 +13,10 @@ RUN npm ci --ignore-scripts
 # Copy source code (excluding server directory)
 COPY . .
 
+# Accept backend URL as build argument
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
 # Build the frontend
 RUN npm run build
 

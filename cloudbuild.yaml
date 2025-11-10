@@ -12,10 +12,24 @@ steps:
       - './server'
     id: 'build-backend-image'
 
-  # Build the frontend container image
+  # Get backend URL for frontend build
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        # Try to get existing backend URL, fallback to default
+        BACKEND_URL=$$(gcloud run services describe craftscape-backend --region us-central1 --format="value(status.url)" 2>/dev/null || echo "https://craftscape-backend-998275462099.us-central1.run.app")
+        echo "$$BACKEND_URL" > /workspace/backend_url.txt
+        echo "Backend URL for frontend: $$BACKEND_URL"
+    id: 'get-backend-url'
+
+  # Build the frontend container image with backend URL
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
+      - '--build-arg'
+      - 'VITE_API_BASE_URL=$$(cat /workspace/backend_url.txt)'
       - '-t'
       - 'gcr.io/$PROJECT_ID/craftscape-frontend:$COMMIT_SHA'
       - '-t'
@@ -24,6 +38,7 @@ steps:
       - 'Dockerfile'
       - '.'
     id: 'build-frontend-image'
+    waitFor: ['get-backend-url']
 
   # Push the backend container image to Container Registry
   - name: 'gcr.io/cloud-builders/docker'
