@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAppContext } from "../contexts/AppContext";
+import { useAuth } from "../contexts/AuthContext";
 import { getCrafts } from "../services/apiService";
 import ThemeToggle from "../components/ThemeToggle";
 import { motion } from "framer-motion";
@@ -7,6 +8,7 @@ import type { Craft } from "../types";
 import Spinner from "../components/Spinner";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
+import Auth from "./Auth";
 
 type ProfileTab = "favorites" | "creations" | "wardrobe";
 
@@ -47,6 +49,7 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
     addFaceProfile,
     tryOnLooks,
   } = useAppContext();
+  const { user, isAuthenticated, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<ProfileTab>("favorites");
@@ -57,6 +60,8 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
   const faceUploadInputRef = useRef<HTMLInputElement | null>(null);
   const faceCameraInputRef = useRef<HTMLInputElement | null>(null);
   const [showFaceUploadOptions, setShowFaceUploadOptions] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (activeTab === "favorites") {
@@ -133,8 +138,48 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
     [setActiveFace]
   );
 
+  const handleLogout = useCallback(async () => {
+    await logout();
+    setShowLogoutConfirm(false);
+  }, [logout]);
+
   return (
     <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
+      {/* Auth Modal */}
+      {showAuthModal && <Auth onClose={() => setShowAuthModal(false)} />}
+      
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="bg-[var(--color-surface)] rounded-2xl shadow-2xl p-6 max-w-sm w-full"
+          >
+            <h3 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">
+              {language === 'zh' ? '確認登出' : 'Confirm Logout'}
+            </h3>
+            <p className="text-[var(--color-text-secondary)] mb-6">
+              {language === 'zh' ? '確定要登出嗎？' : 'Are you sure you want to log out?'}
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLogoutConfirm(false)}
+                className="flex-1 py-3 px-4 bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] font-bold rounded-lg hover:bg-[var(--color-page-bg)] transition-colors"
+              >
+                {language === 'zh' ? '取消' : 'Cancel'}
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex-1 py-3 px-4 bg-red-500 text-white font-bold rounded-lg hover:bg-red-600 transition-colors"
+              >
+                {t('authLogout')}
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
+
       {/* Museum-style Header */}
       <header className="px-4 py-6 border-b border-[var(--color-border)]">
         <div className="flex items-start justify-between">
@@ -145,28 +190,46 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
                 alt="User Avatar"
                 className="w-16 h-16 rounded-full border-2 border-[var(--color-primary-accent)] object-cover"
               />
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[var(--color-primary-accent)] rounded-full border-2 border-[var(--color-bg)]"></div>
+              {isAuthenticated && (
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-green-500 rounded-full border-2 border-[var(--color-bg)]"></div>
+              )}
             </div>
             <div>
               <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
-                {t("profileTitle")}
+                {isAuthenticated ? user?.username : t("profileTitle")}
               </h1>
               <p className="text-sm text-[var(--color-text-secondary)]">
-                {t("profileStats", {
-                  favorites: favorites.size,
-                  creations: aiCreations.length,
-                })}
+                {isAuthenticated ? (
+                  t("profileStats", {
+                    favorites: favorites.size,
+                    creations: aiCreations.length,
+                  })
+                ) : (
+                  language === 'zh' ? '訪客模式' : 'Guest Mode'
+                )}
               </p>
             </div>
           </div>
           <div className="flex items-center space-x-2">
-            <motion.button
-              className="w-10 h-10 rounded-full p-2 flex items-center justify-center bg-[var(--color-surface)] border border-[var(--color-border)] transition-all duration-200 hover:bg-[var(--color-secondary-accent)]"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <SettingsIcon />
-            </motion.button>
+            {isAuthenticated ? (
+              <motion.button
+                onClick={() => setShowLogoutConfirm(true)}
+                className="px-3 py-1.5 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {t('authLogout')}
+              </motion.button>
+            ) : (
+              <motion.button
+                onClick={() => setShowAuthModal(true)}
+                className="px-3 py-1.5 rounded-lg bg-[var(--color-primary-accent)] text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {t('authLoginTitle')}
+              </motion.button>
+            )}
             <ThemeToggle />
           </div>
         </div>

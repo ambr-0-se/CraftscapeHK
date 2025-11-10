@@ -8,6 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { AiModule } from './ai/ai.module';
 import { DebugModule } from './debug/debug.module';
 import { AdminModule } from './admin/admin.module';
+import { AuthModule } from './auth/auth.module';
 
 @Controller()
 export class AppController {
@@ -22,6 +23,7 @@ export class AppController {
         events: '/api/events',
         orders: '/api/orders',
         messages: '/api/messages',
+        auth: '/api/auth (login, register, profile)',
         admin: '/admin/seed (POST)',
         debug: '/debug (development only)'
       }
@@ -32,6 +34,7 @@ export class AppController {
 @Module({
   imports: [
     DatabaseModule,
+    AuthModule,
     ProductsModule,
     CraftsModule,
     EventsModule,

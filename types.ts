@@ -158,3 +158,17 @@ export interface AiLayout {
   description: string;
   elements: AiLayoutElement[];
 }
+
+export interface UserProfile {
+  hasCompletedOnboarding: boolean;
+  interests?: string[];
+  uploadedFaceProfileId?: string;
+}
+
+export interface AuthUser {
+  id: number;
+  username: string;
+  email: string;
+  role: 'user' | 'artisan' | 'admin';
+  profile?: UserProfile;
+}

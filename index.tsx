@@ -4,6 +4,7 @@ import App from './App';
 import { AppContextProvider } from './contexts/AppContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { AuthProvider } from './contexts/AuthContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -15,9 +16,11 @@ root.render(
   <React.StrictMode>
     <ThemeProvider>
       <LanguageProvider>
-        <AppContextProvider>
-          <App />
-        </AppContextProvider>
+        <AuthProvider>
+          <AppContextProvider>
+            <App />
+          </AppContextProvider>
+        </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
   </React.StrictMode>
