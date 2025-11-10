@@ -17,7 +17,10 @@ import type { Craft, Event, Product, MessageThread } from "./types";
 import { AnimatePresence, motion } from "framer-motion";
 import { PRODUCTS } from "./constants";
 import OnboardingGuide from "./components/OnboardingGuide";
+import UserOnboarding from "./components/UserOnboarding";
+import Auth from "./pages/Auth";
 import { useLanguage } from "./contexts/LanguageContext";
+import { useAuth } from "./contexts/AuthContext";
 
 // Artisan Pages
 import Dashboard from "./pages/artisan/Dashboard";
@@ -28,6 +31,11 @@ import Messages from "./pages/artisan/Messages";
 import ArtisanChatroom from "./views/ArtisanChatroom";
 
 export default function App() {
+  // Auth state
+  const { user, isAuthenticated, hasCompletedOnboarding, isLoading: authLoading } = useAuth();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showUserOnboarding, setShowUserOnboarding] = useState(false);
+  
   // Fix mobile viewport height bug: set --app-vh to window.innerHeight
   React.useEffect(() => {
     function setVhVar() {
@@ -44,6 +52,29 @@ export default function App() {
       window.removeEventListener("orientationchange", setVhVar);
     };
   }, []);
+
+  // Check if user needs onboarding
+  useEffect(() => {
+    if (!authLoading && isAuthenticated && !hasCompletedOnboarding) {
+      setShowUserOnboarding(true);
+    }
+  }, [authLoading, isAuthenticated, hasCompletedOnboarding]);
+
+  // Show auth modal for guest users on first visit
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      const hasSeenAuthPrompt = localStorage.getItem('hasSeenAuthPrompt');
+      if (!hasSeenAuthPrompt) {
+        // Delay showing auth modal to let user see the app first
+        const timer = setTimeout(() => {
+          setShowAuthModal(true);
+          localStorage.setItem('hasSeenAuthPrompt', 'true');
+        }, 2000);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [authLoading, isAuthenticated]);
+
   const [isArtisanMode, setIsArtisanMode] = useState(false);
   const [activeTab, setActiveTab] = useState<Tab>(Tab.Explore);
   const [activeArtisanTab, setActiveArtisanTab] = useState<ArtisanTab>(
@@ -212,11 +243,38 @@ export default function App() {
 
   const isExploreView = currentView === View.Explore;
 
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="w-screen h-screen bg-[var(--color-bg)] flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-4xl mb-4">🎨</div>
+          <div className="text-[var(--color-text-secondary)]">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="w-screen bg-[var(--color-bg)] text-[var(--color-text-primary)] font-sans antialiased flex flex-col max-w-lg mx-auto ios-shadow border border-[var(--color-border)]"
       style={{ minHeight: "var(--app-vh, 100vh)" }}
     >
+      {/* Auth Modal */}
+      <AnimatePresence>
+        {showAuthModal && !isAuthenticated && (
+          <Auth onClose={() => setShowAuthModal(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* User Onboarding */}
+      <AnimatePresence>
+        {showUserOnboarding && isAuthenticated && !hasCompletedOnboarding && (
+          <UserOnboarding onComplete={() => setShowUserOnboarding(false)} />
+        )}
+      </AnimatePresence>
+
+      {/* App Onboarding Guide (separate from user onboarding) */}
       <AnimatePresence>
         {showOnboarding && <OnboardingGuide onClose={handleCloseOnboarding} />}
       </AnimatePresence>
