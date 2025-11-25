@@ -70,16 +70,9 @@ const GLYPH_LIBRARY: { name: string; glyph: GlyphName }[] = [
 ];
 
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
 let ai: GoogleGenAI | null = null;
 
 try {
-    if (GEMINI_API_KEY) {
-        ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY });
-    } else {
-        console.warn('GEMINI_API_KEY environment variable not set. AI features will fall back to mock data.');
-  }
 } catch (error) {
   console.warn('Failed to initialize Google GenAI:', error);
 }

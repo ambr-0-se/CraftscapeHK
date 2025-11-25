@@ -13,11 +13,8 @@ RUN npm ci --ignore-scripts
 # Copy source code (excluding server directory)
 COPY . .
 
-# Accept backend URL as build argument
-ARG VITE_API_BASE_URL
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
-
-# Build the frontend
+# Build the frontend (no need for VITE_API_BASE_URL since nginx proxies /api)
+# The frontend will use /api as base URL, nginx will proxy to backend
 RUN npm run build
 
 # Production stage with nginx
