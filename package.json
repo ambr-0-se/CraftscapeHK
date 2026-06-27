@@ -4,9 +4,30 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "postinstall": "npm run server:install",
+    "server:install": "npm --prefix server install",
+    "server:build": "npm --prefix server run build",
+    "server:seed": "npm --prefix server run seed",
+    "server:start": "npm --prefix server run start",
+    "server:start:prod": "npm --prefix server run start:prod",
+    "server:dev": "npm --prefix server run start:dev",
+    "build:stack": "npm run build && npm run server:build",
+    "start:prod": "npm run server:start:prod",
+    "dev:stack": "concurrently -k --restart-tries 0 \"npm run dev\" \"npm run server:dev\"",
+    "dev:stack:watch": "nodemon --config nodemon.env.json",
+    "verify:cors": "node verify-cors.cjs",
+    "deploy:backend": "pwsh -ExecutionPolicy Bypass -File ./deploy-to-cloudrun.ps1",
+    "deploy:frontend": "pwsh -ExecutionPolicy Bypass -File ./deploy-frontend-to-cloudrun.ps1",
+    "deploy:all": "pwsh -ExecutionPolicy Bypass -File ./deploy-all.ps1",
+    "docker:build": "docker build -t craftscape-backend ./server",
+    "docker:build:frontend": "docker build -t craftscape-frontend .",
+    "docker:run": "docker run -p 8080:8080 --env-file .env craftscape-backend",
+    "docker:run:frontend": "docker run -p 8080:8080 craftscape-frontend",
+    "docker:test": "npm run docker:build && npm run docker:run",
+    "docker:test:frontend": "npm run docker:build:frontend && npm run docker:run:frontend"
   },
   "dependencies": {
     "@google/genai": "^1.20.0",
@@ -27,8 +48,12 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.16",
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.1.0",
+    "nodemon": "^3.1.7",
+    "postcss": "^8.5.6",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

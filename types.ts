@@ -65,6 +65,35 @@ export interface Order {
     status: OrderStatus;
 }
 
+export interface ChatMessage {
+    id: string;
+    sender: 'customer' | 'artisan';
+    originalText: string;
+    translatedText?: string;
+    language: 'en' | 'zh';
+    timestamp: string;
+}
+
+export interface FaceProfile {
+    id: string;
+    label: LocalizedString;
+    imageUrl: string;
+    source: 'preset' | 'upload';
+    createdAt: string;
+}
+
+export interface TryOnLook {
+    id: string;
+    craftId: number;
+    craftName: string;
+    imageUrl: string;
+    faceId: string;
+    faceLabel: string;
+    prompt: string;
+    mode: 'cheongsam';
+    createdAt: string;
+}
+
 export interface MessageThread {
     id: string;
     customerName: string;
@@ -73,6 +102,7 @@ export interface MessageThread {
     unread: boolean;
     avatar: string;
     productId: number;
+    messages?: ChatMessage[];
 }
 
 export interface AiCreation {
@@ -81,6 +111,16 @@ export interface AiCreation {
   craftName: string;
   prompt: string;
   imageUrl: string;
+}
+
+export type TranslationStrategy = 'phonetic' | 'meaning' | 'mixed';
+
+export interface TranslationOption {
+  id: string;
+  chinese: string;
+  pronunciation: string;
+  explanation: string;
+  strategy: TranslationStrategy;
 }
 
 // TextLab specific types
@@ -103,7 +143,18 @@ export interface CanvasElement {
   isOutline: boolean;
 }
 
+export interface AiLayoutElement {
+  glyph: GlyphName;
+  x: number;
+  y: number;
+  scale: number;
+  rotation: number;
+  fontWeight: number;
+  isMirror?: boolean;
+  isOutline?: boolean;
+}
+
 export interface AiLayout {
   description: string;
-  elements: Omit<CanvasElement, 'id' | 'zIndex' | 'char'>[];
+  elements: AiLayoutElement[];
 }

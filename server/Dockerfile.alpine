@@ -1,0 +1,37 @@
+# Use Node.js 20 LTS as base image (required for @google/genai)
+FROM node:20-alpine
+
+# Set working directory
+WORKDIR /app
+
+# Install build dependencies for canvas and native modules
+# These are required for the 'canvas' package to compile
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    cairo-dev \
+    jpeg-dev \
+    pango-dev \
+    giflib-dev \
+    pixman-dev \
+    librsvg-dev
+
+# Copy package files
+COPY package*.json ./
+
+# Install dependencies with verbose logging
+RUN npm ci --omit=dev --verbose || npm install --omit=dev --verbose
+
+# Copy source code
+COPY . .
+
+# Build the application
+RUN npm run build
+
+# Cloud Run automatically sets PORT env var, so we don't set it here
+# The application should listen on process.env.PORT
+EXPOSE 8080
+
+# Start the application
+CMD ["npm", "run", "start:prod"]

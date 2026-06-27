@@ -1,6 +1,8 @@
 // Configuration file for the application
 require('dotenv').config();
 
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
 const config = {
   // Database Configuration
   database: {
@@ -24,9 +26,9 @@ const config = {
 
   // AI Service Configuration
   ai: {
-    apiKey: process.env.GOOGLE_AI_API_KEY,
-    enabled: !!process.env.GOOGLE_AI_API_KEY,
-    imageModel: process.env.GOOGLE_AI_IMAGE_MODEL || 'imagen-4.0-generate-001',
+    apiKey: GEMINI_API_KEY,
+    enabled: !!GEMINI_API_KEY,
+    imageModel: process.env.GOOGLE_AI_IMAGE_MODEL || 'gemini-2.5-flash-latest',
   },
 
   // JWT Configuration

@@ -2,7 +2,7 @@
 import type { Craft, Product, Event, Order, Artisan, MessageThread } from '../types';
 import { authService } from './authService';
 
-const API_BASE_URL = 'http://localhost:3001/api';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 
 // Helper function for making HTTP requests
 async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T> {
@@ -86,23 +86,73 @@ export const getArtisans = async (): Promise<Artisan[]> => {
 };
 
 export const getMessageThreads = async (): Promise<MessageThread[]> => {
-    return apiRequest<MessageThread[]>('/messages');
+    const threads = await apiRequest<MessageThread[]>('/messages');
+
+    try {
+        const { MESSAGE_THREADS } = await import('../constants');
+        const enrichedMap = new Map(MESSAGE_THREADS.map(thread => [thread.id, thread]));
+
+        return threads.map(thread => {
+            const enriched = enrichedMap.get(thread.id);
+            if (!enriched) {
+                return thread;
+            }
+
+            return {
+                ...thread,
+                lastMessage: enriched.lastMessage,
+                timestamp: enriched.timestamp,
+                avatar: enriched.avatar,
+                messages: enriched.messages,
+            };
+        });
+    } catch (error) {
+        console.warn('Failed to enrich message threads with local data:', error);
+        return threads;
+    }
 };
 
 /**
  * AI Image Generation API
  * This calls the backend endpoint that securely handles the AI API key
  */
-export const generateCraftImageApi = async (craftName: string, userPrompt: string): Promise<string> => {
+export const generateCraftImageApi = async (
+    craftName: string, 
+    userPrompt: string,
+    referenceImageUrl?: string
+): Promise<string> => {
     try {
         const response = await apiRequest<{ imageUrl: string }>('/ai/generate-image', {
             method: 'POST',
-            body: JSON.stringify({ craftName, userPrompt }),
+            body: JSON.stringify({ craftName, userPrompt, referenceImageUrl }),
         });
         
         return response.imageUrl;
     } catch (error) {
         console.error('Failed to generate craft image:', error);
         throw new Error('Failed to generate image. Please try again later.');
+    }
+};
+
+/**
+ * AI Try-On Image Generation API
+ * This calls the backend endpoint for cheongsam try-on with face reference
+ */
+export const generateTryOnImageApi = async (
+    craftName: string, 
+    faceImageUrl: string, 
+    userPrompt: string,
+    existingCheongsamImageUrl?: string
+): Promise<string> => {
+    try {
+        const response = await apiRequest<{ imageUrl: string }>('/ai/generate-tryon', {
+            method: 'POST',
+            body: JSON.stringify({ craftName, faceImageUrl, userPrompt, existingCheongsamImageUrl }),
+        });
+        
+        return response.imageUrl;
+    } catch (error) {
+        console.error('Failed to generate try-on image:', error);
+        throw new Error('Failed to generate try-on image. Please try again later.');
     }
 };

@@ -1,5 +1,5 @@
-import React from 'react';
-import { useLanguage } from '../contexts/LanguageContext';
+import React from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 
 interface ChatroomProps {
   artisanName: string;
@@ -12,11 +12,27 @@ const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
     <div className="h-full w-full bg-[var(--color-bg)] flex flex-col">
       <header className="flex items-center justify-between p-4 flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md">
         <div className="text-left">
-          <h1 className="text-[22px] font-bold text-[var(--color-text-primary)]">{t('chatroomWith', { name: artisanName })}</h1>
+          <h1 className="text-[22px] font-bold text-[var(--color-text-primary)]">
+            {t("chatroomWith", { name: artisanName })}
+          </h1>
         </div>
-        <button onClick={onClose} className="bg-[var(--color-surface)] p-2 rounded-full text-[var(--color-text-primary)] border border-[var(--color-border)]">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        <button
+          onClick={onClose}
+          className="bg-[var(--color-surface)] p-2 rounded-full text-[var(--color-text-primary)] border border-[var(--color-border)]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
       </header>
@@ -37,16 +53,37 @@ const Chatroom: React.FC<ChatroomProps> = ({ artisanName, onClose }) => {
       </div>
 
       {/* Input Area */}
-      <div className="p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]">
+      <div
+        className="fixed bottom-0 left-0 w-full z-30 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)]"
+        style={{
+          background: "var(--color-nav-bg, var(--color-surface))",
+          backdropFilter: "blur(20px)",
+          WebkitBackdropFilter: "blur(20px)",
+          borderTop: "1px solid var(--color-nav-border, var(--color-border))",
+          borderRadius: "16px 16px 0 0",
+          boxShadow: "0 -4px 20px rgba(0,0,0,0.08)",
+        }}
+      >
         <div className="flex items-center space-x-2">
           <input
             type="text"
-            placeholder={t('chatroomPlaceholder')}
+            placeholder={t("chatroomPlaceholder")}
             className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-full py-3 px-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)]"
           />
           <button className="bg-[var(--color-primary-accent)] text-white p-3 rounded-full flex-shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 10l7-7m0 0l7 7m-7-7v18"
+              />
             </svg>
           </button>
         </div>

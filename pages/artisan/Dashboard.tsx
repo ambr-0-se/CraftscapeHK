@@ -15,7 +15,7 @@ interface StatCardProps {
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon, onClick, isLoading }) => {
     const cardContent = (
         <div className="bg-[var(--color-surface)] p-4 rounded-2xl flex items-center space-x-4 border border-[var(--color-border)] ios-shadow w-full h-full transition-transform duration-200 ease-in-out hover:scale-105">
-            <div className="bg-[var(--color-secondary-accent)] p-3 rounded-xl">
+            <div className="bg-[var(--color-text-inactive)] p-3 rounded-xl">
                 {icon}
             </div>
             <div>

@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx tsc)",
+      "Bash(npm run dev:stack:watch:*)",
+      "Bash(npm run start:prod:*)",
+      "Bash(npm run server:build:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

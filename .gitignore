@@ -21,6 +21,7 @@ database.sqlite
 # IDE and editor files
 .vscode/
 .idea/
+.gemini/
 *.swp
 *.swo
 *~
@@ -50,9 +51,8 @@ logs
 temp/
 tmp/
 
-# Package-lock files (optional - remove if you want to track them)
-package-lock.json
-server/package-lock.json
+# Debug reference images
+public/debug-references/
 
 # Compiled JavaScript files (since we have TypeScript)
 *.js.map

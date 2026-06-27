@@ -1,0 +1,52 @@
+# Dependencies
+node_modules
+server/node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build outputs
+dist
+build
+*.local
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation
+*.md
+README.md
+AGENTS.md
+chat.md
+CLOUD_BUILD_SETUP.md
+
+# Scripts
+*.ps1
+*.sh
+
+# Server directory (for frontend build)
+server
+
+# Misc
+metadata.json
+vercel.json

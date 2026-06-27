@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overscroll-behavior-y: contain;
+}
+
+.tinder-card {
+  touch-action: none;
+}
+
+:root,
+[data-theme="light"] {
+  /* Modern Blue Palette Light Mode */
+  --color-bg: #F8F9FA;
+  /* Off-white background */
+  --color-page-bg: #F3F4F6;
+  /* Very light grey for page background */
+  --color-surface: #FFFFFF;
+  /* Pure white for cards and content areas */
+  --color-primary-accent: #053A6A;
+  /* Primary Dark Blue for headers, navigation, icons */
+  --color-secondary-accent: #085ea7;
+  --color-secondary-accent-light: #52b9fc;
+  /* Secondary Light Blue for buttons, highlights */
+  --color-text-primary: #053A6A;
+  /* Dark blue text for main content */
+  --color-text-secondary: #8a8a8a;
+  --color-text-inactive: #e7f5fe;
+  --color-text-red: #972226;
+  /* Neutral grey for descriptions - darker and less green */
+  --color-border: #8a8a8a;
+  /* Neutral grey for borders - darker and less green */
+  --color-success: #045832;
+  --color-error: #e23940;
+  /* Accent Red for error messages */
+  --color-accent-red: #e23940;
+  /* Accent Red for highlights and decorative elements */
+  --color-accent-red-light: rgba(226, 57, 64, 0.5);
+  /* Light accent red at 30% opacity for subtle borders */
+  --color-divider: #8a8a8a;
+
+  /* Button colors */
+  --color-button-bg: #053A6A;
+  /* Secondary Light Blue for main buttons */
+  --color-button-text: #FFFFFF;
+  --color-button-cta: #972226;
+  /* Accent Red for CTA buttons */
+
+  /* Navigation */
+  --color-nav-bg: rgba(248, 249, 250, 0.8);
+  --color-nav-border: rgba(138, 138, 138, 0.3);
+}
+
+[data-theme="dark"] {
+  /* Modern Blue Palette Dark Mode */
+  --color-bg: #0A1A2E;
+  /* Dark blue background */
+  --color-page-bg: #0A1A2E;
+  --color-surface: #16213E;
+  /* Slightly lighter dark blue for cards */
+  --color-primary-accent: #3178AC;
+  /* Light blue for headers, navigation in dark mode */
+  --color-secondary-accent: #053A6A;
+  /* Dark blue for secondary elements */
+  --color-text-primary: #FFFFFF;
+  /* White text for main content */
+  --color-text-secondary: #e7f5fe;
+  --color-text-inactive: #e7f5fe;
+  --color-text-red: #af2c31;
+  /* Light blue-grey for better contrast on dark backgrounds */
+  --color-border: #2A3B5C;
+  /* Dark blue-grey for borders */
+  --color-success: #5A8B73;
+  --color-error: #972226;
+  /* Accent Red for error messages */
+  --color-accent-red: #972226;
+  /* Accent Red for highlights and decorative elements */
+  --color-accent-red-light: rgba(226, 57, 64, 0.5);
+  /* Light accent red at 30% opacity for subtle borders */
+  --color-divider: #2A3B5C;
+
+  /* Button colors */
+  --color-button-bg: #053A6A;
+  /* Light blue for main buttons */
+  --color-button-text: #FFFFFF;
+  --color-button-cta: #972226;
+  /* Accent Red for CTA buttons */
+
+  /* Navigation */
+  --color-nav-bg: rgba(10, 26, 46, 0.8);
+  --color-nav-border: rgba(42, 59, 92, 0.3);
+}
+
+.ios-shadow {
+  /* Soft bluish shadows for light mode */
+  box-shadow: 0px 2px 8px rgba(5, 58, 106, 0.08), 0px 4px 16px rgba(5, 58, 106, 0.12);
+}
+
+[data-theme="dark"] .ios-shadow {
+  /* Soft bluish shadows for dark mode */
+  box-shadow: 0px 2px 8px rgba(5, 58, 106, 0.15), 0px 4px 16px rgba(5, 58, 106, 0.25);
+}
+
+/* Typography improvements */
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", "SF Pro Display", "Manrope", Roboto, Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* Museum-style card styling */
+.museum-card {
+  border-radius: 12px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  transition: all 0.2s ease;
+}
+
+.museum-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0px 4px 16px rgba(5, 58, 106, 0.15);
+}
+
+[data-theme="dark"] .museum-card:hover {
+  box-shadow: 0px 4px 16px rgba(5, 58, 106, 0.25);
+}
+
+/* Navigation styling */
+.nav-translucent {
+  background: var(--color-nav-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--color-nav-border);
+  border-radius: 16px 16px 0 0;
+}

@@ -7,7 +7,7 @@ import { Event } from './entities/event.entity';
 import { Artisan } from './entities/artisan.entity';
 import { Order } from './entities/order.entity';
 import { MessageThread } from './entities/message-thread.entity';
-import { CRAFTS, PRODUCTS, EVENTS, ARTISANS, ORDERS, MESSAGE_THREADS } from '../../constants.cjs';
+const { CRAFTS, PRODUCTS, EVENTS, ARTISANS, ORDERS, MESSAGE_THREADS } = require('../../constants.cjs');
 
 async function seed() {
   console.log('🌱 Starting database seeding...');

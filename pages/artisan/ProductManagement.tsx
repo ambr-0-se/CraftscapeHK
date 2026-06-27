@@ -4,7 +4,7 @@ import { Product } from '../../types';
 import Spinner from '../../components/Spinner';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const ARTISAN_NAME = "張師傅"; // Hardcoded for this demo
+const ARTISAN_NAME = "王師傅"; // Hardcoded for this demo
 
 const ProductManagement: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);

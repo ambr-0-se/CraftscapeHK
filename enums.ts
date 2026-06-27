@@ -1,9 +1,9 @@
  export enum Tab {
+   Play = 'Play',
    Explore = 'explore',
    Marketplace = 'marketplace',
    Events = 'events',
    Profile = 'profile',
-   Play = 'play',
  }
  
  export enum View {
@@ -14,6 +14,7 @@
    ProductDetail = 'productDetail',
    Chatroom = 'chatroom',
    TextLab = 'textLab',
+   Play = 'play',
  }
  
  export enum ArtisanView {

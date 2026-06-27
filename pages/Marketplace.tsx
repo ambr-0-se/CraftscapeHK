@@ -1,6 +1,7 @@
 
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { getProducts } from '../services/apiService';
 import { Product } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -8,32 +9,42 @@ import { useLanguage } from '../contexts/LanguageContext';
 const ProductCard: React.FC<{ product: Product, onSelect: () => void }> = ({ product, onSelect }) => {
     const { language } = useLanguage();
     return (
-        <button onClick={onSelect} className="bg-[var(--color-surface)] rounded-2xl overflow-hidden ios-shadow border border-transparent hover:border-[var(--color-border)] transition-colors text-left flex flex-col">
-            <img src={product.image} alt={product.name[language]} className="w-full h-48 object-cover"/>
-            <div className="p-4 flex flex-col flex-grow">
-                <h3 className="font-semibold text-[17px] truncate text-[var(--color-text-primary)]">{product.name[language]}</h3>
-                <p className="text-[var(--color-text-secondary)] text-[17px]">{product.artisan[language]}</p>
-                <div className="flex-grow"></div>
-                <div className="mt-2">
-                    <p className="text-[var(--color-text-primary)] font-bold text-[17px]">{product.priceDisplay[language]}</p>
-                    {product.priceSubDisplay && <p className="text-sm text-[var(--color-text-secondary)]">{product.priceSubDisplay[language]}</p>}
+        <motion.button 
+            onClick={onSelect} 
+            className="w-full museum-card overflow-hidden text-left flex flex-row group p-4"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        >
+            <div className="relative w-20 h-20 flex-shrink-0 overflow-hidden rounded-lg">
+                <img 
+                    src={product.image} 
+                    alt={product.name[language]} 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+            </div>
+            <div className="flex-1 ml-4 flex flex-col justify-center">
+                <h3 className="font-semibold text-base text-[var(--color-text-primary)] mb-1 leading-tight">
+                    {product.name[language]}
+                </h3>
+                <p className="text-sm text-[var(--color-text-secondary)] mb-2 truncate">
+                    {product.artisan[language]}
+                </p>
+                <div className="flex items-center justify-between">
+                    <p className="text-[var(--color-text-primary)] font-bold text-lg">
+                        {product.priceDisplay[language]}
+                    </p>
+                    {product.priceSubDisplay && (
+                        <p className="text-xs text-[var(--color-text-secondary)]">
+                            {product.priceSubDisplay[language]}
+                        </p>
+                    )}
                 </div>
             </div>
-        </button>
+        </motion.button>
     );
 };
 
-const SkeletonCard = () => (
-    <div className="bg-[var(--color-surface)] rounded-2xl overflow-hidden ios-shadow border border-transparent animate-pulse flex flex-col">
-        <div className="w-full h-48 bg-[var(--color-secondary-accent)]"></div>
-        <div className="p-4 flex flex-col flex-grow">
-            <div className="h-4 bg-[var(--color-secondary-accent)] rounded w-3/4 mb-2"></div>
-            <div className="h-3 bg-[var(--color-secondary-accent)] rounded w-1/2 mb-4"></div>
-            <div className="flex-grow"></div>
-            <div className="h-5 bg-[var(--color-secondary-accent)] rounded w-1/3 mt-2"></div>
-        </div>
-    </div>
-);
 
 interface MarketplaceProps {
     onSelectProduct: (product: Product) => void;
@@ -63,40 +74,65 @@ const Marketplace: React.FC<MarketplaceProps> = ({ onSelectProduct }) => {
         );
     }, [searchTerm, products, language]);
 
-    return (
-        <div className="h-full w-full flex flex-col p-6 bg-[var(--color-bg)] overflow-y-auto">
-            <header className="mb-6">
-                <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{t('marketplaceTitle')}</h1>
-                <p className="text-[17px] text-[var(--color-text-secondary)]">{t('marketplaceDesc')}</p>
-            </header>
 
-            <div className="relative mb-6">
-                <input
-                    type="text"
-                    placeholder={t('marketplaceSearchPlaceholder')}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)]"
-                />
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
+    return (
+        <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
+            {/* Header */}
+            <div className="sticky top-0 z-10 bg-[var(--color-bg)]/80 backdrop-blur-sm border-b border-[var(--color-border)] px-4 py-4">
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
+                    {t('marketplaceTitle')}
+                </h1>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                    {t('marketplaceDesc')}
+                </p>
+            </div>
+
+            {/* Search */}
+            <div className="px-4 py-6">
+                <div className="relative">
+                    <input
+                        type="text"
+                        placeholder={t('marketplaceSearchPlaceholder')}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text-primary)] rounded-xl py-3 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] focus:border-transparent transition-all duration-200"
+                    />
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-text-secondary)]">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                    </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 pb-24">
+            {/* Vertical Product List */}
+            <div className="flex-1 pb-24">
                 {isLoading ? (
-                    <>
-                        <SkeletonCard />
-                        <SkeletonCard />
-                        <SkeletonCard />
-                        <SkeletonCard />
-                    </>
+                    <div className="px-4 space-y-4">
+                        {[...Array(6)].map((_, i) => (
+                            <div key={i} className="flex space-x-4 p-4 bg-[var(--color-surface)] rounded-xl">
+                                <div className="w-20 h-20 bg-[var(--color-secondary-accent)] rounded-lg animate-pulse"></div>
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-4 bg-[var(--color-secondary-accent)] rounded w-3/4 animate-pulse"></div>
+                                    <div className="h-3 bg-[var(--color-secondary-accent)] rounded w-1/2 animate-pulse"></div>
+                                    <div className="h-3 bg-[var(--color-secondary-accent)] rounded w-1/4 animate-pulse"></div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 ) : (
-                    filteredProducts.map(product => (
-                        <ProductCard key={product.id} product={product} onSelect={() => onSelectProduct(product)} />
-                    ))
+                    // Vertical Product List (Events-style)
+                    <div className="px-4 space-y-4">
+                        {filteredProducts.map(product => (
+                            <ProductCard key={product.id} product={product} onSelect={() => onSelectProduct(product)} />
+                        ))}
+                        {filteredProducts.length === 0 && (
+                            <div className="text-center py-12">
+                                <p className="text-[var(--color-text-secondary)] mb-2">{t('marketplaceNoProducts')}</p>
+                                <p className="text-sm text-[var(--color-text-secondary)]">{t('marketplaceNoProductsHint')}</p>
+                            </div>
+                        )}
+                    </div>
                 )}
             </div>
         </div>

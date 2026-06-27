@@ -1,13 +1,20 @@
 
 import React, { createContext, useState, useContext, ReactNode, useCallback } from 'react';
-import type { AiCreation } from '../types';
+import type { AiCreation, FaceProfile, TryOnLook } from '../types';
+import { CHEONGSAM_FACE_PRESETS } from '../constants';
 
 interface AppContextType {
   favorites: Set<number>;
   aiCreations: AiCreation[];
+  faceProfiles: FaceProfile[];
+  activeFaceId: string | null;
+  tryOnLooks: TryOnLook[];
   toggleFavorite: (id: number) => void;
   addAiCreation: (creation: Omit<AiCreation, 'id'>) => void;
   isFavorite: (id: number) => boolean;
+  addFaceProfile: (face: Omit<FaceProfile, 'id' | 'createdAt'>) => string;
+  setActiveFace: (faceId: string | null) => void;
+  addTryOnLook: (look: Omit<TryOnLook, 'id' | 'createdAt'>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -15,6 +22,9 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export const AppContextProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
   const [aiCreations, setAiCreations] = useState<AiCreation[]>([]);
+  const [faceProfiles, setFaceProfiles] = useState<FaceProfile[]>(CHEONGSAM_FACE_PRESETS);
+  const [activeFaceId, setActiveFaceId] = useState<string | null>(CHEONGSAM_FACE_PRESETS[0]?.id ?? null);
+  const [tryOnLooks, setTryOnLooks] = useState<TryOnLook[]>([]);
 
   const toggleFavorite = useCallback((id: number) => {
     setFavorites(prev => {
@@ -40,7 +50,45 @@ export const AppContextProvider: React.FC<{ children: ReactNode }> = ({ children
     setAiCreations(prev => [newCreation, ...prev]);
   }, []);
 
-  const value = { favorites, aiCreations, toggleFavorite, addAiCreation, isFavorite };
+  const addFaceProfile = useCallback((face: Omit<FaceProfile, 'id' | 'createdAt'>) => {
+    const id = `face-${Date.now()}`;
+    const newFace: FaceProfile = {
+      ...face,
+      id,
+      createdAt: new Date().toISOString(),
+    };
+    setFaceProfiles(prev => [newFace, ...prev.filter(existing => existing.id !== newFace.id)]);
+    setActiveFaceId(id);
+    return id;
+  }, []);
+
+  const setActiveFace = useCallback((faceId: string | null) => {
+    setActiveFaceId(faceId);
+  }, []);
+
+  const addTryOnLook = useCallback((look: Omit<TryOnLook, 'id' | 'createdAt'>) => {
+    const id = `tryon-${Date.now()}`;
+    const newLook: TryOnLook = {
+      ...look,
+      id,
+      createdAt: new Date().toISOString(),
+    };
+    setTryOnLooks(prev => [newLook, ...prev]);
+  }, []);
+
+  const value = {
+    favorites,
+    aiCreations,
+    faceProfiles,
+    activeFaceId,
+    tryOnLooks,
+    toggleFavorite,
+    addAiCreation,
+    isFavorite,
+    addFaceProfile,
+    setActiveFace,
+    addTryOnLook,
+  };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };

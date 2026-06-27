@@ -36,8 +36,8 @@ const Play: React.FC = () => {
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-page-bg)] text-[var(--color-text-primary)] overflow-y-auto">
             <header className="p-6 pb-2 sticky top-0 bg-[var(--color-page-bg)]/80 backdrop-blur-md z-10">
-                <h1 className="text-2xl font-bold text-[var(--color-primary-accent)] mb-1">
-                    {language === 'zh' ? '遊玩 (AR)' : 'Play (AR)'}
+                <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">
+                    {language === 'zh' ? '遊玩' : 'Play'}
                 </h1>
                 <p className="text-[17px] text-[var(--color-text-secondary)]">
                     {language === 'zh' ? '中國結 AR 體驗' : 'Chinese Knot AR Experience'}
@@ -77,7 +77,7 @@ const Play: React.FC = () => {
                             <div className="space-y-3">
                                 <button
                                     onClick={handlePlayNowIOS}
-                                    className="w-full bg-gradient-to-r from-[#8B5CF6] to-[#A855F7] hover:from-[#7C3AED] hover:to-[#9333EA] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                                    className="w-full bg-gradient-to-r from-[var(--color-primary-accent)] to-[var(--color-secondary-accent)] hover:from-[#042A4F] hover:to-[#053A6A] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                                 >
                                     <div className="absolute left-5 w-7 h-7 bg-white/20 rounded-full flex items-center justify-center">
                                         <svg className="w-3.5 h-3.5 text-white" fill="currentColor" viewBox="0 0 24 24">
@@ -90,7 +90,7 @@ const Play: React.FC = () => {
                                 </button>
                                 <button
                                     onClick={handleDownloadUSDZ}
-                                    className="w-full bg-gradient-to-r from-[#059669] to-[#047857] hover:from-[#047857] hover:to-[#065f46] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-[1.01]"
+                                    className="w-full bg-[var(--color-primary-accent)] hover:bg-[var(--color-primary-accent)]/90 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                                 >
                                     <div className="absolute left-5 w-7 h-7 bg-white/20 rounded-full flex items-center justify-center">
                                         <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
@@ -105,7 +105,7 @@ const Play: React.FC = () => {
                         ) : (
                             <button
                                 onClick={handleDownloadUSDZ}
-                                className="w-full bg-gradient-to-r from-[#059669] to-[#047857] hover:from-[#047857] hover:to-[#065f46] text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                                className="w-full bg-[var(--color-primary-accent)] hover:bg-[var(--color-primary-accent)]/90 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-300 relative flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                             >
                                 <div className="absolute left-5 w-7 h-7 bg-white/20 rounded-full flex items-center justify-center">
                                     <svg className="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>

@@ -4,7 +4,45 @@ import type { MessageThread } from '../../types';
 import Spinner from '../../components/Spinner';
 import { useLanguage } from '../../contexts/LanguageContext';
 
-const MessageThreadCard: React.FC<{ thread: MessageThread; onSelect: () => void; }> = ({ thread, onSelect }) => (
+const stripMarkup = (value: string): { text: string; hadImage: boolean } => {
+    const imageRegex = /<image[^>]*\/>/g;
+    const hadImage = imageRegex.test(value);
+    const withoutImages = value.replace(imageRegex, '').trim();
+    const withoutSystem = withoutImages.replace(/<system[^>]*>([\s\S]*?)<\/system>/g, (_, body) => body.trim());
+    const cleaned = withoutSystem.trim();
+    return { text: cleaned, hadImage };
+};
+
+const getPreviewText = (thread: MessageThread, language: 'en' | 'zh'): string => {
+    if (!thread.messages || thread.messages.length === 0) {
+        const { text: fallbackText, hadImage } = stripMarkup(thread.lastMessage);
+        if (fallbackText.length === 0 && hadImage) {
+            return '🖼️ Attachment';
+        }
+        return fallbackText || thread.lastMessage;
+    }
+    const lastMessage = thread.messages[thread.messages.length - 1];
+    const { originalText, translatedText, language: messageLanguage } = lastMessage;
+
+    const previewSource = language === messageLanguage ? originalText : translatedText ?? originalText;
+    const { text: cleaned, hadImage } = stripMarkup(previewSource);
+
+    if (cleaned.length === 0 && hadImage) {
+        return '🖼️ Attachment';
+    }
+
+    if (language === messageLanguage) {
+        return cleaned || originalText;
+    }
+
+    if (translatedText) {
+        return cleaned || translatedText;
+    }
+
+    return cleaned || originalText;
+};
+
+const MessageThreadCard: React.FC<{ thread: MessageThread; onSelect: () => void; language: 'en' | 'zh'; }> = ({ thread, onSelect, language }) => (
     <button onClick={onSelect} className="w-full bg-[var(--color-surface)] p-4 rounded-2xl flex items-center space-x-4 border border-[var(--color-border)] ios-shadow text-left transition-transform duration-200 ease-in-out hover:scale-[1.02]">
         <div className="relative flex-shrink-0">
             <img src={thread.avatar} alt={thread.customerName} className="w-14 h-14 object-cover rounded-full" />
@@ -18,7 +56,7 @@ const MessageThreadCard: React.FC<{ thread: MessageThread; onSelect: () => void;
                 <p className="text-xs text-[var(--color-text-secondary)] flex-shrink-0 ml-2">{thread.timestamp}</p>
             </div>
             <p className={`text-sm text-[var(--color-text-secondary)] truncate ${thread.unread ? 'font-semibold text-[var(--color-text-primary)]' : ''}`}>
-                {thread.lastMessage}
+                {getPreviewText(thread, language)}
             </p>
         </div>
     </button>
@@ -31,7 +69,7 @@ interface MessagesProps {
 const Messages: React.FC<MessagesProps> = ({ onSelectThread }) => {
     const [threads, setThreads] = useState<MessageThread[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -60,7 +98,7 @@ const Messages: React.FC<MessagesProps> = ({ onSelectThread }) => {
             <div className="flex-grow p-6 space-y-3 pb-24">
                 {isLoading ? <Spinner text={t('spinnerMessages')} /> : (
                     threads.map(thread => (
-                        <MessageThreadCard key={thread.id} thread={thread} onSelect={() => onSelectThread(thread)} />
+                        <MessageThreadCard key={thread.id} thread={thread} language={language} onSelect={() => onSelectThread(thread)} />
                     ))
                 )}
             </div>
