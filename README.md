@@ -75,15 +75,30 @@ Craftscape HK is an **AI + AR e-commerce platform** where users can:
    > The root `postinstall` hook installs the NestJS backend in `server/` so you only run this once.
 
 3. **Set Environment Variables**
-   Create a `.env` file in the repository root with the following content:
+   Create a `.env` file in the repository root. For the default direct Google setup:
    ```bash
    GEMINI_API_KEY="<replace_this_with_your_api_key>"
    ```
    Both the Vite app and the NestJS API will consume it.
 
-   You may also put add this line to the `.env` file to override the model used in image generation (default: `gemini-2.5-flash-latest`).
+   You may also add these lines to override the models used by the AI service:
    ```bash
-   GOOGLE_AI_IMAGE_MODEL="<replace_this_with_your_preferred_model_id>"
+   GOOGLE_AI_TEXT_MODEL="gemini-3.5-flash"
+   GOOGLE_AI_IMAGE_MODEL="gemini-3.1-flash-image"
+   ```
+
+   HKU ITS Gemini/OpenAI credits are also supported. Get the subscription key and operation details from the [HKU ITS developer portal](https://developer.hku.hk/), then configure:
+   ```bash
+   AI_PROVIDER="hku"
+   AI_IMAGE_PROVIDER_ORDER="hku-gemini,hku-openai,google"
+
+   HKU_GEMINI_API_KEY="<replace_this_with_your_hku_subscription_key>"
+   HKU_GEMINI_BASE_URL="https://api.hku.hk/gemini/student"
+   HKU_GEMINI_TEXT_DEPLOYMENT_ID="gemini-3.5-flash"
+   HKU_GEMINI_IMAGE_DEPLOYMENT_IDS="gemini-3.1-flash-image,gemini-2.5-flash-image,gemini-3-pro-image"
+
+   HKU_OPENAI_IMAGE_DEPLOYMENT_IDS="gpt-image-1.5,gpt-image-2"
+   HKU_OPENAI_API_VERSION="2025-04-01-preview"
    ```
 
 4. **Seed Database**
@@ -109,25 +124,55 @@ Craftscape HK is an **AI + AR e-commerce platform** where users can:
 ### AI Setup
 
 #### Environment variables
-- GEMINI_API_KEY — Google AI Studio API key
-- GOOGLE_AI_IMAGE_MODEL — optional override for Imagen model id
+- `AI_PROVIDER` — `google` or `hku` (defaults to `google`)
+- `AI_IMAGE_PROVIDER_ORDER` — comma-separated fallback order, e.g. `hku-gemini,hku-openai,google`
+- `GEMINI_API_KEY` — Google AI Studio API key for direct Google fallback
+- `GOOGLE_AI_TEXT_MODEL` — optional direct Google text model override
+- `GOOGLE_AI_IMAGE_MODEL` — optional direct Google image model override
+- `HKU_GEMINI_API_KEY` — HKU ITS developer portal subscription key
+- `HKU_GEMINI_BASE_URL` — defaults to `https://api.hku.hk/gemini/student`
+- `HKU_GEMINI_TEXT_DEPLOYMENT_ID` — HKU Gemini text deployment id
+- `HKU_GEMINI_IMAGE_DEPLOYMENT_IDS` — comma-separated HKU Gemini image deployment fallback list
+- `HKU_OPENAI_IMAGE_DEPLOYMENT_IDS` — comma-separated HKU OpenAI image deployment fallback list
+- `HKU_OPENAI_API_VERSION` — HKU OpenAI image API version, currently `2025-04-01-preview`
 
 Place the variable in your shell or a .env loaded by your process manager before starting the server.
 
-#### Images API (Imagen 4) access
-The endpoint api/ai/generate-image uses the Google GenAI SDK with model gemini-2.5-flash-latest.
-Google’s Images API is not available on free keys. If you see: "Imagen API is only accessible to billed users at this time."
+#### Image generation providers and quotas
+The `api/ai/generate-image` endpoint supports a provider fallback chain. It tries each configured provider/model in order and skips quota/rate-limit/provider-unavailable errors before trying the next one.
+
+HKU ITS credits are available through the [HKU ITS developer portal](https://developer.hku.hk/). Current student quota limits shown in the portal:
+
+| Provider | Deployment | Limit |
+| --- | --- | --- |
+| HKU Gemini | `gemini-2.5-flash-image` | 70/week |
+| HKU Gemini | `gemini-3.1-flash-image` | 35/week |
+| HKU Gemini | `gemini-3-pro-image` | 15/week |
+| HKU OpenAI | `gpt-image-1.5` | 70/week |
+| HKU OpenAI | `gpt-image-2` | 70/week |
+
+HKU OpenAI image generation uses:
+
+```text
+POST https://api.hku.hk/openai/student/{deployment-id}/images/generations?api-version=2025-04-01-preview
+```
+
+The HKU gateway currently expects the subscription key as a query parameter named `subscription-key`.
+
+Direct Google image generation is still supported as a fallback, but Google’s free tier may have no image-generation quota for the configured image model.
 
 Do this:
-1. Go to Google AI Studio > API Keys > Create or select your key
-2. Upgrade to a paid/billing-enabled key and ensure Images API access is enabled for that key
-3. Copy the key and export it as GEMINI_API_KEY on the server
+1. For HKU, create/select a subscription in the HKU ITS developer portal and set `HKU_GEMINI_API_KEY`
+2. For direct Google fallback, create/select a Google AI Studio key and set `GEMINI_API_KEY`
+3. Configure `AI_IMAGE_PROVIDER_ORDER` to control fallback order
 4. Restart the NestJS server
 
 #### Troubleshooting
-- 400 INVALID_ARGUMENT with billed-users message: your key isn’t Images-enabled. Use a paid AI Studio key.
-- 401 or 403: wrong key, missing export, or project/org restrictions.
-- Region errors: Images is only in certain regions; AI Studio routes automatically. Vertex requires explicit regions.
+- HKU `401` missing subscription key: check `HKU_GEMINI_API_KEY` / `HKU_OPENAI_API_KEY` and restart the backend.
+- HKU `403 Out of call volume quota`: that deployment is out of quota; the fallback chain will try the next configured image provider.
+- HKU `404 Resource not found`: check the operation URL and deployment id in the HKU developer portal.
+- Google `API_KEY_INVALID`: wrong or stale `GEMINI_API_KEY`.
+- Google `RESOURCE_EXHAUSTED`: direct Google quota is exhausted or unavailable for that model.
 
 ## Deployment
 

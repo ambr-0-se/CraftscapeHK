@@ -30,7 +30,7 @@
     "docker:test:frontend": "npm run docker:build:frontend && npm run docker:run:frontend"
   },
   "dependencies": {
-    "@google/genai": "^1.20.0",
+    "@google/genai": "^2.10.0",
     "@nestjs/common": "^11.1.6",
     "@nestjs/core": "^11.1.6",
     "bcryptjs": "^3.0.2",

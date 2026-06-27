@@ -10,6 +10,409 @@ import type { TranslationOption, TranslationStrategy } from '../types/translatio
 
 @Injectable()
 export class AiService {
+  private readonly aiProvider = (process.env.AI_PROVIDER || 'google').toLowerCase();
+  private readonly textModel = process.env.GOOGLE_AI_TEXT_MODEL || 'gemini-3.5-flash';
+  private readonly imageModel = process.env.GOOGLE_AI_IMAGE_MODEL || 'gemini-3.1-flash-image';
+  private readonly imageProviderOrder = (
+    process.env.AI_IMAGE_PROVIDER_ORDER ||
+    (this.aiProvider === 'hku'
+      ? 'hku-gemini,hku-openai,google'
+      : 'google,hku-gemini,hku-openai')
+  )
+    .split(',')
+    .map((provider) => provider.trim().toLowerCase())
+    .filter(Boolean);
+  private readonly hkuGeminiBaseUrl =
+    process.env.HKU_GEMINI_BASE_URL || 'https://api.hku.hk/gemini/student';
+  private readonly hkuGeminiApiKey = process.env.HKU_GEMINI_API_KEY || process.env.HKU_API_KEY;
+  private readonly hkuGeminiAuthHeader = process.env.HKU_GEMINI_AUTH_HEADER;
+  private readonly hkuGeminiAuthScheme = process.env.HKU_GEMINI_AUTH_SCHEME || '';
+  private readonly hkuGeminiUseAuthHeader =
+    process.env.HKU_GEMINI_USE_AUTH_HEADER === 'true';
+  private readonly hkuTextDeploymentId =
+    process.env.HKU_GEMINI_TEXT_DEPLOYMENT_ID || this.textModel;
+  private readonly hkuImageDeploymentId =
+    process.env.HKU_GEMINI_IMAGE_DEPLOYMENT_ID || this.imageModel;
+  private readonly hkuImageDeploymentIds = (
+    process.env.HKU_GEMINI_IMAGE_DEPLOYMENT_IDS || this.hkuImageDeploymentId
+  )
+    .split(',')
+    .map((deploymentId) => deploymentId.trim())
+    .filter(Boolean);
+  private readonly hkuOpenAiBaseUrl =
+    process.env.HKU_OPENAI_BASE_URL || 'https://api.hku.hk/openai/student';
+  private readonly hkuOpenAiApiKey =
+    process.env.HKU_OPENAI_API_KEY ||
+    process.env.HKU_GEMINI_API_KEY ||
+    process.env.HKU_API_KEY;
+  private readonly hkuOpenAiApiVersion =
+    process.env.HKU_OPENAI_API_VERSION || '2025-04-01-preview';
+  private readonly hkuOpenAiImageDeploymentIds = (
+    process.env.HKU_OPENAI_IMAGE_DEPLOYMENT_IDS || 'gpt-image-1.5,gpt-image-2'
+  )
+    .split(',')
+    .map((deploymentId) => deploymentId.trim())
+    .filter(Boolean);
+
+  private normalizeJsonSchema(schema: unknown): unknown {
+    const typeMap: Record<string, string> = {
+      [Type.STRING]: 'string',
+      [Type.NUMBER]: 'number',
+      [Type.INTEGER]: 'integer',
+      [Type.BOOLEAN]: 'boolean',
+      [Type.ARRAY]: 'array',
+      [Type.OBJECT]: 'object',
+      [Type.NULL]: 'null',
+    };
+
+    if (Array.isArray(schema)) {
+      return schema.map((item) => this.normalizeJsonSchema(item));
+    }
+
+    if (!schema || typeof schema !== 'object') {
+      return schema;
+    }
+
+    const normalized: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(schema)) {
+      if (key === 'nullable') {
+        continue;
+      }
+      if (key === 'type' && typeof value === 'string') {
+        normalized[key] = typeMap[value] || value.toLowerCase();
+        continue;
+      }
+      normalized[key] = this.normalizeJsonSchema(value);
+    }
+
+    return normalized;
+  }
+
+  private async generateStructuredJson(
+    prompt: string,
+    schema: unknown,
+    systemInstruction: string,
+  ): Promise<string> {
+    if (this.aiProvider === 'hku') {
+      const response = await this.generateHkuContent(this.hkuTextDeploymentId, {
+        system_instruction: {
+          parts: [{ text: systemInstruction }],
+        },
+        contents: [
+          {
+            role: 'user',
+            parts: [{ text: prompt }],
+          },
+        ],
+        generationConfig: {
+          responseMimeType: 'application/json',
+          responseSchema: this.normalizeJsonSchema(schema),
+        },
+      });
+
+      const jsonText = response?.candidates?.[0]?.content?.parts
+        ?.map((part: { text?: string }) => part.text || '')
+        .join('')
+        .trim();
+      if (!jsonText) {
+        throw new Error('HKU Gemini returned an empty response.');
+      }
+
+      return jsonText;
+    }
+
+    if (!this.ai) {
+      throw new Error('Gemini client not initialised. Please configure GEMINI_API_KEY in the environment.');
+    }
+
+    const interaction = await this.ai.interactions.create({
+      model: this.textModel,
+      input: prompt,
+      system_instruction: systemInstruction,
+      response_format: {
+        type: 'text',
+        mime_type: 'application/json',
+        schema: this.normalizeJsonSchema(schema) as Record<string, unknown>,
+      },
+    });
+
+    const jsonText = interaction.output_text?.trim();
+    if (!jsonText) {
+      throw new Error('Gemini returned an empty response.');
+    }
+
+    return jsonText;
+  }
+
+  private async generateImage(
+    input: Array<{ type: 'text'; text: string } | { type: 'image'; mime_type: string; data: string }>,
+    systemInstruction?: string,
+  ): Promise<{ data: string; mimeType: string }> {
+    const errors: string[] = [];
+
+    for (const provider of this.imageProviderOrder) {
+      try {
+        if (provider === 'hku-gemini') {
+          for (const deploymentId of this.hkuImageDeploymentIds) {
+            try {
+              return await this.generateHkuGeminiImage(deploymentId, input, systemInstruction);
+            } catch (error) {
+              const message = this.formatProviderError(error);
+              errors.push(`hku-gemini/${deploymentId}: ${message}`);
+              if (!this.shouldTryNextImageProvider(error)) {
+                throw error;
+              }
+              console.warn(`HKU Gemini image provider exhausted or unavailable (${deploymentId}):`, message);
+            }
+          }
+          continue;
+        }
+
+        if (provider === 'hku-openai') {
+          for (const deploymentId of this.hkuOpenAiImageDeploymentIds) {
+            try {
+              return await this.generateHkuOpenAiImage(deploymentId, input, systemInstruction);
+            } catch (error) {
+              const message = this.formatProviderError(error);
+              errors.push(`hku-openai/${deploymentId}: ${message}`);
+              if (!this.shouldTryNextImageProvider(error)) {
+                throw error;
+              }
+              console.warn(`HKU OpenAI image provider exhausted or unavailable (${deploymentId}):`, message);
+            }
+          }
+          continue;
+        }
+
+        if (provider === 'google') {
+          return await this.generateGoogleImage(input, systemInstruction);
+        }
+      } catch (error) {
+        const message = this.formatProviderError(error);
+        errors.push(`${provider}: ${message}`);
+        if (!this.shouldTryNextImageProvider(error)) {
+          throw error;
+        }
+        console.warn(`Image provider exhausted or unavailable (${provider}):`, message);
+      }
+    }
+
+    throw new Error(`All configured image providers failed. ${errors.join(' | ')}`);
+  }
+
+  private async generateHkuGeminiImage(
+    deploymentId: string,
+    input: Array<{ type: 'text'; text: string } | { type: 'image'; mime_type: string; data: string }>,
+    systemInstruction?: string,
+  ): Promise<{ data: string; mimeType: string }> {
+    const response = await this.generateHkuContent(deploymentId, {
+      ...(systemInstruction
+        ? {
+            system_instruction: {
+              parts: [{ text: systemInstruction }],
+            },
+          }
+        : {}),
+      contents: [
+        {
+          role: 'user',
+          parts: input.map((part) =>
+            part.type === 'text'
+              ? { text: part.text }
+              : {
+                  inlineData: {
+                    mimeType: part.mime_type,
+                    data: part.data,
+                  },
+                },
+          ),
+        },
+      ],
+      generationConfig: {
+        responseModalities: ['IMAGE'],
+      },
+    });
+
+    const imagePart = response?.candidates?.[0]?.content?.parts?.find(
+      (part: { inlineData?: { data?: string } }) => part.inlineData?.data,
+    );
+    const generatedImage = imagePart?.inlineData;
+    if (!generatedImage?.data) {
+      throw new Error('HKU Gemini failed to generate an image. Please try again later.');
+    }
+
+    return {
+      data: generatedImage.data,
+      mimeType: generatedImage.mimeType || 'image/jpeg',
+    };
+  }
+
+  private async generateHkuOpenAiImage(
+    deploymentId: string,
+    input: Array<{ type: 'text'; text: string } | { type: 'image'; mime_type: string; data: string }>,
+    systemInstruction?: string,
+  ): Promise<{ data: string; mimeType: string }> {
+    if (!this.hkuOpenAiApiKey) {
+      throw new Error('HKU OpenAI API key not configured. Set HKU_OPENAI_API_KEY or HKU_API_KEY in the environment.');
+    }
+
+    if (input.some((part) => part.type === 'image')) {
+      throw new Error('HKU OpenAI image generation fallback does not support image inputs for this workflow.');
+    }
+
+    const prompt = [
+      systemInstruction,
+      input
+        .filter((part): part is { type: 'text'; text: string } => part.type === 'text')
+        .map((part) => part.text)
+        .join('\n\n'),
+    ]
+      .filter(Boolean)
+      .join('\n\n');
+
+    const requestUrl = new URL(
+      `${this.hkuOpenAiBaseUrl.replace(/\/$/, '')}/${deploymentId}/images/generations`,
+    );
+    requestUrl.searchParams.set('api-version', this.hkuOpenAiApiVersion);
+    requestUrl.searchParams.set('subscription-key', this.hkuOpenAiApiKey);
+
+    const body: Record<string, string | number> = { prompt };
+    if (process.env.HKU_OPENAI_IMAGE_SIZE) {
+      body.size = process.env.HKU_OPENAI_IMAGE_SIZE;
+    }
+    if (process.env.HKU_OPENAI_IMAGE_QUALITY) {
+      body.quality = process.env.HKU_OPENAI_IMAGE_QUALITY;
+    }
+
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    const parsed = await this.parseProviderResponse(response, 'HKU OpenAI');
+    const imageData = parsed?.data?.[0]?.b64_json;
+    if (!imageData) {
+      throw new Error('HKU OpenAI failed to generate an image. Please try again later.');
+    }
+
+    return {
+      data: imageData,
+      mimeType: 'image/png',
+    };
+  }
+
+  private async generateGoogleImage(
+    input: Array<{ type: 'text'; text: string } | { type: 'image'; mime_type: string; data: string }>,
+    systemInstruction?: string,
+  ): Promise<{ data: string; mimeType: string }> {
+    if (!this.ai) {
+      throw new Error('The Google AI service is not configured on the server.');
+    }
+
+    const interaction = await this.ai.interactions.create({
+      model: this.imageModel,
+      input,
+      system_instruction: systemInstruction,
+      response_format: {
+        type: 'image',
+        mime_type: 'image/jpeg',
+      },
+    });
+
+    const generatedImage = interaction.output_image;
+    if (!generatedImage?.data) {
+      throw new Error('AI failed to generate an image. Please try again later.');
+    }
+
+    return {
+      data: generatedImage.data,
+      mimeType: generatedImage.mime_type || 'image/jpeg',
+    };
+  }
+
+  private async generateHkuContent(deploymentId: string, body: unknown): Promise<any> {
+    if (!this.hkuGeminiApiKey) {
+      throw new Error('HKU Gemini API key not configured. Set HKU_GEMINI_API_KEY in the environment.');
+    }
+
+    const authValue = this.hkuGeminiAuthScheme
+      ? `${this.hkuGeminiAuthScheme} ${this.hkuGeminiApiKey}`
+      : this.hkuGeminiApiKey;
+    const requestUrl = new URL(
+      `${this.hkuGeminiBaseUrl.replace(/\/$/, '')}/${deploymentId}:generateContent`,
+    );
+    requestUrl.searchParams.set('subscription-key', this.hkuGeminiApiKey);
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+
+    if (this.hkuGeminiUseAuthHeader && this.hkuGeminiAuthHeader) {
+      headers[this.hkuGeminiAuthHeader] = authValue;
+    }
+
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    return this.parseProviderResponse(response, 'HKU Gemini');
+  }
+
+  private async parseProviderResponse(response: Response, providerName: string): Promise<any> {
+    const responseText = await response.text();
+    let parsed: any;
+    try {
+      parsed = responseText ? JSON.parse(responseText) : {};
+    } catch {
+      parsed = responseText;
+    }
+
+    if (!response.ok) {
+      const activityId =
+        typeof parsed === 'object' && parsed?.activityId
+          ? ` Activity ID: ${parsed.activityId}.`
+          : '';
+      const message =
+        typeof parsed === 'object' && parsed?.error?.message
+          ? parsed.error.message
+          : typeof parsed === 'object' && parsed?.message
+          ? parsed.message
+          : responseText || response.statusText;
+      throw new Error(`${providerName} API Error (${response.status}): ${message}.${activityId}`);
+    }
+
+    return parsed;
+  }
+
+  private formatProviderError(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+  }
+
+  private shouldTryNextImageProvider(error: unknown): boolean {
+    const message = this.formatProviderError(error).toLowerCase();
+    return (
+      message.includes('quota') ||
+      message.includes('resource_exhausted') ||
+      message.includes('too_many_requests') ||
+      message.includes('rate limit') ||
+      message.includes('429') ||
+      message.includes('403') ||
+      message.includes('404') ||
+      message.includes('500') ||
+      message.includes('internal server error') ||
+      message.includes('resource not found') ||
+      message.includes('not configured') ||
+      message.includes('api_key_invalid') ||
+      message.includes('api key not valid') ||
+      message.includes('does not support image inputs')
+    );
+  }
+
   async getMahjongTranslationSuggestions(input: string): Promise<TranslationOption[]> {
     const MAX_CHARACTER_LENGTH = 4;
     const MAX_OPTIONS = 3;
@@ -67,7 +470,7 @@ export class AiService {
     };
 
     if (!input || !input.trim()) return [];
-    if (!this.ai) {
+    if (this.aiProvider !== 'hku' && !this.ai) {
       throw new Error('Gemini client not initialised. Please configure GEMINI_API_KEY in the environment.');
     }
 
@@ -116,25 +519,11 @@ Respond strictly as JSON matching the provided schema.`;
       required: ['options'],
     };
 
-    const result = await this.ai.models.generateContent({
-      model: 'gemini-2.0-flash-exp',
-      contents: prompt,
-      config: {
-        systemInstruction: `You are a Cantonese language expert assisting with mahjong tile engravings. For every option you propose, the explanation must mention the literal meaning of EACH character (e.g. 「海 means sea」) and optionally note pronunciation rationale. Respond ONLY with JSON conforming to the schema. Never return an empty array—offer your best options.`,
-        responseMimeType: 'application/json',
-        responseSchema,
-      },
-    });
-
-    const rawText =
-      (result as any)?.response?.candidates?.[0]?.content?.parts?.map((p: any) => p.text || '').join('') ??
-      (typeof result.text === 'string' ? result.text : '') ??
-      '';
-
-    const jsonText = (rawText || '').trim();
-    if (!jsonText) {
-      throw new Error('Gemini returned an empty response.');
-    }
+    const jsonText = await this.generateStructuredJson(
+      prompt,
+      responseSchema,
+      `You are a Cantonese language expert assisting with mahjong tile engravings. For every option you propose, the explanation must mention the literal meaning of EACH character (e.g. 「海 means sea」) and optionally note pronunciation rationale. Respond ONLY with JSON conforming to the schema. Never return an empty array—offer your best options.`,
+    );
 
     const parsed = JSON.parse(jsonText) as { options?: Array<{ chinese: string; pronunciation: string; explanation: string; strategy: TranslationStrategy }> };
     if (!parsed?.options || !Array.isArray(parsed.options) || !parsed.options.length) {
@@ -312,27 +701,24 @@ Reference image shows the correct Chinese characters to engrave. DO NOT change, 
           return { imageUrl };
         } catch (doubaoError) {
           console.error('Error generating image with Doubao:', doubaoError);
-          if (!aiClient) {
+          if (!aiClient && !this.imageProviderOrder.some((provider) => provider.startsWith('hku'))) {
             throw doubaoError;
           }
         }
       }
 
-      if (!aiClient) {
-        throw new Error('The AI service is not configured on the server.');
-      }
-
       // Build the prompt array for generateContent API
-      const promptParts: any[] = [{ text: fullPrompt }];
+      const promptParts: Array<{ type: 'text'; text: string } | { type: 'image'; mime_type: string; data: string }> = [
+        { type: 'text', text: fullPrompt },
+      ];
       
       // Add reference image if available (for mahjong or user-provided)
       if (isMahjong && referenceImage) {
         const base64Data = referenceImage.split(',')[1]; // Extract base64 data
         promptParts.push({
-          inlineData: {
-            mimeType: 'image/png',
-            data: base64Data,
-          },
+          type: 'image',
+          mime_type: 'image/png',
+          data: base64Data,
         });
       } else if (referenceImageUrl) {
         // Add user-provided reference image (e.g., cheongsam for pattern draft)
@@ -340,18 +726,16 @@ Reference image shows the correct Chinese characters to engrave. DO NOT change, 
         const refBase64 = await this.imageUrlToBase64(referenceImageUrl);
         const refMimeType = this.getMimeType(referenceImageUrl);
         promptParts.push({
-          inlineData: {
-            mimeType: refMimeType,
-            data: refBase64,
-          },
+          type: 'image',
+          mime_type: refMimeType,
+          data: refBase64,
         });
       }
 
-      const response = await aiClient.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: promptParts,
-        config: isMahjong && referenceImage ? {
-          systemInstruction: `You are an expert at generating realistic images of traditional Hong Kong crafts. 
+      const generatedImage = await this.generateImage(
+        promptParts,
+        isMahjong && referenceImage
+          ? `You are an expert at generating realistic images of traditional Hong Kong crafts. 
 When a reference image is provided showing Chinese characters:
 1. You MUST reproduce the EXACT Chinese characters shown in the reference image
 2. Copy each character stroke-by-stroke - do NOT simplify, modify, or substitute characters
@@ -360,20 +744,10 @@ When a reference image is provided showing Chinese characters:
 5. Apply the characters to a hand-carved mahjong tile with ivory-colored material
 
 Remember: Character accuracy from the reference image is MORE IMPORTANT than artistic interpretation.`
-        } : undefined,
-      });
-
-      // Extract the generated image from the response
-      if (response.candidates && response.candidates.length > 0) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            const base64ImageBytes = part.inlineData.data;
-            return { imageUrl: `data:image/jpeg;base64,${base64ImageBytes}` };
-          }
-        }
-      }
+          : undefined,
+      );
       
-      throw new Error('AI failed to generate an image. Please try again later.');
+      return { imageUrl: `data:${generatedImage.mimeType};base64,${generatedImage.data}` };
     } catch (error) {
       console.error('Error generating image with AI provider:', error);
       if (error instanceof Error) {
@@ -408,12 +782,6 @@ Remember: Character accuracy from the reference image is MORE IMPORTANT than art
         console.error('Failed to save debug image', filename, err);
       }
     };
-    const aiClient = this.ai;
-
-    if (!aiClient) {
-      throw new Error('The AI service is not configured on the server.');
-    }
-
     try {
       console.log('=== Try-On Image Generation ===');
       console.log('Craft Name:', craftName);
@@ -427,8 +795,9 @@ Remember: Character accuracy from the reference image is MORE IMPORTANT than art
       console.log('Face image converted to base64, length:', faceBase64.length, 'MIME type:', faceMimeType);
           saveDebugImage(faceBase64, 'step1_face_input.jpg');
 
-      const step1Prompt = [
+      const step1Prompt: Array<{ type: 'text'; text: string } | { type: 'image'; mime_type: string; data: string }> = [
         { 
+          type: 'text',
           text: `Using the provided image of a person's face, generate a professional full-body portrait of this exact person. CRITICAL: Preserve the person's facial features EXACTLY as shown in the reference image - including face shape, eyes, nose, mouth, skin tone, and all unique characteristics. 
 
 The person should be:
@@ -436,34 +805,17 @@ The person should be:
 Remember: The face must be IDENTICAL to the reference image provided.` 
         },
         {
-          inlineData: {
-            mimeType: faceMimeType,
-            data: faceBase64,
-          },
+          type: 'image',
+          mime_type: faceMimeType,
+          data: faceBase64,
         },
       ];
 
       console.log('Step 1: Generating full-body model with reference face...');
-      const step1Response = await aiClient.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: step1Prompt,
-      });
-
-      let fullBodyImageBase64: string | null = null;
-      if (step1Response.candidates && step1Response.candidates.length > 0) {
-        for (const part of step1Response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            fullBodyImageBase64 = part.inlineData.data;
-            console.log('Step 1: Full-body image generated successfully');
-                saveDebugImage(fullBodyImageBase64, 'step1_fullbody.jpg');
-            break;
-          }
-        }
-      }
-
-      if (!fullBodyImageBase64) {
-        throw new Error('Failed to generate full-body model in step 1');
-      }
+      const step1Image = await this.generateImage(step1Prompt);
+      const fullBodyImageBase64 = step1Image.data;
+      console.log('Step 1: Full-body image generated successfully');
+      saveDebugImage(fullBodyImageBase64, 'step1_fullbody.jpg');
 
       // Step 2: Get or generate cheongsam garment image
       let cheongsamImageBase64: string | null = null;
@@ -480,21 +832,10 @@ Remember: The face must be IDENTICAL to the reference image provided.`
         const cheongsamPrompt = `Create a professional product photo of an elegant ${craftName}. The cheongsam should feature:
 ${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
 
-        const step2Response = await aiClient.models.generateContent({
-          model: 'gemini-2.5-flash-image',
-          contents: [{ text: cheongsamPrompt }],
-        });
-
-        if (step2Response.candidates && step2Response.candidates.length > 0) {
-          for (const part of step2Response.candidates[0].content.parts) {
-            if (part.inlineData) {
-              cheongsamImageBase64 = part.inlineData.data;
-                  saveDebugImage(cheongsamImageBase64, 'step2_cheongsam_generated.jpg');
-              console.log('Step 2: Cheongsam garment generated successfully');
-              break;
-            }
-          }
-        }
+        const step2Image = await this.generateImage([{ type: 'text', text: cheongsamPrompt }]);
+        cheongsamImageBase64 = step2Image.data;
+        saveDebugImage(cheongsamImageBase64, 'step2_cheongsam_generated.jpg');
+        console.log('Step 2: Cheongsam garment generated successfully');
       }
 
       if (!cheongsamImageBase64) {
@@ -503,8 +844,9 @@ ${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
 
       // Step 3: Combine the full-body model with the cheongsam
       console.log('Step 3: Combining model with cheongsam...');
-      const step3Prompt = [
+      const step3Prompt: Array<{ type: 'text'; text: string } | { type: 'image'; mime_type: string; data: string }> = [
         {
+          type: 'text',
           text: `You are given two images:
 1. A full-body photo of a person (the model)
 2. A cheongsam garment
@@ -520,38 +862,24 @@ OVERALL QUALITY:
 Do NOT just return the person's photo - you must show them WEARING the cheongsam garment with matching footwear.`
         },
         {
-          inlineData: {
-            mimeType: 'image/jpeg',
-            data: fullBodyImageBase64,
-          },
+          type: 'image',
+          mime_type: step1Image.mimeType,
+          data: fullBodyImageBase64,
         },
         {
-          inlineData: {
-            mimeType: 'image/jpeg',
-            data: cheongsamImageBase64,
-          },
+          type: 'image',
+          mime_type: 'image/jpeg',
+          data: cheongsamImageBase64,
         },
       ];
 
-      const step3Response = await aiClient.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: step3Prompt,
-      });
-
-      if (step3Response.candidates && step3Response.candidates.length > 0) {
-        for (const part of step3Response.candidates[0].content.parts) {
-          if (part.inlineData) {
-            const finalImageBase64 = part.inlineData.data;
-                saveDebugImage(finalImageBase64, 'step3_final_tryon.jpg');
-            console.log('Step 3: Try-on image generated successfully');
-            console.log('Final image preview (first 100 chars):', finalImageBase64.substring(0, 100));
-            console.log('================================');
-            return { imageUrl: `data:image/jpeg;base64,${finalImageBase64}` };
-          }
-        }
-      }
-
-      throw new Error('Failed to generate final try-on image in step 3');
+      const step3Image = await this.generateImage(step3Prompt);
+      const finalImageBase64 = step3Image.data;
+      saveDebugImage(finalImageBase64, 'step3_final_tryon.jpg');
+      console.log('Step 3: Try-on image generated successfully');
+      console.log('Final image preview (first 100 chars):', finalImageBase64.substring(0, 100));
+      console.log('================================');
+      return { imageUrl: `data:${step3Image.mimeType};base64,${finalImageBase64}` };
     } catch (error) {
       console.error('Error in try-on image generation:', error);
       if (error instanceof Error) {
@@ -564,11 +892,9 @@ Do NOT just return the person's photo - you must show them WEARING the cheongsam
   async generateTextLabLayouts(craftName: string, userInput: string, mode: string) {
     try {
       const apiKey = getGeminiApiKey();
-      if (!apiKey) {
+      if (this.aiProvider !== 'hku' && !apiKey) {
         throw new Error('Gemini API key not configured');
       }
-
-      const aiClient = new GoogleGenAI({ apiKey });
 
       // Glyph library matching frontend
       const GLYPH_LIBRARY = [
@@ -688,21 +1014,11 @@ Do NOT just return the person's photo - you must show them WEARING the cheongsam
       console.log('User Input:', userInput);
       console.log('=====================================');
 
-      const result = await aiClient.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
-        contents: userPrompt,
-        config: {
-          systemInstruction,
-          responseMimeType: 'application/json',
-          responseSchema,
-        },
-      });
-
-      if (!result.candidates || result.candidates.length === 0) {
-        throw new Error('No response from Gemini API');
-      }
-
-      const text = result.candidates[0].content.parts[0].text;
+      const text = await this.generateStructuredJson(
+        userPrompt,
+        responseSchema,
+        systemInstruction,
+      );
       const jsonText = text.replace(/```json\n?|```\n?/g, '').trim();
       const responseJson = JSON.parse(jsonText);
 
