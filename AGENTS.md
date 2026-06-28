@@ -4,6 +4,7 @@
 - Frontend React and TypeScript code lives at the repository root: UI components in `components/`, routed screens in `pages/`, reusable views in `views/`, and shared state in `contexts/`. Types centralize in `types.ts` and domain data in `constants.ts`.
 - Assets for localization reside in `locales/`, while seed scripts and database helpers are kept in `seed-data.cjs`, `database.cjs`, and the mirrored `.js` builds.
 - The NestJS backend is isolated under `server/` (see its own `README.md`).
+- MVP production-readiness objectives are tracked in `docs/MVP_OBJECTIVE_TRACKER.md`. When starting or finishing work in a concurrent worktree, update the relevant objective status, worktree name, owner, date, and notes.
 
 ## Build, Test, and Development Commands
 - Frontend: `npm install` then `npm run dev` launches Vite on port 3000; `npm run build` outputs production assets in `dist/`; `npm run preview` serves that build locally.

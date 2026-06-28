@@ -7,6 +7,9 @@
 ## Live Demo
 **Try our app on [https://craftscape-hk.vercel.app/](https://craftscape-hk.vercel.app/)!**
 
+## MVP Delivery Tracker
+Production-readiness objectives, acceptance requirements, and concurrent worktree ownership are tracked in [`docs/MVP_OBJECTIVE_TRACKER.md`](docs/MVP_OBJECTIVE_TRACKER.md).
+
 ## Inspiration  
 Hong Kong’s traditional crafts—such as **hand-carved mahjong tiles, painted porcelain, cheongsam, and neon sign**—are fading due to shrinking markets and an aging artisan community. 
 
