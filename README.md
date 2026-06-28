@@ -24,12 +24,18 @@ Craftscape HK is an **AI + AR e-commerce platform** where users can:
 - Experience **AR interactive virtual exhibitions** with 360° product views, real-world photo integration, and immersive storytelling.  
 - Access a **city-wide cultural events calendar** for exhibitions, workshops, and community activities.  
 - Support artisans by purchasing products, attending workshops, and visiting virtual/AR exhibitions.  
+- Design custom letterpress layouts in **Text Lab**, with AI-generated typography drafts and a glyph canvas for traditional printing crafts.  
+- Preview **cheongsam virtual try-on** looks by uploading or reusing face portraits, then save generated outfits to a personal wardrobe in Profile.  
+- Switch between **English and Traditional Chinese** across the full visitor and artisan experience.  
+- Use **Artisan mode** to manage products, orders, customer messages, and dashboard activity from a dedicated back-office view.  
 
 ## How we built it  
-- **Frontend**: A React 19 + TypeScript interface bundled with Vite, styled through Tailwind CSS (via CDN) and Framer Motion for micro-interactions to deliver the swipeable, mobile-first experience.
+- **Frontend**: A React 19 + TypeScript interface bundled with Vite, styled through Tailwind CSS (via PostCSS) and Framer Motion for micro-interactions to deliver the swipeable, mobile-first experience. Copy and UI strings are localized in `locales/` for bilingual EN/ZH support.
 - **Backend - Platform APIs & data layer**: Modular NestJS endpoints for crafts, products, events, orders, and messaging run on TypeORM with a SQLite store, exposing REST routes that the frontend consumes via a typed API client with authenticated fetch helpers and offline fallbacks.
-- **Function - AI Creation Studio**: A NestJS AI microservice wraps Google’s Imagen 4.0 (exposed through the @google/genai SDK) and returns base64 renders that the AiStudio view consumes and stores in the shared context, so artisans receive customizable design briefs.
-- **Function - AR & experiential layer**: The Play screen ships downloadable USDZ assets (scanned by Reality Composer with iPhone)so visitors can launch Quick Look/WebAR sessions from their phones, complementing the narrative exhibition content in-app.
+- **Function - AI Creation Studio**: A NestJS AI module (in `server/src/ai/`) routes text and image generation through the @google/genai SDK (Gemini text/image models), HKU ITS Gemini/OpenAI gateways, and optional Doubao for Chinese prompts. It returns base64 renders that the AiStudio view consumes and stores in shared context, including cheongsam concept art, mahjong translation suggestions, and try-on generation via `/api/ai/generate-tryon`.
+- **Function - Text Lab**: A canvas-based letterpress design view (`pages/TextLab.tsx`) combines glyph placement, undo/redo, and AI layout drafts from the backend to help users compose printable text compositions before sharing concepts with artisans.
+- **Function - Artisan portal**: A separate in-app mode exposes dashboard, product management, order tracking, and message threads for artisans without leaving the same React shell.
+- **Function - AR & experiential layer**: The Play screen ships downloadable USDZ assets (scanned by Reality Composer with iPhone) so visitors can launch Quick Look/WebAR sessions from their phones, complementing the narrative exhibition content in-app.
 
 ## Challenges we ran into  
 - Limited digital archives for crafts like hand-carved mahjong required manual data collection.  
