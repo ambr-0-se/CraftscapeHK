@@ -139,7 +139,7 @@ Only mark an objective `Done` after the work is accepted, tested, and merged int
 
 Description: Establish the canonical shared TypeScript contracts for events-as-workshops, schedules, capacity holds, cart items, bookings, orders, Stripe payment statuses, co-creation request statuses, artisan approval states, message threads, and real-time message replay before parallel implementation work begins.
 
-Current state: `Review`
+Current state: `Done`
 
 Worktree: `main`
 
@@ -164,7 +164,8 @@ Notes:
 - Future worktrees for AI requests, workshops/cart, Stripe/orders, real-time messaging, artisan portal, listings, onboarding, and journey mapping should depend on these contracts instead of creating private enums or duplicate status values.
 - Review evidence: added canonical root shared contracts, 18 contract tests, root typecheck coverage, and scoped follow-up TODOs.
 - Commands run: `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`.
-- Known follow-ups: migrate prototype UI types to `MvpContracts`, package shared contracts for backend runtime imports, replace TypeORM auto-sync with migrations, consolidate seed/data mirrors, and define production user/artisan ownership.
+- Merged to `origin/main` in commit `66f647f` on 2026-06-28.
+- Known follow-ups: migrate prototype UI types to `MvpContracts`, replace TypeORM auto-sync with migrations, and consolidate seed/data mirrors. Backend contract packaging and ownership model moved to Foundation objective below.
 
 ## Objective 1: AI Co-Creation Flow For Craft Design
 
