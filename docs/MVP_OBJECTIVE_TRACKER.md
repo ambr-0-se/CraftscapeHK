@@ -21,6 +21,85 @@ When starting a worktree, update:
 - `Last Updated`
 - `Notes`
 
+## Concurrent Worktree Workflow
+
+Use this workflow for every MVP objective worktree.
+
+### 1. Kickoff Confirmation Gate
+
+Before editing production code, confirm the work plan with the user:
+
+- objective being claimed
+- exact scope for this worktree
+- acceptance requirements this worktree will satisfy
+- likely files, modules, routes, APIs, or data models to touch
+- dependencies on other objectives or worktrees
+- explicit out-of-scope items
+- expected verification method
+
+Do not begin production code changes until the user confirms this kickoff scope.
+
+### 2. Tracker Claim
+
+After kickoff confirmation and before coding:
+
+- set objective `Current state` to `In Progress`
+- fill in `Worktree`
+- fill in `Owner`, if known
+- update `Last Updated`
+- add any dependency or conflict notes
+
+Each worktree should own one primary objective. If it must touch another objective, note the dependency rather than silently expanding scope.
+
+### 3. UI/UX Design Preview Gate
+
+For any UI/UX work, create a lightweight standalone HTML design preview before editing React production code.
+
+The preview should show:
+
+- layout and hierarchy
+- core copy
+- primary/secondary actions
+- important states such as empty, loading, error, success, approval, payment, or booking confirmation
+- color and typography choices aligned with `DESIGN.md`
+- mobile-first behavior, at least at the intended phone viewport
+
+Get user approval before implementing the design in production code.
+
+This gate applies to onboarding, booking, checkout, artisan dashboard, co-creation approval, listings, artisan profiles, messaging UI, and major empty/error/success states.
+
+Tiny UI fixes are exempt only when they do not alter layout, flow, visual direction, or design system behavior.
+
+### 4. Shared Contract Gate
+
+Before changing shared data models or statuses, confirm the contract with the user or the integration owner.
+
+Shared contracts include:
+
+- events-as-workshops
+- bookings
+- orders
+- carts
+- Stripe payment statuses
+- co-creation request statuses
+- message threads and real-time messages
+- artisan approval states
+
+Do not create private enums or duplicate status names in isolated worktrees.
+
+### 5. Review Evidence Gate
+
+Before marking an objective `Review`, add evidence in the objective notes or PR description:
+
+- acceptance requirements met
+- acceptance requirements not met
+- commands run
+- manual QA steps
+- screenshots or design preview links for UI changes
+- known risks or follow-up work
+
+Only mark an objective `Done` after the work is accepted, tested, and merged into the integration branch.
+
 ## Confirmed Product Decisions
 
 - Workshops are modeled as `events`.
