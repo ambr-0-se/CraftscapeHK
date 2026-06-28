@@ -4,12 +4,12 @@
 - Frontend React and TypeScript code lives at the repository root: UI components in `components/`, routed screens in `pages/`, reusable views in `views/`, and shared state in `contexts/`. Prototype UI types remain in `types.ts`, canonical MVP domain contracts live in `shared/contracts.ts`, and domain seed/display data is in `constants.ts`.
 - Assets for localization reside in `locales/`, while seed scripts and database helpers are kept in `seed-data.cjs`, `database.cjs`, and the mirrored `.js` builds.
 - The NestJS backend is isolated under `server/`.
-- Shared contract guidance lives in `docs/SHARED_CONTRACTS.md`. New MVP work should import from `shared/contracts.ts` rather than adding private enums or duplicate status values.
+- Shared contract guidance lives in `docs/SHARED_CONTRACTS.md`. Ownership rules live in `docs/OWNERSHIP_MODEL.md`. New MVP work should import from `shared/contracts.ts` rather than adding private enums or duplicate status values.
 - MVP production-readiness objectives are tracked in `docs/MVP_OBJECTIVE_TRACKER.md`. When starting or finishing work in a concurrent worktree, update the relevant objective status, worktree name, owner, date, and notes.
 
 ## Build, Test, and Development Commands
 - Frontend: `npm install` then `npm run dev` launches Vite on port 3000; `npm run build` outputs production assets in `dist/`; `npm run preview` serves that build locally.
-- Shared/frontend verification: `npm run typecheck` runs the root TypeScript check for frontend/shared files, and `npm run test:contracts` runs the shared contract Vitest suite.
+- Shared/frontend verification: `npm run typecheck` runs the root TypeScript check for frontend/shared files, `npm run test:contracts` runs the shared contract Vitest suite, and `npm run contracts:build` compiles `@craftscape/contracts` for NestJS runtime imports.
 - Backend: from `server/`, run `npm install` followed by `npm run start:dev` for live reload, `npm run build` for production output, and `npm run start:prod` to boot the compiled server. Use `npm run seed` to populate local data and `npm run lint`/`npm run format` before submitting changes.
 - For lightweight API testing, run `npm run dev:stack` and hit the NestJS endpoints on http://localhost:3001.
 

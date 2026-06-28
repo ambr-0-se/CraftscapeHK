@@ -8,6 +8,14 @@ export class MessageThread {
   @Column()
   customerName: string;
 
+  /** Platform customer user id for MVP ownership. */
+  @Column({ nullable: true })
+  customerId?: string;
+
+  /** Platform artisan user id for MVP ownership. */
+  @Column({ nullable: true })
+  artisanId?: string;
+
   @Column()
   lastMessage: string;
 

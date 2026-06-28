@@ -1,0 +1,20 @@
+{
+  "name": "@craftscape/contracts",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/contracts.js",
+  "types": "./dist/contracts.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/contracts.d.ts",
+      "default": "./dist/contracts.js"
+    },
+    "./ownership": {
+      "types": "./dist/ownership.d.ts",
+      "default": "./dist/ownership.js"
+    }
+  },
+  "files": [
+    "dist"
+  ]
+}

@@ -9,6 +9,10 @@ export class Order {
   @Column()
   customerName: string;
 
+  /** Platform customer user id for MVP ownership. */
+  @Column({ nullable: true })
+  customerId?: string;
+
   @ManyToOne(() => Product)
   @JoinColumn({ name: 'productId' })
   product: Product;

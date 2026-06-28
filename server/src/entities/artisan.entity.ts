@@ -16,4 +16,8 @@ export class Artisan {
 
   @Column('json')
   craftIds: number[];
+
+  /** Platform user id when the artisan account is linked. */
+  @Column({ nullable: true })
+  userId?: string;
 }
