@@ -25,7 +25,20 @@ When starting a worktree, update:
 
 Use this workflow for every MVP objective worktree.
 
-### 1. Kickoff Confirmation Gate
+### 1. Fresh Worktree Gate
+
+Start every new MVP objective or multi-file feature in a fresh git worktree and branch. Do not implement objective work directly on `main`.
+
+Recommended naming:
+
+- worktree: `worktrees/mvp-stripe-orders`
+- branch: `mvp/stripe-orders`
+
+Use the same pattern for other objectives, for example `worktrees/mvp-realtime-messaging` with branch `mvp/realtime-messaging`.
+
+Tiny docs-only fixes, typo fixes, or review nits may happen on the current branch only when they are scoped to an existing objective PR and do not affect shared contracts or production code.
+
+### 2. Kickoff Confirmation Gate
 
 Before editing production code, confirm the work plan with the user:
 
@@ -39,7 +52,7 @@ Before editing production code, confirm the work plan with the user:
 
 Do not begin production code changes until the user confirms this kickoff scope.
 
-### 2. Tracker Claim
+### 3. Tracker Claim
 
 After kickoff confirmation and before coding:
 
@@ -51,7 +64,7 @@ After kickoff confirmation and before coding:
 
 Each worktree should own one primary objective. If it must touch another objective, note the dependency rather than silently expanding scope.
 
-### 3. UI/UX Design Preview Gate
+### 4. UI/UX Design Preview Gate
 
 For any UI/UX work, create a lightweight standalone HTML design preview before editing React production code.
 
@@ -70,9 +83,11 @@ This gate applies to onboarding, booking, checkout, artisan dashboard, co-creati
 
 Tiny UI fixes are exempt only when they do not alter layout, flow, visual direction, or design system behavior.
 
-### 4. Shared Contract Gate
+### 5. Shared Contract Gate
 
 Before changing shared data models or statuses, confirm the contract with the user or the integration owner.
+
+Canonical MVP contracts live in `shared/contracts.ts`; usage and backend packaging guidance is documented in `docs/SHARED_CONTRACTS.md`.
 
 Shared contracts include:
 
@@ -87,7 +102,19 @@ Shared contracts include:
 
 Do not create private enums or duplicate status names in isolated worktrees.
 
-### 5. Review Evidence Gate
+### 6. Rebase Gate
+
+Before opening review and before merging:
+
+- fetch the latest remote state
+- rebase the worktree branch onto the latest `origin/main`
+- resolve conflicts locally
+- rerun required verification after conflict resolution
+- update this tracker with final status, worktree name, and evidence
+
+Do not merge stale objective branches that have not been rebased against the latest integration branch.
+
+### 7. Review Evidence Gate
 
 Before marking an objective `Review`, add evidence in the objective notes or PR description:
 
@@ -107,6 +134,37 @@ Only mark an objective `Done` after the work is accepted, tested, and merged int
 - Artisan/customer messaging should be real-time.
 - Co-creation requests require artisan approval before becoming an order or booking.
 - Hosting target is Vercel with the production domain `craftscape.studio`.
+
+## Objective 0: Shared MVP Contracts
+
+Description: Establish the canonical shared TypeScript contracts for events-as-workshops, schedules, capacity holds, cart items, bookings, orders, Stripe payment statuses, co-creation request statuses, artisan approval states, message threads, and real-time message replay before parallel implementation work begins.
+
+Current state: `Review`
+
+Worktree: `main`
+
+Owner: `GPT-5.5`
+
+Last Updated: `2026-06-28`
+
+Acceptance Requirements:
+
+- A single root shared contract module is canonical for future frontend and NestJS backend implementation work.
+- Shared enums use stable values for logic and provide bilingual English/Traditional Chinese display labels.
+- Order, booking, payment, co-creation, artisan approval, workshop capacity, and message replay lifecycles include explicit transition maps or contract-level rules.
+- Workshop capacity distinguishes total seats, active pending holds, confirmed reservations, derived availability, and hold expiry.
+- Stripe contracts separate internal payment state from raw Stripe identifiers/status references needed for webhook reconciliation.
+- Message contracts support thread summaries, paginated message history, ordered replay, and idempotent client send metadata.
+- Contract tests cover enum labels, transition maps, capacity rules, payment metadata, and message replay fields.
+
+Notes:
+
+- Scope is contract-first only. No production UI, Stripe integration, booking/cart implementation, real-time transport, or database/entity migration is included in this objective.
+- Canonical file: `shared/contracts.ts`; tests: `shared/contracts.test.ts`; guide: `docs/SHARED_CONTRACTS.md`.
+- Future worktrees for AI requests, workshops/cart, Stripe/orders, real-time messaging, artisan portal, listings, onboarding, and journey mapping should depend on these contracts instead of creating private enums or duplicate status values.
+- Review evidence: added canonical root shared contracts, 18 contract tests, root typecheck coverage, and scoped follow-up TODOs.
+- Commands run: `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`.
+- Known follow-ups: migrate prototype UI types to `MvpContracts`, package shared contracts for backend runtime imports, replace TypeORM auto-sync with migrations, consolidate seed/data mirrors, and define production user/artisan ownership.
 
 ## Objective 1: AI Co-Creation Flow For Craft Design
 

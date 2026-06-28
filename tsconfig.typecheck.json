@@ -1,0 +1,33 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [
+      "node",
+      "vite/client"
+    ]
+  },
+  "include": [
+    "App.tsx",
+    "backend/**/*.ts",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "contexts/**/*.ts",
+    "contexts/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "pages/**/*.ts",
+    "pages/**/*.tsx",
+    "services/**/*.ts",
+    "shared/**/*.ts",
+    "types.ts",
+    "views/**/*.ts",
+    "views/**/*.tsx",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ],
+  "exclude": [
+    "server",
+    "dist",
+    "node_modules"
+  ]
+}

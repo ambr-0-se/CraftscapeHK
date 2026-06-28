@@ -1,9 +1,9 @@
+import type { LocalizedString } from './shared/contracts';
 
-
-export interface LocalizedString {
-  zh: string;
-  en: string;
-}
+// Compatibility namespace for existing imports from `types.ts`.
+// New MVP work should import canonical contracts from `shared/contracts` directly.
+export * as MvpContracts from './shared/contracts';
+export type { LocalizedString } from './shared/contracts';
 
 export interface Craft {
   id: number;
@@ -53,6 +53,10 @@ export interface Product {
   category?: string;
 }
 
+/**
+ * @deprecated Prototype UI status labels. New MVP work should use
+ * `MvpContracts.OrderStatus` plus `MvpContracts.ORDER_STATUS_LABELS`.
+ */
 export type OrderStatus = '待處理' | '已發貨' | '已完成' | '已取消';
 
 export interface Order {
@@ -65,6 +69,10 @@ export interface Order {
     status: OrderStatus;
 }
 
+/**
+ * @deprecated Prototype chat message shape. New MVP work should use
+ * `MvpContracts.ChatMessageContract`.
+ */
 export interface ChatMessage {
     id: string;
     sender: 'customer' | 'artisan';
@@ -94,6 +102,11 @@ export interface TryOnLook {
     createdAt: string;
 }
 
+/**
+ * @deprecated Prototype inbox row shape. New MVP work should use
+ * `MvpContracts.MessageThreadSummaryContract` and paginated
+ * `MvpContracts.ChatMessageContract` history.
+ */
 export interface MessageThread {
     id: string;
     customerName: string;

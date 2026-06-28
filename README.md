@@ -10,6 +10,8 @@
 ## MVP Delivery Tracker
 Production-readiness objectives, acceptance requirements, and concurrent worktree ownership are tracked in [`docs/MVP_OBJECTIVE_TRACKER.md`](docs/MVP_OBJECTIVE_TRACKER.md).
 
+Shared MVP domain contracts are centralized in [`shared/contracts.ts`](shared/contracts.ts), with usage notes in [`docs/SHARED_CONTRACTS.md`](docs/SHARED_CONTRACTS.md). New MVP work should use those contracts instead of adding private status enums or duplicating domain shapes.
+
 ## Inspiration  
 Hong Kong’s traditional crafts—such as **hand-carved mahjong tiles, painted porcelain, cheongsam, and neon sign**—are fading due to shrinking markets and an aging artisan community. 
 
@@ -127,6 +129,8 @@ Craftscape HK is an **AI + AR e-commerce platform** where users can:
 ### Helpful npm Scripts
 - `npm run dev:stack` – run frontend (`vite`) and backend (`nest start:dev`) together without env watching.
 - `npm run dev:stack:watch` – same as above but restarts both processes whenever `.env` files change.
+- `npm run typecheck` – run the root TypeScript check for frontend/shared files without pulling in backend Jest specs.
+- `npm run test:contracts` – run the Vitest suite for `shared/contracts.ts`.
 - `npm run build:stack` – produce production builds for the Vite app and the NestJS server in one step.
 - `npm run server:start` – boot the compiled NestJS server (`npm run server:build` first if needed).
 
