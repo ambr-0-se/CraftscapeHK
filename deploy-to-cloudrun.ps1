@@ -177,13 +177,12 @@ if ([string]::IsNullOrEmpty($GEMINI_API_KEY)) {
 Write-Host "✅ API key configured" -ForegroundColor Green
 Write-Host ""
 
-# Step 5: Build and deploy
+# Step 5: Build and deploy from repo root so shared contracts are included
 Write-Host "🚀 Step 5: Deploying to Cloud Run..." -ForegroundColor Yellow
-
-Set-Location server
 
 & $GCLOUD_CMD run deploy $SERVICE_NAME `
   --source . `
+  --dockerfile server/Dockerfile `
   --platform managed `
   --region $REGION `
   --allow-unauthenticated `
@@ -193,8 +192,6 @@ Set-Location server
   --timeout 300 `
   --min-instances 0 `
   --max-instances 10
-
-Set-Location ..
 
 Write-Host "✅ Deployment complete!" -ForegroundColor Green
 Write-Host ""

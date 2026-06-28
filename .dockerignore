@@ -9,7 +9,12 @@ pnpm-debug.log*
 # Build outputs
 dist
 build
+server/dist
+shared/dist
 *.local
+
+# Local worktrees
+worktrees
 
 # Environment files
 .env
@@ -43,9 +48,6 @@ CLOUD_BUILD_SETUP.md
 # Scripts
 *.ps1
 *.sh
-
-# Server directory (for frontend build)
-server
 
 # Misc
 metadata.json

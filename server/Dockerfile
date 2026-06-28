@@ -1,10 +1,13 @@
-# Use Node.js 20 on Debian (better compatibility with canvas)
+# Build from repository root:
+#   docker build -f server/Dockerfile -t craftscape-backend .
+#
+# Cloud Run deploy should use repo root as source with --dockerfile server/Dockerfile
+# so the shared contracts package is available to the backend build.
+
 FROM node:20-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install build dependencies for canvas
 RUN apt-get update && apt-get install -y \
     build-essential \
     libcairo2-dev \
@@ -15,23 +18,17 @@ RUN apt-get update && apt-get install -y \
     python3 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy package files
-COPY package*.json ./
+COPY shared/package.json shared/tsconfig.build.json shared/contracts.ts shared/ownership.ts ./shared/
+COPY server/package.json server/package-lock.json ./server/
 
-# Install ALL dependencies (including devDependencies needed for build)
+WORKDIR /app/server
 RUN npm ci
 
-# Copy application code
-COPY . .
+COPY server/nest-cli.json server/tsconfig.json ./
+COPY server/src ./src
 
-# Build the application
 RUN npm run build
-
-# Remove devDependencies to reduce image size
 RUN npm prune --omit=dev
 
-# Expose Cloud Run port (Cloud Run will set PORT env var)
 EXPOSE 8080
-
-# Start the application
 CMD ["npm", "run", "start:prod"]

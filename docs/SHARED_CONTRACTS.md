@@ -44,6 +44,12 @@ npm run contracts:build
 npm run server:build
 ```
 
+Docker and Cloud Run builds must use the repository root as context:
+
+```bash
+docker build -f server/Dockerfile -t craftscape-backend .
+```
+
 The source still lives in `shared/contracts.ts` and `shared/ownership.ts`. Do not add direct relative imports such as `../../../shared/contracts` from `server/src`; that changes TypeScript's inferred build root and can break `server/dist/main.js`.
 
 ## Verification

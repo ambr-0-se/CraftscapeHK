@@ -219,10 +219,11 @@ npm run deploy:backend
 # Test frontend container
 npm run docker:test:frontend
 
-# Test backend container
+# Test backend container (builds from repo root so shared contracts are included)
 npm run docker:test
 
 # Or manually
+docker build -f server/Dockerfile -t craftscape-backend .
 docker build -t craftscape-frontend .
 docker run -p 8080:8080 craftscape-frontend
 ```

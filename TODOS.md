@@ -30,7 +30,7 @@
 
 ## Package shared contracts for backend runtime imports
 
-**Status:** Done in Foundation worktree (`mvp/foundation`). Remaining follow-up: ensure deployment pipelines run `npm run contracts:build` before backend packaging.
+**Status:** Done in Foundation worktree (`mvp/foundation`). Deploy via repo-root `docker build -f server/Dockerfile .` or Cloud Run `--source . --dockerfile server/Dockerfile`.
 
 **What:** Package `shared/contracts.ts` so NestJS backend code can import the canonical contracts without changing `server/dist` output shape.
 

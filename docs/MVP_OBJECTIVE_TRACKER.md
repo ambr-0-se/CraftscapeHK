@@ -171,11 +171,11 @@ Notes:
 
 Description: Package `shared/contracts.ts` for safe NestJS runtime imports and define the production user/customer/artisan ownership model before feature worktrees add bookings, orders, co-creation, and messaging APIs.
 
-Current state: `Review`
+Current state: `Done`
 
-Worktree: `worktrees/mvp-foundation`
+Worktree: `main`
 
-Branch: `mvp/foundation`
+Branch: `mvp/foundation` (merged)
 
 Owner: `GPT-5.5`
 
@@ -195,6 +195,7 @@ Notes:
 - Depends on Objective 0 shared contracts being `Done`.
 - Review evidence: added `@craftscape/contracts` package build, NestJS package imports, ownership model doc/types, `User` entity, and optional ownership columns on legacy entities.
 - Commands run: `npm run contracts:build`, `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`.
+- Merged via PR #2 (`c82428b`). Post-merge fixes: repo-root backend Dockerfile, Cloud Run deploy source, Jest package smoke test, deduped contract build chain.
 
 ## Objective 1: AI Co-Creation Flow For Craft Design
 
