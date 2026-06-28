@@ -30,11 +30,21 @@ Status domains should include stable enum values, bilingual labels, and explicit
 
 ## Backend Consumption
 
-The canonical source lives at the repository root, not under `server/src`.
+NestJS imports the compiled local package `@craftscape/contracts`:
 
-Do not add a direct relative NestJS import such as `../../../shared/contracts` from `server/src`. That changes TypeScript's inferred build root and can break the expected `server/dist/main.js` output shape.
+```ts
+import { BookingStatus } from '@craftscape/contracts';
+import { UserRole } from '@craftscape/contracts/ownership';
+```
 
-Before backend runtime code imports these contracts, add an explicit packaging boundary, such as a local workspace package or generated contract build output. This follow-up is tracked in `TODOS.md`.
+Build the package before backend builds:
+
+```bash
+npm run contracts:build
+npm run server:build
+```
+
+The source still lives in `shared/contracts.ts` and `shared/ownership.ts`. Do not add direct relative imports such as `../../../shared/contracts` from `server/src`; that changes TypeScript's inferred build root and can break `server/dist/main.js`.
 
 ## Verification
 

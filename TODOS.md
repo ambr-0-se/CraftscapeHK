@@ -28,21 +28,9 @@
 
 **Depends on / blocked by:** Shared contracts landing and a decision on supported local seed paths.
 
-## Define production user and artisan ownership model
-
-**What:** Define the production user/customer/artisan ownership model for Nest entities and APIs.
-
-**Why:** Bookings, orders, co-creation requests, and message threads need stable `customerId` and `artisanId` ownership fields, while current Nest entities mostly store display names or embedded artisan names.
-
-**Pros:** Clear authorization boundaries, safer APIs, and dashboard data scoped to the right artisan.
-
-**Cons:** Touches auth, entities, seed data, and role checks.
-
-**Context:** The shared-contract pass can name the IDs, but should not invent full auth and ownership behavior. This should be a separate backend/auth task.
-
-**Depends on / blocked by:** Authentication model, artisan profile/listing work, and shared MVP contracts.
-
 ## Package shared contracts for backend runtime imports
+
+**Status:** Done in Foundation worktree (`mvp/foundation`). Remaining follow-up: ensure deployment pipelines run `npm run contracts:build` before backend packaging.
 
 **What:** Package `shared/contracts.ts` so NestJS backend code can import the canonical contracts without changing `server/dist` output shape.
 
@@ -52,6 +40,22 @@
 
 **Cons:** Requires a small packaging decision, likely a local workspace package or generated contract build output.
 
-**Context:** The initial backend bridge was removed because it made `nest build` compile with the wrong output shape. Future backend worktrees should follow `docs/SHARED_CONTRACTS.md` and must not recreate a relative `../../../shared/contracts` bridge without solving packaging.
+**Context:** Implemented as `@craftscape/contracts` with compiled output in `shared/dist`. See `docs/SHARED_CONTRACTS.md`. Do not recreate a relative `../../../shared/contracts` bridge.
 
 **Depends on / blocked by:** Shared contracts landing and the backend deployment/build strategy.
+
+## Define production user and artisan ownership model
+
+**Status:** Addressed in Foundation worktree (`mvp/foundation`) via `docs/OWNERSHIP_MODEL.md`, `shared/ownership.ts`, and the `User` entity. Auth/session implementation remains a separate follow-up.
+
+**What:** Define the production user/customer/artisan ownership model for Nest entities and APIs.
+
+**Why:** Bookings, orders, co-creation requests, and message threads need stable `customerId` and `artisanId` ownership fields, while current Nest entities mostly store display names or embedded artisan names.
+
+**Pros:** Clear authorization boundaries, safer APIs, and dashboard data scoped to the right artisan.
+
+**Cons:** Touches auth, entities, seed data, and role checks.
+
+**Context:** Ownership ids and entity columns are defined. Full auth, seed migration, and API scoping remain separate tasks. See `docs/OWNERSHIP_MODEL.md`.
+
+**Depends on / blocked by:** Authentication model, artisan profile/listing work, and shared MVP contracts.
