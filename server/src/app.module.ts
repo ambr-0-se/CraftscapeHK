@@ -3,6 +3,7 @@ import { ProductsModule } from './products/products.module';
 import { CraftsModule } from './crafts/crafts.module';
 import { EventsModule } from './events/events.module';
 import { OrdersModule } from './orders/orders.module';
+import { BookingsModule } from './bookings/bookings.module';
 import { MessagesModule } from './messages/messages.module';
 import { DatabaseModule } from './database/database.module';
 import { AiModule } from './ai/ai.module';
@@ -22,6 +23,7 @@ export class AppController {
         crafts: '/api/crafts',
         events: '/api/events',
         orders: '/api/orders',
+        bookings: '/api/bookings',
         messages: '/api/messages',
         admin: '/admin/seed (POST)',
         debug: '/debug (development only)'
@@ -37,6 +39,7 @@ export class AppController {
     CraftsModule,
     EventsModule,
     OrdersModule,
+    BookingsModule,
     MessagesModule,
     AiModule,
     DebugModule,

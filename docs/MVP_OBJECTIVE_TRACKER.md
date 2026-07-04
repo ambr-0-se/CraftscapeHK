@@ -229,13 +229,13 @@ Notes:
 
 Description: Treat workshops as events, then let users view details, select schedule options, add seats to cart, and book through checkout.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-workshops-cart`
 
-Owner: `TBD`
+Owner: `GPT-5.5`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-05`
 
 Acceptance Requirements:
 
@@ -252,6 +252,17 @@ Notes:
 
 - Existing `Events` and `EventDetail` provide browsing and filtering.
 - Current event CTA links externally. There is no in-app booking, schedule selection, cart, or capacity tracking.
+- Kickoff approved 2026-06-28. Scope: event-backed workshop detail scheduling, quantity selection, add-to-cart, cart preservation of workshop schedule/quantity/price, and pending booking/order creation path.
+- UI/UX preview gate applies before React production changes. Standalone HTML preview required for workshop booking detail/cart states.
+- Depends on Objective 0 shared contracts and Foundation contract packaging being done. Coordinate any contract gaps before editing `shared/contracts.ts`.
+- Stripe redirect, webhook confirmation, and payment failure/cancellation reconciliation remain Objective 8 dependencies; this worktree should expose a pending checkout handoff without implementing Stripe.
+- Review evidence: added event-backed workshop schedules for the Obellery workshop, local workshop cart preservation after accepted pending-booking creation, simplified workshop detail scheduling UI aligned to `DESIGN.md`, and NestJS pending booking creation at `/api/bookings/workshops/pending`.
+- Acceptance met in this worktree: identifiable workshop event, detail description/host/location/price/capacity/slots, date-time and quantity selection, add-to-cart after backend acceptance, cart preservation, and pending booking creation handoff.
+- Acceptance not met by design: Stripe redirect, webhook payment confirmation, confirmed capacity decrement, and failed/cancelled payment reconciliation remain Objective 8 dependencies.
+- Commands run: `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`.
+- Manual QA: approved standalone preview, simplified the design after visual review to remove duplicated price/quantity/top label content, opened local app on `http://127.0.0.1:5005/`, dismissed onboarding, opened Events, opened Obellery workshop detail, verified full slot disabled, selected an available slot, adjusted inline quantity, created a pending booking through the Vite proxy/backend, and confirmed the reserved-for-checkout state rendered without a dead-end checkout CTA.
+- Review fix 2026-07-05: resolved P2 review findings by moving local cart mutation after successful pending booking creation and replacing the no-op `Continue to checkout` success CTA with a disabled reserved status.
+- Verification rerun 2026-07-05 after review fixes: `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`.
 
 ## Objective 3: User Onboarding Flow
 

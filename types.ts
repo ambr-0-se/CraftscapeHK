@@ -1,4 +1,12 @@
-import type { LocalizedString } from './shared/contracts';
+import type {
+  BookingContract,
+  CurrencyCode,
+  EventType,
+  LocalizedString,
+  MoneyAmountCents,
+  WorkshopSeatCartItemContract,
+  WorkshopScheduleContract,
+} from './shared/contracts';
 
 // Compatibility namespace for existing imports from `types.ts`.
 // New MVP work should import canonical contracts from `shared/contracts` directly.
@@ -27,6 +35,7 @@ export interface Artisan {
 
 export interface Event {
   id: number;
+  eventType?: EventType;
   title: LocalizedString;
   date: string;
   time: LocalizedString;
@@ -39,6 +48,31 @@ export interface Event {
   type: '工作坊' | '展覽' | '講座';
   isFeatured?: boolean;
   url: string;
+  artisanId?: string;
+  craftId?: string;
+  price?: MoneyAmountCents;
+  currency?: CurrencyCode;
+  schedules?: WorkshopScheduleContract[];
+}
+
+export interface WorkshopCartLine {
+  id: string;
+  item: WorkshopSeatCartItemContract;
+  eventTitle: LocalizedString;
+  eventImage?: string;
+  artisanName: string;
+  schedule: WorkshopScheduleContract;
+  unitAmount: MoneyAmountCents;
+  currency: CurrencyCode;
+  addedAt: string;
+}
+
+export interface PendingWorkshopBookingResponse {
+  booking: BookingContract;
+  checkout: {
+    status: 'stripe_pending';
+    message: LocalizedString;
+  };
 }
 
 export interface Product {

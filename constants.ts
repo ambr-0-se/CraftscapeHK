@@ -1,4 +1,9 @@
 import type { Craft, Event, Product, Artisan, Order, MessageThread, GlyphName, FaceProfile } from './types';
+import {
+  EventType,
+  WorkshopScheduleStatus,
+  toWorkshopCapacitySnapshot,
+} from './shared/contracts';
 
 export const CRAFTS: Craft[] = [
   {
@@ -198,9 +203,10 @@ export const EVENTS: Event[] = [
   },
   {
     id: 8,
+    eventType: EventType.Workshop,
     title: { zh: "Obellery 金工銀飾製作工作坊", en: "Obellery Metal & Silver Jewellery Workshop" },
-    date: "需預約",
-    time: { zh: "見官網", en: "See official website" },
+    date: "2026.07.12",
+    time: { zh: "上午 10:30 或 下午 2:30", en: "10:30 AM or 2:30 PM" },
     location: { zh: "中環", en: "Central" },
     description: { zh: "學習基本的金工技術，如鋸切、鍛敲、焊接和打磨，親手用純銀或黃銅等材料製作戒指、手鐲或吊墜。", en: "Learn basic metalworking techniques such as sawing, forging, soldering, and polishing to create your own rings, bracelets, or pendants from sterling silver or brass." },
     organizer: "Obellery",
@@ -208,6 +214,60 @@ export const EVENTS: Event[] = [
     image: "https://www.pmq.org.hk/media/upload/H403_Obellery_Beginner-Jewellery-Workshop-by-Obellery_updated_20230601_KV.jpg",
     region: "港島",
     type: "工作坊",
+    artisanId: "artisan_8_obellery",
+    craftId: "metalwork",
+    price: 68000,
+    currency: "HKD",
+    schedules: [
+      {
+        id: "sched_obellery_2026_07_12_1030",
+        eventId: "8",
+        startsAt: "2026-07-12T10:30:00+08:00",
+        endsAt: "2026-07-12T13:00:00+08:00",
+        timezone: "Asia/Hong_Kong",
+        location: { zh: "中環 PMQ 金工工作室", en: "PMQ metalwork studio, Central" },
+        status: WorkshopScheduleStatus.Open,
+        price: 68000,
+        currency: "HKD",
+        capacity: toWorkshopCapacitySnapshot({
+          capacityTotal: 6,
+          confirmedSeats: 1,
+          activeHoldSeats: 1,
+        }),
+      },
+      {
+        id: "sched_obellery_2026_07_12_1430",
+        eventId: "8",
+        startsAt: "2026-07-12T14:30:00+08:00",
+        endsAt: "2026-07-12T17:00:00+08:00",
+        timezone: "Asia/Hong_Kong",
+        location: { zh: "中環 PMQ 金工工作室", en: "PMQ metalwork studio, Central" },
+        status: WorkshopScheduleStatus.Open,
+        price: 68000,
+        currency: "HKD",
+        capacity: toWorkshopCapacitySnapshot({
+          capacityTotal: 6,
+          confirmedSeats: 3,
+          activeHoldSeats: 1,
+        }),
+      },
+      {
+        id: "sched_obellery_2026_07_13_1100",
+        eventId: "8",
+        startsAt: "2026-07-13T11:00:00+08:00",
+        endsAt: "2026-07-13T13:30:00+08:00",
+        timezone: "Asia/Hong_Kong",
+        location: { zh: "中環 PMQ 金工工作室", en: "PMQ metalwork studio, Central" },
+        status: WorkshopScheduleStatus.Full,
+        price: 68000,
+        currency: "HKD",
+        capacity: toWorkshopCapacitySnapshot({
+          capacityTotal: 6,
+          confirmedSeats: 6,
+          activeHoldSeats: 0,
+        }),
+      },
+    ],
     url: "https://obellery.com/",
   },
 ];

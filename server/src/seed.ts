@@ -17,6 +17,7 @@ async function seed() {
 
   try {
     // Clear existing data (orders first due to foreign key constraints)
+    await dataSource.query('DELETE FROM bookings');
     await dataSource.query('DELETE FROM orders');
     await dataSource.query('DELETE FROM message_threads');
     await dataSource.query('DELETE FROM crafts');

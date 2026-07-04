@@ -1,5 +1,13 @@
 // Real HTTP API Service to replace mock backend/api.ts
-import type { Craft, Product, Event, Order, Artisan, MessageThread } from '../types';
+import type {
+    Craft,
+    Product,
+    Event,
+    Order,
+    Artisan,
+    MessageThread,
+    PendingWorkshopBookingResponse,
+} from '../types';
 import { authService } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -110,6 +118,18 @@ export const getMessageThreads = async (): Promise<MessageThread[]> => {
         console.warn('Failed to enrich message threads with local data:', error);
         return threads;
     }
+};
+
+export const createPendingWorkshopBooking = async (payload: {
+    eventId: string;
+    scheduleId: string;
+    quantity: number;
+    customerId?: string;
+}): Promise<PendingWorkshopBookingResponse> => {
+    return apiRequest<PendingWorkshopBookingResponse>('/bookings/workshops/pending', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+    });
 };
 
 /**
