@@ -68,3 +68,5 @@ server/src/**/*.js
 
 # Ignore compiled CJS files except the main ones we need
 *.cjs.map
+.vercel
+.env*

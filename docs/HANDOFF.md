@@ -145,8 +145,8 @@ Branch `mvp/deploy` (~45m).
 
 ### Live handoff state — Lane D
 
-- Status: not started (Lanes A/B/C merged 2026-07-07; this is the last lane)
-- Last agent/tool: —
-- Done so far: plan finalized and user decisions confirmed (2026-07-07): simulated payments (`PAYMENTS_SIMULATED=true`), fresh GCP project under the user's billable account, DNS automated via name.com API token
-- Next step if resuming: run the kickoff prompt above, starting with tooling install + user logins
-- Blockers / decisions needed: user must run `gcloud auth login` and `vercel login`, and provide the name.com username + API token when the DNS step is reached
+- Status: partial — Vercel + Cloud Run live; Vercel `VITE_*` env + name.com DNS pending
+- Last agent/tool: Cursor (Composer)
+- Done so far: worktree `worktrees/mvp-deploy` / `mvp/deploy`; `cloudbuild.yaml` context fix; `server/Dockerfile` copies `constants.cjs`; `scripts/deploy-backend-cloudrun.sh` (env-vars-file for comma-safe origins); Vercel app `https://mvp-deploy-three.vercel.app`; landing `https://craftscape-landing-page.vercel.app`; Cloud Run `https://craftscape-backend-ljtkkxnryq-uc.a.run.app`; domains added in Vercel (DNS pending)
+- Next step if resuming: (1) `vercel env add VITE_API_BASE_URL` + `VITE_SOCKET_BASE_URL` then `vercel deploy --prod`; (2) name.com A records; (3) full smoke (WebSocket, simulated checkout, Profile Orders)
+- Blockers / decisions needed: name.com DNS records; Vercel production env vars not yet set

@@ -534,15 +534,15 @@ Notes:
 
 ## Objective 10: Vercel Hosting And `app.craftscape.studio` Domain
 
-Description: Host the production frontend on Vercel with the `app.craftscape.studio` subdomain and deploy the NestJS backend to Cloud Run. The apex `craftscape.studio` is reserved for a separate landing page and is out of scope for this repo. The domain is registered at name.com.
+Description: Host the production frontend on Vercel with the `app.craftscape.studio` subdomain and deploy the NestJS backend to Cloud Run. The apex `craftscape.studio` hosts a separate landing page repo (deploy in same lane). The domain is registered at name.com.
 
 Current state: `Partial`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-deploy`
 
-Owner: `TBD`
+Owner: `Cursor`
 
-Last Updated: `2026-07-06`
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -563,7 +563,13 @@ Notes:
 - No Stripe keys exist in `.env` as of 2026-07-07 — deploy with `PAYMENTS_SIMULATED=true` unless the user supplies test-mode keys; register the Stripe webhook against the Cloud Run URL only if real mode ships.
 - SQLite on Cloud Run is ephemeral: data resets when an instance is replaced. Acceptable for the demo; seeding must run on startup.
 - CLI-first deployment is preferred (name.com DNS API, `vercel` CLI, `gcloud` CLI); interactive auth steps (`gcloud auth login`, `vercel login`) must be run by the user.
-- Domain configuration and production smoke test status are not confirmed in repo.
+- Review evidence (2026-07-07, Lane D): preflight `typecheck`, 25 contract tests, frontend build, server build all pass. `cloudbuild.yaml` backend Docker context fixed (`./server` → `.`). `gcloud` + `vercel` CLI installed; `gcloud auth` as `ambrose.gen@gmail.com`, `vercel` as `socialenzymeai-3816`.
+- **Vercel — CraftscapeHK app:** project `mvp-deploy`, production `https://mvp-deploy-three.vercel.app`. Domain `app.craftscape.studio` added to project (DNS pending).
+- **Vercel — landing page:** repo `ambr-0-se/craftscape-landing-page` cloned; project `craftscape-landing-page`, production `https://craftscape-landing-page.vercel.app`. Domain `craftscape.studio` added to project (DNS pending).
+- **GCP:** project `gen-lang-client-0281544850` (craftscape). Cloud Run backend `https://craftscape-backend-ljtkkxnryq-uc.a.run.app` (`craftscape-backend`, us-central1). Deploy via `scripts/deploy-backend-cloudrun.sh` (repo-root Docker build, `--env-vars-file` for comma-safe `ALLOWED_ORIGINS`). `/api/events` returns 200 post-deploy.
+- **DNS (name.com):** Vercel inspect recommends `A craftscape.studio → 76.76.21.21` and `A app.craftscape.studio → 76.76.21.21`. Automated API step skipped — no name.com token in environment.
+- **Vercel env vars not set yet** (`VITE_API_BASE_URL=https://craftscape-backend-ljtkkxnryq-uc.a.run.app/api`, `VITE_SOCKET_BASE_URL=https://craftscape-backend-ljtkkxnryq-uc.a.run.app`) — set then `vercel deploy --prod`.
+- **Smoke (partial, frontend-only):** HTTP 200 on app `/`, `/explore`, `/marketplace`, `/events`, `/profile`, `/ai-studio` (static/seed fallback without live API). Landing `/` HTTP 200, Craftscape branding present. CTA on landing still points to `#waitlist`, not `app.craftscape.studio`. WebSocket, checkout, and Profile Orders flows **not verified** — require Cloud Run backend.
 
 ## Remaining Execution Plan (revised 2026-07-06 for the final build window)
 

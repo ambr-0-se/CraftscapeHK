@@ -7,7 +7,7 @@ steps:
       - 'gcr.io/$PROJECT_ID/craftscape-backend:latest'
       - '-f'
       - 'server/Dockerfile'
-      - './server'
+      - '.'
     id: 'build-backend-image'
 
   # Build the frontend container image (no backend URL needed - nginx proxies)

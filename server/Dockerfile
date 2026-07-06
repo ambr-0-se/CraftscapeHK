@@ -25,6 +25,7 @@ WORKDIR /app/server
 RUN npm ci
 
 COPY server/nest-cli.json server/tsconfig.json ./
+COPY server/constants.cjs ./constants.cjs
 COPY server/src ./src
 
 RUN npm run build
