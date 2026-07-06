@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Studio Demo Realism Preview</title>
+    <style>
+      :root {
+        --bg: #eef3f6;
+        --surface: #fffdf8;
+        --ink: #152633;
+        --muted: #637381;
+        --blue: #053a6a;
+        --red: #b23a32;
+        --border: #d9e1e5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .phone {
+        width: min(100%, 430px);
+        min-height: 760px;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 32px;
+        overflow: hidden;
+        box-shadow: 0 24px 80px rgba(21, 38, 51, 0.18);
+      }
+
+      header {
+        padding: 28px 24px 20px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 32px;
+        line-height: 1.05;
+      }
+
+      header p,
+      .hint,
+      .label {
+        color: var(--muted);
+      }
+
+      header p {
+        margin: 8px 0 0;
+        font-size: 14px;
+      }
+
+      main {
+        padding: 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .canvas {
+        aspect-ratio: 1 / 1.08;
+        border-radius: 24px;
+        border: 1px solid var(--border);
+        background:
+          linear-gradient(180deg, rgba(255, 253, 248, 0.94), rgba(255, 253, 248, 0.76)),
+          url("https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=900&q=80");
+        background-size: cover;
+        display: grid;
+        align-content: end;
+        padding: 20px;
+      }
+
+      .canvas strong {
+        max-width: 280px;
+        font-size: 20px;
+        line-height: 1.2;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 16px;
+      }
+
+      .label {
+        margin: 0 0 10px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button {
+        min-height: 40px;
+        border: 1px solid rgba(5, 58, 106, 0.35);
+        border-radius: 999px;
+        background: var(--surface);
+        color: var(--blue);
+        padding: 9px 13px;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 650;
+        box-shadow: 0 2px 8px rgba(5, 58, 106, 0.08);
+      }
+
+      button:hover {
+        border-color: var(--red);
+        color: var(--red);
+        background: var(--bg);
+      }
+
+      button.primary {
+        width: 100%;
+        margin-top: 14px;
+        min-height: 52px;
+        background: var(--red);
+        color: white;
+        border: 0;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 98px;
+        resize: none;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 14px;
+        background: white;
+        color: var(--ink);
+        font: inherit;
+        line-height: 1.35;
+      }
+
+      .hint {
+        margin: 10px 0 0;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="phone" aria-label="AI Studio inspiration preset preview">
+      <header>
+        <h1>AI Studio</h1>
+        <p>Create with Canton Porcelain</p>
+      </header>
+      <main>
+        <section class="canvas">
+          <strong>Realistic craft references for artisan review</strong>
+        </section>
+        <section class="panel">
+          <p class="label">Demo inspirations</p>
+          <div class="chips">
+            <button>Jade-green peony tea cup</button>
+            <button>Gold rim tea set</button>
+            <button>Bauhinia dessert plate</button>
+          </div>
+          <p class="hint">
+            Chips fill the prompt with craftable material and motif cues while still letting the visitor edit the idea.
+          </p>
+        </section>
+        <section class="panel">
+          <p class="label">Your brief</p>
+          <textarea>jade-green peony tea cup with hand-painted gold rim</textarea>
+          <button class="primary">Generate</button>
+        </section>
+        <section class="panel">
+          <p class="label">Try-on inspirations</p>
+          <div class="chips">
+            <button>Champagne dragon silk</button>
+            <button>Peony evening cheongsam</button>
+          </div>
+        </section>
+      </main>
+    </section>
+  </body>
+</html>

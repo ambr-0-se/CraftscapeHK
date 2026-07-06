@@ -110,6 +110,7 @@ export const zh = {
     aiStudioCtaTitle: '先交由師傅審批，再決定付款',
     aiStudioCtaButton: '提交共創申請',
     aiStudioInputPlaceholder: '例如：賽博朋克風格的龍、盛夏荷塘景色...',
+    aiStudioDemoInspirationsLabel: '示範靈感',
     aiStudioGenerate: '開始生成',
     aiStudioGenerating: '生成中...',
     aiStudioContactTitle: '提交予 {artisan}',

@@ -111,6 +111,7 @@ export const en = {
     aiStudioCtaTitle: 'Ask the artisan to review this concept before payment',
     aiStudioCtaButton: 'Submit co-creation request',
     aiStudioInputPlaceholder: 'e.g., a dragon in cyberpunk style, a summer lotus pond...',
+    aiStudioDemoInspirationsLabel: 'Demo inspirations',
     aiStudioGenerate: 'Generate',
     aiStudioGenerating: 'Generating...',
     aiStudioContactTitle: 'Submit to {artisan}',

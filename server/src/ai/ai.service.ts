@@ -3,11 +3,18 @@ import { GoogleGenAI, Type } from '@google/genai';
 import { getGeminiApiKey } from '../config/gemini.config';
 import { getDoubaoConfig, isDoubaoConfigured } from '../config/doubao.config';
 import { generateDoubaoImage } from './doubao.client';
-import { generateMahjongTileReference } from '../utils/text-to-image.util';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { TranslationOption, TranslationStrategy } from '../types/translation.types';
 import type { LanguageCode } from '@craftscape/contracts';
+
+interface CraftPromptProfile {
+  productForms: string;
+  materials: string;
+  craftDetails: string;
+  feasibility: string;
+  avoid: string;
+}
 
 @Injectable()
 export class AiService {
@@ -16,6 +23,15 @@ export class AiService {
   private readonly imageModel = process.env.GOOGLE_AI_IMAGE_MODEL || 'gemini-3.1-flash-image';
   private readonly imageProviderOrder = (
     process.env.AI_IMAGE_PROVIDER_ORDER ||
+    (this.aiProvider === 'hku'
+      ? 'hku-gemini,hku-openai,google'
+      : 'google,hku-gemini,hku-openai')
+  )
+    .split(',')
+    .map((provider) => provider.trim().toLowerCase())
+    .filter(Boolean);
+  private readonly textProviderOrder = (
+    process.env.AI_TEXT_PROVIDER_ORDER ||
     (this.aiProvider === 'hku'
       ? 'hku-gemini,hku-openai,google'
       : 'google,hku-gemini,hku-openai')
@@ -35,7 +51,14 @@ export class AiService {
   private readonly hkuImageDeploymentId =
     process.env.HKU_GEMINI_IMAGE_DEPLOYMENT_ID || this.imageModel;
   private readonly hkuImageDeploymentIds = (
-    process.env.HKU_GEMINI_IMAGE_DEPLOYMENT_IDS || this.hkuImageDeploymentId
+    process.env.HKU_GEMINI_IMAGE_DEPLOYMENT_IDS ||
+    [
+      'gemini-2.5-flash-image',
+      'gemini-3-pro-image-preview',
+      'gemini-3-pro-image',
+      'gemini-3.1-flash-image-preview',
+      'gemini-3.1-flash-image',
+    ].join(',')
   )
     .split(',')
     .map((deploymentId) => deploymentId.trim())
@@ -50,6 +73,12 @@ export class AiService {
     process.env.HKU_OPENAI_API_VERSION || '2025-04-01-preview';
   private readonly hkuOpenAiImageDeploymentIds = (
     process.env.HKU_OPENAI_IMAGE_DEPLOYMENT_IDS || 'gpt-image-1.5,gpt-image-2'
+  )
+    .split(',')
+    .map((deploymentId) => deploymentId.trim())
+    .filter(Boolean);
+  private readonly hkuOpenAiTextDeploymentIds = (
+    process.env.HKU_OPENAI_TEXT_DEPLOYMENT_IDS || 'gpt-4.1-mini,gpt-4.1-nano,gpt-5-mini'
   )
     .split(',')
     .map((deploymentId) => deploymentId.trim())
@@ -94,34 +123,148 @@ export class AiService {
     schema: unknown,
     systemInstruction: string,
   ): Promise<string> {
-    if (this.aiProvider === 'hku') {
-      const response = await this.generateHkuContent(this.hkuTextDeploymentId, {
-        system_instruction: {
-          parts: [{ text: systemInstruction }],
-        },
-        contents: [
-          {
-            role: 'user',
-            parts: [{ text: prompt }],
-          },
-        ],
-        generationConfig: {
-          responseMimeType: 'application/json',
-          responseSchema: this.normalizeJsonSchema(schema),
-        },
-      });
+    const errors: string[] = [];
 
-      const jsonText = response?.candidates?.[0]?.content?.parts
-        ?.map((part: { text?: string }) => part.text || '')
-        .join('')
-        .trim();
-      if (!jsonText) {
-        throw new Error('HKU Gemini returned an empty response.');
+    for (const provider of this.textProviderOrder) {
+      try {
+        if (provider === 'hku-gemini') {
+          try {
+            return await this.generateHkuGeminiStructuredJson(prompt, schema, systemInstruction);
+          } catch (error) {
+            const message = this.formatProviderError(error);
+            errors.push(`hku-gemini/${this.hkuTextDeploymentId}: ${message}`);
+            if (!this.shouldTryNextTextProvider(error)) {
+              throw error;
+            }
+            console.warn(`HKU Gemini text provider exhausted or unavailable (${this.hkuTextDeploymentId}):`, message);
+            continue;
+          }
+        }
+
+        if (provider === 'hku-openai') {
+          for (const deploymentId of this.hkuOpenAiTextDeploymentIds) {
+            try {
+              return await this.generateHkuOpenAiStructuredJson(deploymentId, prompt, systemInstruction);
+            } catch (error) {
+              const message = this.formatProviderError(error);
+              errors.push(`hku-openai/${deploymentId}: ${message}`);
+              if (!this.shouldTryNextTextProvider(error)) {
+                throw error;
+              }
+              console.warn(`HKU OpenAI text provider exhausted or unavailable (${deploymentId}):`, message);
+            }
+          }
+          continue;
+        }
+
+        if (provider === 'google') {
+          try {
+            return await this.generateGoogleStructuredJson(prompt, schema, systemInstruction);
+          } catch (error) {
+            const message = this.formatProviderError(error);
+            errors.push(`google/${this.textModel}: ${message}`);
+            if (!this.shouldTryNextTextProvider(error)) {
+              throw error;
+            }
+            console.warn(`Google text provider exhausted or unavailable (${this.textModel}):`, message);
+            continue;
+          }
+        }
+      } catch (error) {
+        const message = this.formatProviderError(error);
+        errors.push(`${provider}: ${message}`);
+        if (!this.shouldTryNextTextProvider(error)) {
+          throw error;
+        }
+        console.warn(`Text provider exhausted or unavailable (${provider}):`, message);
       }
-
-      return jsonText;
     }
 
+    throw new Error(`All configured text providers failed. ${errors.join(' | ')}`);
+  }
+
+  private async generateHkuGeminiStructuredJson(
+    prompt: string,
+    schema: unknown,
+    systemInstruction: string,
+  ): Promise<string> {
+    const response = await this.generateHkuContent(this.hkuTextDeploymentId, {
+      system_instruction: {
+        parts: [{ text: systemInstruction }],
+      },
+      contents: [
+        {
+          role: 'user',
+          parts: [{ text: prompt }],
+        },
+      ],
+      generationConfig: {
+        responseMimeType: 'application/json',
+        responseSchema: this.normalizeJsonSchema(schema),
+      },
+    });
+
+    const jsonText = response?.candidates?.[0]?.content?.parts
+      ?.map((part: { text?: string }) => part.text || '')
+      .join('')
+      .trim();
+    if (!jsonText) {
+      throw new Error('HKU Gemini returned an empty response.');
+    }
+
+    return this.extractJsonText(jsonText);
+  }
+
+  private async generateHkuOpenAiStructuredJson(
+    deploymentId: string,
+    prompt: string,
+    systemInstruction: string,
+  ): Promise<string> {
+    if (!this.hkuOpenAiApiKey) {
+      throw new Error('HKU OpenAI API key not configured. Set HKU_OPENAI_API_KEY or HKU_API_KEY in the environment.');
+    }
+
+    const requestUrl = new URL(
+      `${this.hkuOpenAiBaseUrl.replace(/\/$/, '')}/deployments/${deploymentId}/chat/completions`,
+    );
+    requestUrl.searchParams.set('api-version', this.hkuOpenAiApiVersion);
+    requestUrl.searchParams.set('subscription-key', this.hkuOpenAiApiKey);
+
+    const response = await fetch(requestUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: `${systemInstruction}\nReturn only valid JSON. Do not wrap it in Markdown fences.`,
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.2,
+        max_tokens: Number(process.env.HKU_OPENAI_TEXT_MAX_TOKENS || 1200),
+      }),
+    });
+
+    const parsed = await this.parseProviderResponse(response, 'HKU OpenAI');
+    const jsonText = parsed?.choices?.[0]?.message?.content?.trim();
+    if (!jsonText) {
+      throw new Error('HKU OpenAI returned an empty text response.');
+    }
+
+    return this.extractJsonText(jsonText);
+  }
+
+  private async generateGoogleStructuredJson(
+    prompt: string,
+    schema: unknown,
+    systemInstruction: string,
+  ): Promise<string> {
     if (!this.ai) {
       throw new Error('Gemini client not initialised. Please configure GEMINI_API_KEY in the environment.');
     }
@@ -142,7 +285,26 @@ export class AiService {
       throw new Error('Gemini returned an empty response.');
     }
 
-    return jsonText;
+    return this.extractJsonText(jsonText);
+  }
+
+  private extractJsonText(value: string): string {
+    const trimmed = value
+      .trim()
+      .replace(/^```(?:json)?\s*/i, '')
+      .replace(/\s*```$/i, '')
+      .trim();
+    const firstObject = trimmed.indexOf('{');
+    const lastObject = trimmed.lastIndexOf('}');
+    if (firstObject !== -1 && lastObject !== -1 && lastObject > firstObject) {
+      return trimmed.slice(firstObject, lastObject + 1);
+    }
+    const firstArray = trimmed.indexOf('[');
+    const lastArray = trimmed.lastIndexOf(']');
+    if (firstArray !== -1 && lastArray !== -1 && lastArray > firstArray) {
+      return trimmed.slice(firstArray, lastArray + 1);
+    }
+    return trimmed;
   }
 
   private async generateImage(
@@ -398,6 +560,10 @@ export class AiService {
     const message = this.formatProviderError(error).toLowerCase();
     return (
       message.includes('quota') ||
+      message.includes('insufficient token') ||
+      message.includes('insufficient_tokens') ||
+      message.includes('insufficient credit') ||
+      message.includes('insufficient balance') ||
       message.includes('resource_exhausted') ||
       message.includes('too_many_requests') ||
       message.includes('rate limit') ||
@@ -411,6 +577,30 @@ export class AiService {
       message.includes('api_key_invalid') ||
       message.includes('api key not valid') ||
       message.includes('does not support image inputs')
+    );
+  }
+
+  private shouldTryNextTextProvider(error: unknown): boolean {
+    const message = this.formatProviderError(error).toLowerCase();
+    return (
+      message.includes('quota') ||
+      message.includes('insufficient token') ||
+      message.includes('insufficient_tokens') ||
+      message.includes('insufficient credit') ||
+      message.includes('insufficient balance') ||
+      message.includes('resource_exhausted') ||
+      message.includes('too_many_requests') ||
+      message.includes('rate limit') ||
+      message.includes('429') ||
+      message.includes('403') ||
+      message.includes('404') ||
+      message.includes('500') ||
+      message.includes('internal server error') ||
+      message.includes('resource not found') ||
+      message.includes('not configured') ||
+      message.includes('api_key_invalid') ||
+      message.includes('api key not valid') ||
+      message.includes('empty response')
     );
   }
 
@@ -684,6 +874,128 @@ Respond strictly as JSON matching the provided schema.`;
     }
   }
 
+  private getCraftPromptProfile(craftName: string): CraftPromptProfile {
+    const normalized = craftName.toLowerCase();
+
+    if (normalized.includes('porcelain') || normalized.includes('canton')) {
+      return {
+        productForms: 'tea cup, tea set, vase, plate, or small porcelain vessel',
+        materials: 'glazed white porcelain, hand-painted enamel, fine gold rim accents',
+        craftDetails: 'Canton porcelain brushwork, layered floral or auspicious motifs, visible hand-painted line variation',
+        feasibility: 'keep the object symmetrical, kiln-safe, and suitable for hand painting on a real ceramic surface',
+        avoid: 'avoid floating ornaments, impossible handles, melted shapes, random text, or unrelated tableware',
+      };
+    }
+
+    if (normalized.includes('neon')) {
+      return {
+        productForms: 'wall sign or tabletop neon sign with a visible backing frame',
+        materials: 'bent glass neon tubes, warm glow, acrylic or metal backing, realistic power cable and mounts',
+        craftDetails: 'traditional Hong Kong neon tube bends, readable sign silhouette, secure brackets, handcrafted tube spacing',
+        feasibility: 'show continuous tubes that could be bent by an artisan and mounted safely',
+        avoid: 'avoid impossible tube crossings, illegible lettering, floating light, cyberpunk city backgrounds, or LED strip confusion',
+      };
+    }
+
+    if (normalized.includes('mahjong')) {
+      return {
+        productForms: 'single mahjong tile, tile pair, or compact tile set detail',
+        materials: 'ivory-colored bone, bamboo, or resin tile body with engraved colored characters',
+        craftDetails: 'deep hand-carved grooves, traditional red and green pigment, polished edges, slight handmade irregularity',
+        feasibility: 'keep the tile rectangular, thick, centered, and easy for an artisan to carve',
+        avoid: 'avoid distorted characters, extra symbols, fantasy materials, warped tiles, or crowded game-table scenes',
+      };
+    }
+
+    if (normalized.includes('cheongsam')) {
+      return {
+        productForms: 'standalone cheongsam garment on a neutral mannequin or hanger',
+        materials: 'silk or jacquard fabric, satin piping, frog buttons, lining, embroidery thread',
+        craftDetails: 'Hong Kong tailoring, high collar, precise seams, side slits, embroidery placement, natural fabric drape',
+        feasibility: 'make the garment sewable with real panels, closures, seams, and wearable proportions',
+        avoid: 'avoid people unless explicitly requested for try-on, impossible cutouts, stiff plastic fabric, extra props, or runway scenes',
+      };
+    }
+
+    if (normalized.includes('letterpress')) {
+      return {
+        productForms: 'finished card, invitation, poster, bookmark, or small paper stationery piece',
+        materials: 'thick cotton paper, ink impression, letterpress debossing, deckled or clean-cut paper edge',
+        craftDetails: 'visible pressed texture, registered ink layers, type blocks or motif alignment, subtle ink variation',
+        feasibility: 'keep artwork printable with real letterpress plates and clear margins',
+        avoid: 'avoid glossy digital poster effects, unreadable text, floating type, plastic surfaces, or busy desk props',
+      };
+    }
+
+    return {
+      productForms: 'single finished handmade craft object',
+      materials: 'authentic craft materials with visible handmade texture',
+      craftDetails: 'traditional Hong Kong craft details, careful surface finish, evidence of handwork',
+      feasibility: 'keep the design physically buildable by a local artisan with realistic scale and structure',
+      avoid: 'avoid fantasy shapes, impossible joints, random text, extra objects, cluttered backgrounds, or over-stylized concept art',
+    };
+  }
+
+  private buildCraftImageSystemInstruction(craftName: string, isPatternDraft = false): string {
+    const profile = this.getCraftPromptProfile(craftName);
+    const outputType = isPatternDraft
+      ? 'an artisan production reference sheet'
+      : 'a photorealistic product design reference';
+
+    return [
+      `You generate ${outputType} for CraftscapeHK, a Hong Kong craft co-creation platform.`,
+      'Prioritize realism, craft feasibility, and material truth over fantasy illustration.',
+      `Use authentic forms: ${profile.productForms}.`,
+      `Use authentic materials: ${profile.materials}.`,
+      `Show craft-specific details: ${profile.craftDetails}.`,
+      `Feasibility rule: ${profile.feasibility}.`,
+      `Avoid: ${profile.avoid}.`,
+      'Use a calm neutral studio background, soft daylight, accurate scale, and a clear 3/4 product view unless the user asks for a flat draft.',
+      'Return only the image. Do not add captions, watermarks, UI, labels, or explanatory text unless the prompt explicitly asks for artisan annotations.',
+    ].join('\n');
+  }
+
+  private buildCraftConceptPrompt(craftName: string, userPrompt: string, hasReferenceImage: boolean): string {
+    const profile = this.getCraftPromptProfile(craftName);
+    return [
+      `Create a realistic, artisan-usable product concept for this traditional Hong Kong craft: ${craftName}.`,
+      `User inspiration: "${userPrompt.trim()}".`,
+      '',
+      'Output requirements:',
+      '- Render one finished object as a premium product reference, not abstract concept art.',
+      `- Plausible product form: ${profile.productForms}.`,
+      `- Materials and surface: ${profile.materials}.`,
+      `- Handmade details: ${profile.craftDetails}.`,
+      `- Craft feasibility: ${profile.feasibility}.`,
+      '- Composition: centered object, 3/4 view, neutral warm studio background, soft daylight, realistic shadows.',
+      '- Make construction details visible enough for an artisan to discuss production: seams, joints, tube mounts, carved grooves, brushwork, or paper impression as relevant.',
+      hasReferenceImage
+        ? '- Use the attached reference image as visual guidance for motif, silhouette, or pattern placement while keeping the final result realistic.'
+        : '',
+      '',
+      `Negative constraints: ${profile.avoid}. Do not add unrelated props, fantasy lighting, distorted anatomy, fake brand marks, random text, or impossible structures.`,
+    ]
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  private buildCheongsamPatternDraftPrompt(craftName: string, userPrompt: string): string {
+    return [
+      `Create an artisan production pattern sheet for ${craftName}.`,
+      `Design inspiration: "${userPrompt.trim()}".`,
+      'Use the attached garment image as the visual source when provided.',
+      '',
+      'The image should look like a clean scanned designer draft on off-white paper:',
+      '- front and back garment panels laid flat',
+      '- collar, sleeve, side slit, piping, and frog button placement',
+      '- embroidery or motif placement zones with fine ink outlines',
+      '- small handwritten-style color and stitch annotations',
+      '- realistic paper texture and clear margins',
+      '',
+      'Avoid lifestyle props, mannequins, full bodies, sewing-room scenes, random logos, illegible clutter, or decorative fantasy elements.',
+    ].join('\n');
+  }
+
   async generateCraftImage(
     craftName: string, 
     userPrompt: string, 
@@ -695,48 +1007,41 @@ Respond strictly as JSON matching the provided schema.`;
       const isMahjong = this.isMahjongCraft(craftName);
       const hasChinesePrompt = this.containsChineseCharacters(userPrompt);
       
-      let referenceImage: string | null = null;
       let enhancedPrompt = userPrompt;
+      const isPatternDraft =
+        /pattern draft|pattern sheet|production draft/i.test(craftName) ||
+        /pattern draft|pattern sheet|production pattern/i.test(userPrompt);
 
-      // Generate reference image for mahjong with Chinese characters
       if (isMahjong && hasChinesePrompt) {
         // Extract only Chinese characters from the prompt (in case it includes pronunciation/explanation)
         const chineseOnly = userPrompt.match(/[\u3400-\u9FFF]+/g)?.[0] || userPrompt;
-        console.log('Generating mahjong tile reference image with Chinese text:', chineseOnly);
-        referenceImage = generateMahjongTileReference(chineseOnly);
-        
-        // DEBUG: Log reference image details
-        console.log('Reference image generated:');
-        console.log('- Format: PNG (base64 encoded)');
-        console.log('- Size:', Math.round(referenceImage.length / 1024), 'KB');
-        console.log('- Data URL length:', referenceImage.length, 'characters');
-        
-        // Enhance the prompt to use the reference image with EXPLICIT instructions
         enhancedPrompt = `A hand-carved traditional Hong Kong mahjong tile with Chinese character(s) engraved vertically on it. 
 
 CRITICAL REQUIREMENTS:
-1. Copy the EXACT Chinese characters shown in the reference image - character by character, stroke by stroke
-2. The characters must be IDENTICAL to those in the reference image: "${chineseOnly}"
-3. Preserve the vertical layout shown in the reference image
+1. Engrave these EXACT Traditional Chinese characters: "${chineseOnly}"
+2. Do not translate, romanize, simplify, substitute, add, omit, or rearrange any character
+3. Preserve the exact character order and lay the characters vertically when there is more than one character
 4. The tile should be made of ivory-colored material (bone or bamboo)
 5. Deep, precise carving showing traditional craftsmanship
 6. Characters centered and prominent, carved in traditional style, in red or green color
 7. Beautiful lighting that highlights the depth of the engraving
 
-Reference image shows the correct Chinese characters to engrave. DO NOT change, simplify, or substitute any characters.`;
+Text-only instruction: the image generation request intentionally includes no reference image. The characters "${chineseOnly}" are the source of truth.`;
         console.log('Enhanced mahjong prompt for Chinese text:', chineseOnly);
       }
 
-      const fullPrompt = isMahjong && hasChinesePrompt 
+      const fullPrompt = isMahjong && hasChinesePrompt
         ? enhancedPrompt
-        : `A high-quality, artistic image of a modern interpretation of a traditional Hong Kong craft: ${craftName}. The design is inspired by: "${userPrompt}". Focus on intricate details and beautiful lighting.`;
+        : isPatternDraft
+          ? this.buildCheongsamPatternDraftPrompt(craftName, userPrompt)
+          : this.buildCraftConceptPrompt(craftName, userPrompt, Boolean(referenceImageUrl));
 
       console.log('=== Backend AI Service - Full Prompt ===');
       console.log('Craft Name:', craftName);
       console.log('User Prompt:', userPrompt);
       console.log('Is Mahjong:', isMahjong);
       console.log('Has Chinese:', hasChinesePrompt);
-      console.log('Has Reference Image:', !!referenceImage);
+      console.log('Has Reference Image:', Boolean(referenceImageUrl) && !(isMahjong && hasChinesePrompt));
       console.log('Full Prompt Sent to AI:');
       console.log(fullPrompt);
       console.log('========================================');
@@ -762,15 +1067,9 @@ Reference image shows the correct Chinese characters to engrave. DO NOT change, 
         { type: 'text', text: fullPrompt },
       ];
       
-      // Add reference image if available (for mahjong or user-provided)
-      if (isMahjong && referenceImage) {
-        const base64Data = referenceImage.split(',')[1]; // Extract base64 data
-        promptParts.push({
-          type: 'image',
-          mime_type: 'image/png',
-          data: base64Data,
-        });
-      } else if (referenceImageUrl) {
+      // Add user-provided reference image when supported by this workflow.
+      // Mahjong generation stays text-only so HKU OpenAI image fallback can run.
+      if (referenceImageUrl && !(isMahjong && hasChinesePrompt)) {
         // Add user-provided reference image (e.g., cheongsam for pattern draft)
         console.log('Adding user-provided reference image to prompt');
         const refBase64 = await this.imageUrlToBase64(referenceImageUrl);
@@ -784,17 +1083,17 @@ Reference image shows the correct Chinese characters to engrave. DO NOT change, 
 
       const generatedImage = await this.generateImage(
         promptParts,
-        isMahjong && referenceImage
+        isMahjong && hasChinesePrompt
           ? `You are an expert at generating realistic images of traditional Hong Kong crafts. 
-When a reference image is provided showing Chinese characters:
-1. You MUST reproduce the EXACT Chinese characters shown in the reference image
-2. Copy each character stroke-by-stroke - do NOT simplify, modify, or substitute characters
-3. Preserve the vertical layout and positioning shown in the reference
+This is a TEXT-ONLY mahjong tile request; no reference image is attached.
+1. You MUST engrave the exact Traditional Chinese characters specified in the user prompt
+2. Do NOT translate, romanize, simplify, modify, omit, add, or substitute characters
+3. Preserve the character order and vertical layout
 4. The characters are the most critical element - accuracy is paramount
-5. Apply the characters to a hand-carved mahjong tile with ivory-colored material
+5. Apply the characters to a realistic hand-carved mahjong tile with ivory-colored material
 
-Remember: Character accuracy from the reference image is MORE IMPORTANT than artistic interpretation.`
-          : undefined,
+Remember: Character accuracy from the text is MORE IMPORTANT than artistic interpretation.`
+          : this.buildCraftImageSystemInstruction(craftName, isPatternDraft),
       );
       
       return { imageUrl: `data:${generatedImage.mimeType};base64,${generatedImage.data}` };
@@ -851,6 +1150,10 @@ Remember: Character accuracy from the reference image is MORE IMPORTANT than art
           text: `Using the provided image of a person's face, generate a professional full-body portrait of this exact person. CRITICAL: Preserve the person's facial features EXACTLY as shown in the reference image - including face shape, eyes, nose, mouth, skin tone, and all unique characteristics. 
 
 The person should be:
+- Standing naturally in a front-facing or slight 3/4 pose
+- Photographed in clean studio lighting against a neutral background
+- Wearing simple fitted neutral clothing that can be replaced by a cheongsam
+- Full body visible from head to shoes, with realistic proportions and hands
 
 Remember: The face must be IDENTICAL to the reference image provided.` 
         },
@@ -879,8 +1182,11 @@ Remember: The face must be IDENTICAL to the reference image provided.`
       } else {
         // Generate new cheongsam garment image
         console.log('Step 2: Generating cheongsam garment...');
-        const cheongsamPrompt = `Create a professional product photo of an elegant ${craftName}. The cheongsam should feature:
-${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
+        const cheongsamPrompt = this.buildCraftConceptPrompt(
+          craftName,
+          userPrompt || 'an elegant Hong Kong tailored cheongsam suitable for a realistic virtual try-on',
+          false,
+        );
 
         const step2Image = await this.generateImage([{ type: 'text', text: cheongsamPrompt }]);
         cheongsamImageBase64 = step2Image.data;
@@ -904,10 +1210,20 @@ ${userPrompt ? `\nAdditional design notes: ${userPrompt}` : ''}`;
 Your task: Create a professional fashion e-commerce photo showing the person wearing the cheongsam. Generate a realistic, full-body shot with these requirements:
 
 CRITICAL FACIAL PRESERVATION:
+- Preserve the model's face, skin tone, and identity from image 1 as closely as possible
+- Keep the head size, facial expression, and hairline realistic
+- Do not replace the person with a different model
 
 OUTFIT REQUIREMENTS:
+- The person must be wearing the cheongsam from image 2
+- Preserve the garment's fabric color, collar, piping, frog buttons, embroidery, side slit, and overall silhouette
+- Make the garment drape naturally on the body with realistic seams, folds, and tailoring
+- Add simple matching footwear only if feet are visible
 
 OVERALL QUALITY:
+- Full-body studio product/fashion photo
+- Neutral background, soft daylight, realistic shadows
+- No extra people, no showroom clutter, no unrelated props, no text overlays, no distorted hands or limbs
 
 Do NOT just return the person's photo - you must show them WEARING the cheongsam garment with matching footwear.`
         },
