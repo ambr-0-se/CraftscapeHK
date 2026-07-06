@@ -7,6 +7,8 @@ import type {
   EventType,
   LocalizedString,
   MoneyAmountCents,
+  MoneyContract,
+  OrderContract,
   WorkshopSeatCartItemContract,
   WorkshopScheduleContract,
 } from './shared/contracts';
@@ -81,10 +83,27 @@ export interface PendingWorkshopBookingResponse {
   };
 }
 
+/**
+ * What the customer is about to pay for. The shared checkout sheet derives
+ * line items, pricing display, and the backend payload from this.
+ */
+export type CheckoutIntent =
+  | {
+      kind: 'workshop';
+      booking: BookingContract;
+      event: Event;
+      schedule: WorkshopScheduleContract;
+    }
+  | { kind: 'product'; product: Product; quantity: number }
+  | { kind: 'cocreation'; request: CoCreationRequestContract }
+  | { kind: 'retry'; order: OrderContract };
+
 export interface Product {
   id: number;
   name: LocalizedString;
   price: number;
+  /** Authoritative backend pricing in integer cents, when served by the API. */
+  priceMoney?: MoneyContract;
   priceDisplay: LocalizedString;
   priceSubDisplay?: LocalizedString;
   image: string;
