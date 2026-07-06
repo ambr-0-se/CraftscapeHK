@@ -421,6 +421,8 @@ Notes:
 - Review evidence on 2026-07-06: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build` passed. Runtime smoke on a clean SQLite database passed for REST thread creation, persisted message send, idempotent duplicate send, replay, craft context creation, and WebSocket message echo. Translation path attempted backend AI translation and stored fallback metadata when the provider returned errors in this environment.
 - PR handoff on 2026-07-06: branch `codex/real-time-messaging` is ready for rebase, final verification, push, and pull request creation against `main`.
 - Rebase evidence on 2026-07-06: rebased onto `origin/main` (`0f80a25`) after resolving additive conflicts with Objective 4 workshop booking entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
+- Pull request: https://github.com/ambr-0-se/CraftscapeHK/pull/6
+- Rebase refresh on 2026-07-06: rebased onto latest `origin/main` (`268fea8`) after resolving additive conflicts with listing pages and AI co-creation entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
 
 ## Objective 8: Stripe Payment Processing
 
