@@ -10,10 +10,13 @@ import type {
 } from '../types';
 import type {
     AiCreationContract,
+    BookingContract,
+    BookingStatus,
     CheckoutSessionResultContract,
     CoCreationRequestContract,
     CreateCheckoutSessionInputContract,
     CustomerOrderHistoryEntryContract,
+    OrderStatus,
 } from '../shared/contracts';
 import { authService } from './authService';
 

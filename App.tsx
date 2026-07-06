@@ -91,6 +91,9 @@ export default function App() {
   const [profileInitialTab, setProfileInitialTab] = useState<ProfileTab | undefined>(
     undefined
   );
+  const [profileOrdersNotice, setProfileOrdersNotice] = useState<string | undefined>(
+    undefined
+  );
 
   // Artisan view management
   const [currentArtisanView, setCurrentArtisanView] = useState<ArtisanView>(
@@ -106,7 +109,7 @@ export default function App() {
     }
     return localStorage.getItem("hasSeenOnboarding") !== "true";
   });
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { activeArtisanId, activePersonaId } = useDemoPersona();
 
   useEffect(() => {
@@ -140,8 +143,12 @@ export default function App() {
       })
       .catch((error) => {
         console.error("Failed to load order after Stripe redirect:", error);
+        setProfileInitialTab("orders");
+        setProfileOrdersNotice(t("checkoutReturnError"));
+        setActiveTab(Tab.Profile);
+        setCurrentView(View.Explore);
       });
-  }, []);
+  }, [t]);
 
   const handleStartCheckout = useCallback((intent: CheckoutIntent) => {
     setCheckoutIntent(intent);
@@ -178,6 +185,7 @@ export default function App() {
   const handleViewOrders = useCallback(() => {
     setConfirmationEntry(null);
     setConfirmationHint(undefined);
+    setProfileOrdersNotice(undefined);
     setProfileInitialTab("orders");
     setActiveTab(Tab.Profile);
     setCurrentView(View.Explore);
@@ -397,6 +405,7 @@ export default function App() {
             onReopenOnboarding={handleReopenOnboarding}
             onStartCheckout={handleStartCheckout}
             initialTab={profileInitialTab}
+            ordersNotice={profileOrdersNotice}
           />
         );
       default:

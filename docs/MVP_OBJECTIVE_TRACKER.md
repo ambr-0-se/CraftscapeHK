@@ -284,13 +284,15 @@ Notes:
 
 Description: Guide first-time users through discovery, co-creation, workshop booking, marketplace purchase, checkout, and profile tracking.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-onboarding-journey`
 
-Owner: `TBD`
+Branch: `mvp/onboarding-journey`
 
-Last Updated: `2026-06-28`
+Owner: `Cursor`
+
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -302,20 +304,23 @@ Acceptance Requirements:
 
 Notes:
 
-- Existing onboarding covers Explore, Marketplace, and Events.
-- It needs updates after booking, checkout, and co-creation request flows exist.
+- Review evidence (2026-07-07): expanded `OnboardingGuide` to 5 slides (Explore, co-creation, marketplace, workshops, profile/checkout tracking); EN + zh copy and a11y (`role="dialog"`, `aria-live`, localized Back/Close, Escape dismiss); persistence and Profile Help reopen unchanged.
+- HTML preview gate exempt (same carousel layout, copy + icon extension only).
+- Commands: `npm run typecheck`, `npm run build`. Manual QA: `docs/MANUAL_QA_CORE_JOURNEYS.md` (onboarding, Stripe return error, Profile Orders).
 
 ## Objective 4: Core User Journey UI/UX Mapping
 
 Description: Document and validate the end-to-end journey from discovery to co-creation to booking or purchase to checkout and confirmation.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-onboarding-journey`
 
-Owner: `TBD`
+Branch: `mvp/onboarding-journey`
 
-Last Updated: `2026-07-06`
+Owner: `Cursor`
+
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -327,9 +332,9 @@ Acceptance Requirements:
 
 Notes:
 
-- `App.tsx` already connects several prototype views.
-- Objectives 1, 2, 5, and 7 merged core discovery, co-creation, workshop reservation handoff, listings, and messaging slices, but checkout, confirmation, and tracking remain incomplete.
-- The journey cannot be considered complete until Stripe checkout, confirmation, order tracking, and remaining listing/dashboard gaps are closed.
+- Review evidence (2026-07-07): `docs/USER_JOURNEY_MAP.md` (co-creation, workshop, marketplace paths + state matrix); `docs/MANUAL_QA_CORE_JOURNEYS.md`; dead-end fixes — `Profile.initialTab` honored, Stripe return load failure routes to Profile Orders + `checkoutReturnError`.
+- Browser QA at mobile viewport on `http://localhost:5004/` against shared backend `:3001`.
+- Commands: `npm run typecheck`, `npm run build`.
 
 ## Objective 5: Product And Craft Listing Pages
 

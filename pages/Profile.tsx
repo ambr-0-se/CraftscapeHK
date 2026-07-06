@@ -59,6 +59,7 @@ interface ProfileProps {
   onReopenOnboarding: () => void;
   onStartCheckout: (intent: CheckoutIntent) => void;
   initialTab?: ProfileTab;
+  ordersNotice?: string;
 }
 
 const Profile: React.FC<ProfileProps> = ({
@@ -66,6 +67,7 @@ const Profile: React.FC<ProfileProps> = ({
   onReopenOnboarding,
   onStartCheckout,
   initialTab,
+  ordersNotice,
 }) => {
   const {
     favorites,
@@ -85,7 +87,7 @@ const Profile: React.FC<ProfileProps> = ({
     activeArtisanId,
     setActivePersonaId,
   } = useDemoPersona();
-  const [activeTab, setActiveTab] = useState<ProfileTab>("favorites");
+  const [activeTab, setActiveTab] = useState<ProfileTab>(initialTab ?? "favorites");
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [coCreationRequests, setCoCreationRequests] = useState<
@@ -100,6 +102,12 @@ const Profile: React.FC<ProfileProps> = ({
   const faceUploadInputRef = useRef<HTMLInputElement | null>(null);
   const faceCameraInputRef = useRef<HTMLInputElement | null>(null);
   const [showFaceUploadOptions, setShowFaceUploadOptions] = useState(false);
+
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+    }
+  }, [initialTab]);
 
   useEffect(() => {
     if (activeTab === "favorites") {
@@ -673,6 +681,11 @@ const Profile: React.FC<ProfileProps> = ({
                 {t("profileOrdersDesc")}
               </p>
             </div>
+            {ordersNotice ? (
+              <p className="museum-card p-4 text-sm text-[var(--color-error)]">
+                {ordersNotice}
+              </p>
+            ) : null}
             {isOrdersLoading ? (
               <Spinner text={t("loading")} />
             ) : ordersError ? (
