@@ -483,6 +483,17 @@ export interface OrderContract {
   stripe?: StripePaymentReferenceContract;
 }
 
+export interface AiCreationContract {
+  id: string;
+  customerId: string;
+  craftId: string;
+  craftName: LocalizedString;
+  prompt: string;
+  imageUrl: string;
+  referenceImageUrls: string[];
+  createdAt: string;
+}
+
 export interface CoCreationRequestContract {
   id: string;
   customerId: string;
@@ -495,6 +506,7 @@ export interface CoCreationRequestContract {
   approvalState: ArtisanApprovalState;
   quote?: MoneyContract;
   deposit?: MoneyContract;
+  artisanNote?: string;
   convertedOrderId?: string;
 }
 

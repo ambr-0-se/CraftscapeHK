@@ -21,6 +21,8 @@ export async function createNestServer() {
         'http://localhost:5000',
         'http://localhost:5173',
         'http://localhost:3001',
+        /^http:\/\/localhost:50\d{2}$/,
+        /^http:\/\/127\.0\.0\.1:50\d{2}$/,
         'https://craftscape-hk.vercel.app',
         'https://craftscape-backend-998275462099.us-central1.run.app',
         'https://craftscape-backend-jekg23xn5a-uc.a.run.app',
@@ -89,13 +91,15 @@ if (require.main === module) {
     });
     
     // CORS configuration MUST be set FIRST before any middleware
-    const allowedOrigins = process.env.ALLOWED_ORIGINS
+    const allowedOrigins: Array<string | RegExp> = process.env.ALLOWED_ORIGINS
       ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
       : [
           'http://localhost:3000',
           'http://localhost:5000',
           'http://localhost:5173',
           'http://localhost:3001',
+          /^http:\/\/localhost:50\d{2}$/,
+          /^http:\/\/127\.0\.0\.1:50\d{2}$/,
           'https://craftscape-hk.vercel.app',
           'https://craftscape-backend-998275462099.us-central1.run.app',
           'https://craftscape-backend-jekg23xn5a-uc.a.run.app',
@@ -116,6 +120,9 @@ if (require.main === module) {
         
         // Check if origin matches any allowed origin (including regex patterns)
         const isAllowed = allowedOrigins.some(allowed => {
+          if (allowed instanceof RegExp) {
+            return allowed.test(origin);
+          }
           if (typeof allowed === 'string' && allowed.startsWith('/') && allowed.endsWith('/')) {
             // Treat as regex pattern
             const pattern = new RegExp(allowed.slice(1, -1));

@@ -6,12 +6,18 @@ import React, {
   useRef,
 } from "react";
 import type { Craft, TranslationOption, FaceProfile } from "../types";
+import type { AiCreationContract, CoCreationRequestContract } from "../shared/contracts";
 import { motion } from "framer-motion";
 import { useAppContext } from "../contexts/AppContext";
 import {
   generateCraftImage,
   generateTryOnImage,
 } from "../services/geminiService";
+import {
+  generateAndPersistAiConcept,
+  persistAiConcept,
+  submitCoCreationRequest,
+} from "../services/apiService";
 import { getMahjongTranslationSuggestions } from "../services/translationService";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -71,6 +77,11 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const [contactMessage, setContactMessage] = useState("");
   const [isSubmittingContact, setIsSubmittingContact] = useState(false);
   const [contactSuccess, setContactSuccess] = useState(false);
+  const [contactError, setContactError] = useState<string | null>(null);
+  const [persistedConcept, setPersistedConcept] =
+    useState<AiCreationContract | null>(null);
+  const [submittedRequest, setSubmittedRequest] =
+    useState<CoCreationRequestContract | null>(null);
   const [shouldShowContactCTA, setShouldShowContactCTA] = useState(false);
   const [studioMode, setStudioMode] = useState<"concept" | "try-on">("concept");
   const [selectedFaceId, setSelectedFaceId] = useState<string | null>(null);
@@ -113,6 +124,8 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     setIsTranslating(false);
     setRecentlyUsedTranslation(null);
     setShouldShowContactCTA(false);
+    setPersistedConcept(null);
+    setSubmittedRequest(null);
   }, [requiresTranslation, craft.id]);
 
   useEffect(() => {
@@ -334,6 +347,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       let imageFit: "contain" | "cover" = "contain";
       let patternImageUrl: string | null = null;
       let patternImageFit: "contain" | "cover" = "contain";
+      let savedConcept: AiCreationContract | null = null;
 
       // Check for hardcoded dragon try-on image (only for default face)
       const isDefaultFace = selectedFace?.id === "1";
@@ -377,7 +391,14 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           canReuseConceptImage ? lastConceptCheongsamImage : undefined
         );
       } else {
-        imageUrl = await generateCraftImage(craft.name[language], modelPrompt);
+        const concept = await generateAndPersistAiConcept(
+          craft.id,
+          craft.name,
+          modelPrompt
+        );
+        imageUrl = concept.imageUrl;
+        savedConcept = concept;
+        setPersistedConcept(concept);
 
         // Save concept cheongsam image for potential reuse in try-on mode
         if (isCheongsamCraft && !isTryOnMode) {
@@ -388,12 +409,25 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
 
       setGeneratedImage(imageUrl);
       setGeneratedImageFit(imageFit);
-      setShouldShowContactCTA(!isTryOnMode);
       setRecentlyUsedTranslation(
         requiresTranslation && selectedTranslation
           ? { ...selectedTranslation }
           : null
       );
+
+      if (!isTryOnMode && !savedConcept) {
+        const concept = await persistAiConcept(
+          craft.id,
+          craft.name,
+          effectivePrompt,
+          imageUrl,
+          [imageUrl]
+        );
+        savedConcept = concept;
+        setPersistedConcept(concept);
+      }
+
+      setShouldShowContactCTA(!isTryOnMode);
       setIsLoading(false);
 
       if (isTryOnMode && selectedFace) {
@@ -412,6 +446,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           craftName: craft.name[language],
           prompt: effectivePrompt,
           imageUrl,
+          backendId: savedConcept?.id,
         });
       }
 
@@ -463,7 +498,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       }
     } catch (err) {
       console.error(err);
-      setError(err instanceof Error ? err.message : t("aiStudioErrorGeneric"));
+      setError(t("aiStudioGenerationFailed"));
     } finally {
       setIsLoading(false);
     }
@@ -503,6 +538,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     }
     setContactMessage(messageTemplate);
     setContactSuccess(false);
+    setContactError(null);
     setIsSubmittingContact(false);
     setIsContactOpen(true);
   }, [
@@ -521,18 +557,48 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   }, []);
 
   const handleSubmitContact = useCallback(
-    (event: React.FormEvent<HTMLFormElement>) => {
+    async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
       if (isSubmittingContact || contactSuccess) {
         return;
       }
       setIsSubmittingContact(true);
-      setTimeout(() => {
+      setContactError(null);
+      try {
+        const request = await submitCoCreationRequest({
+          aiCreationId: persistedConcept?.id,
+          craftId: craft.id,
+          prompt: lastUsedPrompt || prompt,
+          referenceImageUrls: [generatedImage, patternDraftImage].filter(
+            (url): url is string => Boolean(url)
+          ),
+          customerName: contactName,
+          customerEmail: contactEmail,
+          customerMessage: contactMessage,
+        });
+        setSubmittedRequest(request);
         setIsSubmittingContact(false);
         setContactSuccess(true);
-      }, 600);
+      } catch (err) {
+        console.error(err);
+        setContactError(t("aiStudioContactError"));
+        setIsSubmittingContact(false);
+      }
     },
-    [contactSuccess, isSubmittingContact]
+    [
+      contactSuccess,
+      isSubmittingContact,
+      persistedConcept,
+      craft.id,
+      lastUsedPrompt,
+      prompt,
+      generatedImage,
+      patternDraftImage,
+      contactName,
+      contactEmail,
+      contactMessage,
+      t,
+    ]
   );
 
   const disableGenerate =
@@ -1153,6 +1219,19 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                     artisan: craft.artisan[language],
                   })}
                 </p>
+                {submittedRequest && (
+                  <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg)] p-4 text-left">
+                    <p className="text-[12px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+                      {t("aiStudioRequestStatusLabel")}
+                    </p>
+                    <p className="mt-1 text-[15px] font-semibold text-[var(--color-text-primary)]">
+                      {t("aiStudioRequestPendingStatus")}
+                    </p>
+                    <p className="mt-2 text-[13px] text-[var(--color-text-secondary)]">
+                      {t("aiStudioRequestPendingHelper")}
+                    </p>
+                  </div>
+                )}
                 <button
                   onClick={handleCloseContact}
                   className="w-full bg-[var(--color-primary-accent)] text-white font-semibold py-3 px-4 rounded-xl hover:opacity-90 transition-colors"
@@ -1232,6 +1311,12 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
                     className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-bg)] py-3 px-4 text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary-accent)] resize-none"
                   />
                 </div>
+
+                {contactError && (
+                  <div className="rounded-xl border border-[var(--color-error)]/40 bg-[var(--color-error)]/10 p-3 text-[13px] text-[var(--color-error)]">
+                    {contactError}
+                  </div>
+                )}
 
                 <button
                   type="submit"

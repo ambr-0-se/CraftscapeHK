@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ARTISAN_APPROVAL_STATE_LABELS,
   ARTISAN_APPROVAL_STATE_TRANSITIONS,
+  AiCreationContract,
   ArtisanApprovalState,
   BOOKING_STATUS_LABELS,
   BOOKING_STATUS_TRANSITIONS,
@@ -179,6 +180,22 @@ describe('MVP shared contract transition maps', () => {
         CoCreationRequestStatus.ConvertedToOrder,
       ),
     ).toBe(true);
+  });
+
+  it('stores generated AI concepts as customer-owned references', () => {
+    const creation: AiCreationContract = {
+      id: 'creation_123',
+      customerId: 'customer_123',
+      craftId: '4',
+      craftName: { zh: '中式長衫', en: 'Cheongsam Making' },
+      prompt: 'Midnight silk dragon embroidery',
+      imageUrl: 'data:image/png;base64,abc',
+      referenceImageUrls: ['data:image/png;base64,abc'],
+      createdAt: '2026-06-28T10:00:00.000Z',
+    };
+
+    expect(creation.customerId).toBe('customer_123');
+    expect(creation.referenceImageUrls).toHaveLength(1);
   });
 
   it('keeps artisan approval terminal states terminal', () => {

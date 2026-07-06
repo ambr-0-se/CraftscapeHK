@@ -10,6 +10,7 @@ import { AiModule } from './ai/ai.module';
 import { DebugModule } from './debug/debug.module';
 import { AdminModule } from './admin/admin.module';
 import { AdminService } from './admin/admin.service';
+import { CoCreationModule } from './co-creation/co-creation.module';
 
 @Controller()
 export class AppController {
@@ -25,6 +26,7 @@ export class AppController {
         orders: '/api/orders',
         bookings: '/api/bookings',
         messages: '/api/messages',
+        coCreation: '/api/co-creation',
         admin: '/admin/seed (POST)',
         debug: '/debug (development only)'
       }
@@ -41,6 +43,7 @@ export class AppController {
     OrdersModule,
     BookingsModule,
     MessagesModule,
+    CoCreationModule,
     AiModule,
     DebugModule,
     AdminModule,

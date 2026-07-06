@@ -64,14 +64,17 @@ export default function App() {
     useState<MessageThread | null>(null);
 
   // Onboarding state
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    if (typeof window === "undefined") {
+      return true;
+    }
+    return localStorage.getItem("hasSeenOnboarding") !== "true";
+  });
   const { language } = useLanguage();
 
   useEffect(() => {
     const hasSeen = localStorage.getItem("hasSeenOnboarding");
-    if (!hasSeen) {
-      setShowOnboarding(true);
-    }
+    setShowOnboarding(hasSeen !== "true");
   }, []);
 
   const handleCloseOnboarding = useCallback(() => {
