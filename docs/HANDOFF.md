@@ -25,7 +25,7 @@ npm --prefix server run test    # after backend changes
 
 ## Lane A — Stripe Payments + Orders/Confirmation (Objectives 8 + 9)
 
-Worktree `worktrees/mvp-stripe-orders`, branch `mvp/stripe-orders`. Critical path (~2.5h). Premium-credit agent recommended.
+Worktree `worktrees/mvp-stripe-orders`, branch `mvp/stripe-orders`. Critical path (~2.5h). 
 
 ### Kickoff prompt (paste to agent)
 
@@ -61,7 +61,7 @@ Worktree `worktrees/mvp-stripe-orders`, branch `mvp/stripe-orders`. Critical pat
 
 ## Lane B — Artisan Portal + Persona Switcher (Objective 6 + follow-ups)
 
-Worktree `worktrees/mvp-artisan-portal`, branch `mvp/artisan-portal`. Parallel to Lane A (~1.5h). Suitable for a lower-cost agent.
+Worktree `worktrees/mvp-artisan-portal`, branch `mvp/artisan-portal`. Parallel to Lane A (~1.5h).
 
 ### Kickoff prompt (paste to agent)
 
