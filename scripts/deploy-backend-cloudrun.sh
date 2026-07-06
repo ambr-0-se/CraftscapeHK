@@ -22,6 +22,12 @@ ENV_FILE="$ROOT/.env"
 # shellcheck disable=SC1090
 set -a
 source "$ENV_FILE"
+# server/.env holds GEMINI_API_KEY (Google fallback provider); root .env wins on overlap.
+SERVER_ENV_FILE="$(dirname "$ENV_FILE")/server/.env"
+if [[ -f "$SERVER_ENV_FILE" ]]; then
+  source "$SERVER_ENV_FILE"
+  source "$ENV_FILE"
+fi
 set +a
 
 IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/craftscape/backend:latest"
@@ -66,6 +72,8 @@ HKU_GEMINI_IMAGE_DEPLOYMENT_ID: ${HKU_GEMINI_IMAGE_DEPLOYMENT_ID:-gemini-3.1-fla
 HKU_GEMINI_IMAGE_DEPLOYMENT_IDS: ${HKU_GEMINI_IMAGE_DEPLOYMENT_IDS:-gemini-3.1-flash-image}
 HKU_OPENAI_IMAGE_DEPLOYMENT_IDS: ${HKU_OPENAI_IMAGE_DEPLOYMENT_IDS:-gpt-image-1.5}
 HKU_OPENAI_API_VERSION: ${HKU_OPENAI_API_VERSION:-2025-04-01-preview}
+AI_TEXT_PROVIDER_ORDER: ${AI_TEXT_PROVIDER_ORDER:-hku-gemini,hku-openai,google}
+HKU_OPENAI_TEXT_DEPLOYMENT_IDS: ${HKU_OPENAI_TEXT_DEPLOYMENT_IDS:-gpt-4.1-mini,gpt-4.1-nano,gpt-5-mini}
 EOF
   if [[ -n "${GEMINI_API_KEY:-}" ]]; then
     echo "GEMINI_API_KEY: \"${GEMINI_API_KEY}\""
