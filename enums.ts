@@ -12,6 +12,7 @@
    AiStudio = 'aiStudio',
    EventDetail = 'eventDetail',
    ProductDetail = 'productDetail',
+   ArtisanProfile = 'artisanProfile',
    Chatroom = 'chatroom',
    TextLab = 'textLab',
    Play = 'play',

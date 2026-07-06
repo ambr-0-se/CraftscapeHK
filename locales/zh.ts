@@ -19,6 +19,8 @@ export const zh = {
     // Explore Page
     exploreEmptyTitle: '已看完所有工藝！',
     exploreEmptyDesc: '稍後再來看看有沒有新的發現吧。',
+    exploreLoadErrorTitle: '工藝載入失敗',
+    exploreLoadError: '暫時未能載入工藝館藏，請稍後再試。',
 
     // Marketplace Page
     marketplaceTitle: '市集',
@@ -34,6 +36,10 @@ export const zh = {
     eventsCategory: '分類',
     eventsFeatured: '本週焦點',
     eventsUpcoming: '近期活動',
+    eventsLoadErrorTitle: '活動載入失敗',
+    eventsLoadError: '暫時未能載入活動與工作坊，請稍後再試。',
+    eventsEmptyTitle: '找不到符合條件的活動',
+    eventsEmptyHint: '試試調整篩選條件',
     // Event Filters
     dateAll: '全部日期',
     dateToday: '今天',

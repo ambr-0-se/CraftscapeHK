@@ -1,0 +1,815 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CraftscapeHK Objective 5 Listing Preview</title>
+    <style>
+      :root {
+        --color-bg: #f8f9fa;
+        --color-page-bg: #f3f4f6;
+        --color-surface: #ffffff;
+        --color-primary-accent: #053a6a;
+        --color-secondary-accent: #085ea7;
+        --color-button-cta: #972226;
+        --color-text-primary: #053a6a;
+        --color-text-secondary: #72777d;
+        --color-border: rgba(5, 58, 106, 0.18);
+        --color-soft-blue: #e7f5fe;
+        --color-paper: #fffdf8;
+        --shadow: 0 10px 30px rgba(5, 58, 106, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #dfe8ef;
+        color: var(--color-text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+        letter-spacing: 0;
+      }
+
+      .preview-page {
+        min-height: 100vh;
+        padding: 28px 18px 44px;
+      }
+
+      .preview-header {
+        max-width: 1040px;
+        margin: 0 auto 22px;
+      }
+
+      .preview-header p,
+      .preview-header h1 {
+        margin: 0;
+      }
+
+      .preview-header p {
+        color: #405667;
+        max-width: 720px;
+      }
+
+      .preview-header h1 {
+        font-size: 28px;
+        line-height: 1.12;
+        margin-bottom: 8px;
+      }
+
+      .screens {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 22px;
+        max-width: 1120px;
+        margin: 0 auto;
+        align-items: start;
+      }
+
+      .phone {
+        width: min(100%, 390px);
+        min-height: 760px;
+        margin: 0 auto;
+        background: var(--color-bg);
+        border: 1px solid rgba(5, 58, 106, 0.2);
+        border-radius: 28px;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        position: relative;
+      }
+
+      .phone-scroll {
+        min-height: 760px;
+        padding-bottom: 92px;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        padding: 18px 18px 14px;
+        background: rgba(248, 249, 250, 0.9);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .kicker {
+        margin: 0 0 4px;
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--color-button-cta);
+      }
+
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h2 {
+        margin-bottom: 3px;
+        font-size: 25px;
+        line-height: 1.15;
+      }
+
+      h3 {
+        margin-bottom: 4px;
+        line-height: 1.22;
+      }
+
+      .muted {
+        color: var(--color-text-secondary);
+      }
+
+      .search {
+        margin: 16px 18px;
+        padding: 12px 14px;
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        background: var(--color-surface);
+        color: var(--color-text-secondary);
+        font-size: 15px;
+      }
+
+      .filter-row {
+        display: flex;
+        gap: 8px;
+        overflow: hidden;
+        padding: 0 18px 14px;
+      }
+
+      .chip {
+        flex: 0 0 auto;
+        padding: 8px 12px;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 650;
+        background: transparent;
+      }
+
+      .chip.active {
+        color: #fff;
+        background: var(--color-primary-accent);
+        border-color: var(--color-primary-accent);
+      }
+
+      .section {
+        padding: 0 18px 18px;
+      }
+
+      .section-title {
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        margin: 8px 0 12px;
+      }
+
+      .section-title h3 {
+        font-size: 18px;
+      }
+
+      .craft-hero {
+        height: 224px;
+        margin: 18px;
+        border-radius: 18px;
+        overflow: hidden;
+        position: relative;
+        background-image:
+          linear-gradient(to top, rgba(5, 58, 106, 0.88), transparent 62%),
+          url("https://cdn.hk01.com/di/media/images/2154812/org/6bd88ee872d11b967e1fddd14ea038ab.jpg/Jln-gCmZQWIta0CnzU-v-7IVxvg-g76dmb3AoZm9wKE?v=w1280r16_9");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .craft-hero-content {
+        position: absolute;
+        inset: auto 18px 18px;
+        color: #fff;
+      }
+
+      .craft-hero-content h2 {
+        font-size: 30px;
+      }
+
+      .list-item {
+        display: flex;
+        gap: 14px;
+        width: 100%;
+        padding: 13px;
+        margin-bottom: 12px;
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        background: var(--color-surface);
+      }
+
+      .list-item img {
+        width: 78px;
+        height: 78px;
+        border-radius: 10px;
+        object-fit: cover;
+        flex: 0 0 auto;
+      }
+
+      .list-copy {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .list-copy p {
+        margin-bottom: 5px;
+        font-size: 13px;
+      }
+
+      .price-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 8px;
+      }
+
+      .price {
+        color: var(--color-text-primary);
+        font-size: 17px;
+        font-weight: 800;
+      }
+
+      .availability {
+        color: #045832;
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .detail-hero {
+        min-height: 280px;
+        position: relative;
+        color: #fff;
+        background-image:
+          linear-gradient(to top, rgba(5, 58, 106, 0.96), rgba(5, 58, 106, 0.1) 62%),
+          url("https://image.hkstandard.com.hk/f/1024p0/0x0/100/none/f72127d693b9c8564b72757c39274a81/images/2022-06/20220626131153indexPhoto.jpeg");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .back {
+        position: absolute;
+        top: 18px;
+        left: 16px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 0;
+        color: #fff;
+        background: rgba(0, 0, 0, 0.32);
+        font-size: 24px;
+      }
+
+      .detail-title {
+        position: absolute;
+        inset: auto 20px 20px;
+      }
+
+      .detail-title h2 {
+        font-size: 28px;
+      }
+
+      .detail-body {
+        padding: 20px 18px 22px;
+      }
+
+      .info-band {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .info-cell {
+        padding: 13px;
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        background: var(--color-paper);
+      }
+
+      .info-cell span {
+        display: block;
+        color: var(--color-text-secondary);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .info-cell strong {
+        display: block;
+        margin-top: 3px;
+      }
+
+      .artisan-strip {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px;
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        background: var(--color-surface);
+        margin: 18px 0;
+      }
+
+      .avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+
+      .cta-bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: 1fr 1.15fr;
+        gap: 10px;
+        padding: 14px 16px;
+        border-top: 1px solid var(--color-border);
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(18px);
+      }
+
+      .button {
+        min-height: 48px;
+        border: 0;
+        border-radius: 999px;
+        color: #fff;
+        font-weight: 800;
+        font-size: 15px;
+        background: var(--color-primary-accent);
+      }
+
+      .button.secondary {
+        color: var(--color-primary-accent);
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+      }
+
+      .button.cta {
+        background: var(--color-button-cta);
+      }
+
+      .workshop-card {
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--color-surface);
+        margin-bottom: 14px;
+      }
+
+      .workshop-image {
+        height: 138px;
+        background-image:
+          linear-gradient(to top, rgba(5, 58, 106, 0.76), transparent),
+          url("https://www.pmq.org.hk/media/upload/H403_Obellery_Beginner-Jewellery-Workshop-by-Obellery_updated_20230601_KV.jpg");
+        background-size: cover;
+        background-position: center;
+        position: relative;
+      }
+
+      .workshop-image .badge {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+      }
+
+      .badge {
+        display: inline-flex;
+        padding: 5px 9px;
+        border-radius: 999px;
+        color: #fff;
+        background: var(--color-button-cta);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .workshop-body {
+        padding: 14px;
+      }
+
+      .schedule {
+        margin-top: 12px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .schedule-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 0;
+        border-top: 1px solid var(--color-border);
+        font-size: 14px;
+      }
+
+      .profile-hero {
+        padding: 34px 20px 18px;
+        background:
+          linear-gradient(160deg, rgba(5, 58, 106, 0.96), rgba(8, 94, 167, 0.86)),
+          url("https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/A_White_cheongsam_at_Shum_Shui_Po.jpg/1024px-A_White_cheongsam_at_Shum_Shui_Po.jpg?20211210172938");
+        background-size: cover;
+        background-position: center;
+        color: #fff;
+      }
+
+      .profile-hero .avatar {
+        width: 82px;
+        height: 82px;
+        border: 3px solid rgba(255, 255, 255, 0.85);
+      }
+
+      .profile-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 14px;
+      }
+
+      .profile-meta span {
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .state-panel {
+        padding: 18px;
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        background: var(--color-surface);
+        margin-bottom: 14px;
+      }
+
+      .skeleton-line,
+      .skeleton-img {
+        display: block;
+        border-radius: 10px;
+        background: linear-gradient(90deg, #e6edf2, #f8fbfd, #e6edf2);
+        background-size: 220% 100%;
+        animation: shimmer 1.6s infinite linear;
+      }
+
+      .skeleton-img {
+        width: 78px;
+        height: 78px;
+        flex: 0 0 auto;
+      }
+
+      .skeleton-line {
+        height: 13px;
+        margin: 9px 0;
+      }
+
+      @keyframes shimmer {
+        from {
+          background-position: 220% 0;
+        }
+        to {
+          background-position: -220% 0;
+        }
+      }
+
+      .nav {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 4px;
+        padding: 9px 10px 14px;
+        border-top: 1px solid var(--color-border);
+        background: rgba(248, 249, 250, 0.88);
+        backdrop-filter: blur(18px);
+      }
+
+      .nav span {
+        text-align: center;
+        color: var(--color-text-secondary);
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .nav span.active {
+        color: var(--color-primary-accent);
+      }
+
+      @media (max-width: 720px) {
+        .preview-page {
+          padding: 18px 10px 32px;
+        }
+
+        .screens {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="preview-page">
+      <header class="preview-header">
+        <h1>Objective 5 Design Preview</h1>
+        <p>
+          Mobile-first listing/detail direction for crafts, products, workshops,
+          and artisan profiles. This preview uses production-like states and
+          bilingual copy while keeping checkout, booking, and messaging as CTA
+          intents for later objectives.
+        </p>
+      </header>
+
+      <section class="screens" aria-label="Design preview screens">
+        <article class="phone" aria-label="Marketplace listing preview">
+          <div class="phone-scroll">
+            <header class="topbar">
+              <p class="kicker">Marketplace / 市集</p>
+              <h2>Craft pieces ready to collect</h2>
+              <p class="muted">Browse by artisan, craft, price, and availability.</p>
+            </header>
+            <div class="search">Search porcelain, neon, mahjong...</div>
+            <div class="filter-row">
+              <span class="chip active">All</span>
+              <span class="chip">Available</span>
+              <span class="chip">Made to order</span>
+              <span class="chip">Price request</span>
+            </div>
+            <section class="section">
+              <div class="craft-hero">
+                <div class="craft-hero-content">
+                  <p class="kicker">Featured craft / 精選工藝</p>
+                  <h2>Letterpress Printing</h2>
+                  <p>Master Lee keeps lead type, ink, and paper in conversation.</p>
+                </div>
+              </div>
+              <div class="section-title">
+                <h3>Products / 商品</h3>
+                <span class="muted">12 available</span>
+              </div>
+              <div class="list-item">
+                <img
+                  src="https://image.hkstandard.com.hk/f/1024p0/0x0/100/none/f72127d693b9c8564b72757c39274a81/images/2022-06/20220626131153indexPhoto.jpeg"
+                  alt="Canton porcelain tea set"
+                />
+                <div class="list-copy">
+                  <h3>Canton Porcelain Dragon & Phoenix Tea Set</h3>
+                  <p class="muted">張師傅 · Master Zhang</p>
+                  <div class="price-row">
+                    <span class="price">HK$ 1,888</span>
+                    <span class="availability">Available</span>
+                  </div>
+                </div>
+              </div>
+              <div class="list-item">
+                <img
+                  src="https://i.imgur.com/4D9Sjub.png"
+                  alt="Handmade neon light"
+                />
+                <div class="list-copy">
+                  <h3>手作霓虹燈 · Handmade Neon Light</h3>
+                  <p class="muted">Neonlitehk 師傅 · Made to order</p>
+                  <div class="price-row">
+                    <span class="price">Price on request</span>
+                    <span class="availability">Quote</span>
+                  </div>
+                </div>
+              </div>
+              <div class="state-panel">
+                <strong>Empty state</strong>
+                <p class="muted">
+                  No products match this filter. Try available pieces or contact
+                  an artisan for a custom request.
+                </p>
+              </div>
+              <div class="list-item" aria-label="Loading product row">
+                <span class="skeleton-img"></span>
+                <div class="list-copy">
+                  <span class="skeleton-line" style="width: 85%"></span>
+                  <span class="skeleton-line" style="width: 58%"></span>
+                  <span class="skeleton-line" style="width: 38%"></span>
+                </div>
+              </div>
+            </section>
+          </div>
+          <nav class="nav">
+            <span>Explore</span>
+            <span class="active">Market</span>
+            <span>Play</span>
+            <span>Events</span>
+            <span>Profile</span>
+          </nav>
+        </article>
+
+        <article class="phone" aria-label="Product detail preview">
+          <div class="phone-scroll">
+            <section class="detail-hero">
+              <button class="back" aria-label="Back">‹</button>
+              <div class="detail-title">
+                <p class="kicker">Product detail / 商品詳情</p>
+                <h2>Canton Porcelain Dragon & Phoenix Tea Set</h2>
+                <p>廣彩龍鳳呈祥茶具套裝</p>
+              </div>
+            </section>
+            <section class="detail-body">
+              <div class="info-band">
+                <div class="info-cell">
+                  <span>Price</span>
+                  <strong>HK$ 1,888</strong>
+                </div>
+                <div class="info-cell">
+                  <span>Status</span>
+                  <strong>Available now</strong>
+                </div>
+                <div class="info-cell">
+                  <span>Fulfilment</span>
+                  <strong>Ships from Hong Kong</strong>
+                </div>
+                <div class="info-cell">
+                  <span>Stripe item</span>
+                  <strong>Fixed price</strong>
+                </div>
+              </div>
+              <h3>Story</h3>
+              <p class="muted">
+                An exquisite Canton Porcelain tea set painted with dragon and
+                phoenix motifs, symbolizing good fortune. 一套精緻的廣彩茶具，
+                繪有龍鳳圖案，寓意吉祥如意。
+              </p>
+              <div class="artisan-strip">
+                <img
+                  class="avatar"
+                  src="https://picsum.photos/seed/artisan1/160/160"
+                  alt="Master Zhang"
+                />
+                <div>
+                  <strong>Master Zhang / 張師傅</strong>
+                  <p class="muted">Third-generation Canton porcelain artisan.</p>
+                </div>
+              </div>
+              <h3>Purchase state</h3>
+              <p class="muted">
+                The CTA sets purchase intent and preserves product, quantity,
+                price, and artisan context for the Stripe/order worktree.
+              </p>
+              <div class="state-panel">
+                <strong>Error state</strong>
+                <p class="muted">
+                  We could not load this product. Please retry, or contact the
+                  artisan if the piece was shared with you directly.
+                </p>
+              </div>
+            </section>
+          </div>
+          <div class="cta-bar">
+            <button class="button secondary">View artisan</button>
+            <button class="button cta">Purchase piece</button>
+          </div>
+        </article>
+
+        <article class="phone" aria-label="Workshop listing preview">
+          <div class="phone-scroll">
+            <header class="topbar">
+              <p class="kicker">Workshops / 工作坊</p>
+              <h2>Book time with a craft master</h2>
+              <p class="muted">Events model with clear pricing and schedules.</p>
+            </header>
+            <div class="filter-row" style="padding-top: 16px">
+              <span class="chip active">All dates</span>
+              <span class="chip">Weekend</span>
+              <span class="chip">Open seats</span>
+            </div>
+            <section class="section">
+              <article class="workshop-card">
+                <div class="workshop-image">
+                  <span class="badge">Open for booking</span>
+                </div>
+                <div class="workshop-body">
+                  <h3>Obellery Metal & Silver Jewellery Workshop</h3>
+                  <p class="muted">
+                    Learn sawing, forging, soldering, and polishing in Central.
+                  </p>
+                  <div class="price-row">
+                    <span class="price">HK$ 680 / person</span>
+                    <span class="availability">6 seats</span>
+                  </div>
+                  <div class="schedule">
+                    <div class="schedule-row">
+                      <span>Sat 12 Jul · 14:00</span>
+                      <strong>4 seats</strong>
+                    </div>
+                    <div class="schedule-row">
+                      <span>Sun 13 Jul · 11:00</span>
+                      <strong>2 seats</strong>
+                    </div>
+                  </div>
+                </div>
+              </article>
+              <article class="workshop-card">
+                <div
+                  class="workshop-image"
+                  style="background-image: linear-gradient(to top, rgba(5, 58, 106, 0.76), transparent), url('https://cdn.hk01.com/di/media/images/2154812/org/6bd88ee872d11b967e1fddd14ea038ab.jpg/Jln-gCmZQWIta0CnzU-v-7IVxvg-g76dmb3AoZm9wKE?v=w1280r16_9')"
+                >
+                  <span class="badge">Limited seats</span>
+                </div>
+                <div class="workshop-body">
+                  <h3>活字印刷體驗工作坊</h3>
+                  <p class="muted">
+                    親手操作百年歷史的印刷機，製作屬於你的活字印刷卡片。
+                  </p>
+                  <div class="price-row">
+                    <span class="price">HK$ 680 / 位</span>
+                    <span class="availability">3 seats</span>
+                  </div>
+                </div>
+              </article>
+              <div class="state-panel">
+                <strong>Booking handoff</strong>
+                <p class="muted">
+                  CTA will say "Reserve seat" and pass event schedule context to
+                  the booking/cart objective once available.
+                </p>
+              </div>
+            </section>
+          </div>
+          <div class="cta-bar">
+            <button class="button secondary">Ask question</button>
+            <button class="button cta">Reserve seat</button>
+          </div>
+        </article>
+
+        <article class="phone" aria-label="Artisan profile preview">
+          <div class="phone-scroll">
+            <section class="profile-hero">
+              <img
+                class="avatar"
+                src="https://picsum.photos/seed/artisan4/180/180"
+                alt="Master Wong"
+              />
+              <p class="kicker" style="color: #fff; margin-top: 16px">
+                Artisan profile / 工藝師檔案
+              </p>
+              <h2>Master Wong / 王師傅</h2>
+              <p>
+                Fifty years of Shanghai-style cheongsam tailoring, from fabric
+                selection to hand-sewn knot buttons.
+              </p>
+              <div class="profile-meta">
+                <span>Cheongsam</span>
+                <span>Usually replies in 1 day</span>
+                <span>Custom orders</span>
+              </div>
+            </section>
+            <section class="detail-body">
+              <h3>Craft expertise</h3>
+              <p class="muted">
+                香港的長衫製作技藝以精湛剪裁和手工聞名。Master Wong
+                works by measurement, fitting, fabric, and occasion.
+              </p>
+              <div class="section-title">
+                <h3>Products</h3>
+                <span class="muted">3 pieces</span>
+              </div>
+              <div class="list-item">
+                <img
+                  src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=600&auto=format&fit=crop"
+                  alt="Goldwork Phoenix Bridal Cheongsam"
+                />
+                <div class="list-copy">
+                  <h3>Goldwork Phoenix Bridal Cheongsam</h3>
+                  <p class="muted">盤金鳳凰婚嫁長衫</p>
+                  <span class="price">HK$ 12,800</span>
+                </div>
+              </div>
+              <div class="section-title">
+                <h3>Workshops</h3>
+                <span class="muted">No open dates</span>
+              </div>
+              <div class="state-panel">
+                <strong>No workshop dates yet</strong>
+                <p class="muted">
+                  Follow the artisan or send a question about private sessions.
+                </p>
+              </div>
+            </section>
+          </div>
+          <div class="cta-bar">
+            <button class="button secondary">Ask artisan</button>
+            <button class="button">Request quote</button>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
