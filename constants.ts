@@ -546,14 +546,14 @@ export const MESSAGE_THREADS: MessageThread[] = [
 export const CHEONGSAM_FACE_PRESETS: FaceProfile[] = [
   {
     id: '1',
-    label: { zh: '預設', en: 'Default' },
+    label: { zh: '正式相片', en: 'Formal photo' },
     imageUrl: '/images/faces/face1.jpg',
     source: 'preset',
     createdAt: '2024-01-10T08:00:00.000Z',
   },
   {
     id: '4',
-    label: { zh: 'LinkedIn', en: 'LinkedIn' },
+    label: { zh: '休閒相片', en: 'Casual photo' },
     imageUrl: '/images/faces/face4.jpeg',
     source: 'preset',
     createdAt: '2024-01-11T12:00:00.000Z',

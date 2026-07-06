@@ -28,6 +28,13 @@ interface AiStudioProps {
   onClose: () => void;
 }
 
+type LocalizedText = Record<"en" | "zh", string>;
+
+interface DemoInspiration {
+  label: LocalizedText;
+  prompt: LocalizedText;
+}
+
 const SPECIAL_TRANSLATION_IMAGES: Record<string, string> = {
   海莉: "/images/presets/hailey.png",
   港大: "/images/presets/hku.png",
@@ -45,6 +52,132 @@ const sleep = (ms: number) =>
   new Promise<void>((resolve) => {
     setTimeout(resolve, ms);
   });
+
+const containsChineseCharacters = (value: string) => /[\u3400-\u9FFF]/.test(value);
+
+const getDemoInspirations = (craft: Craft): DemoInspiration[] => {
+  const craftName = craft.name.en.toLowerCase();
+  const category = craft.category?.toLowerCase() ?? "";
+
+  if (craftName.includes("porcelain") || craftName.includes("canton")) {
+    return [
+      {
+        label: { en: "Jade peony tea cup", zh: "翡翠牡丹茶杯" },
+        prompt: {
+          en: "jade-green peony tea cup with hand-painted gold rim",
+          zh: "翡翠綠牡丹茶杯，手繪金邊",
+        },
+      },
+      {
+        label: { en: "Gold rim tea set", zh: "金邊茶具套裝" },
+        prompt: {
+          en: "white porcelain tea set with cobalt blue Bauhinia motif and fine gold rim",
+          zh: "白瓷茶具套裝，鈷藍洋紫荊圖案及幼金邊",
+        },
+      },
+    ];
+  }
+
+  if (craftName.includes("neon") || category.includes("neon")) {
+    return [
+      {
+        label: { en: "Double-happiness neon", zh: "囍字霓虹" },
+        prompt: {
+          en: "warm red double-happiness tabletop neon sign with brass feet and visible glass tube bends",
+          zh: "暖紅色囍字桌面霓虹燈，黃銅腳座及清晰玻璃管彎位",
+        },
+      },
+      {
+        label: { en: "Cyberport neon mark", zh: "數碼港霓虹" },
+        prompt: {
+          en: "tabletop neon sign that writes \"Cyberport X Craftscape HK\" in crisp blue-white neon, with subtle circuit-board tech elements, safe acrylic backing, and visible glass tube bends",
+          zh: "桌面霓虹燈寫上「Cyberport X Craftscape HK」，藍白霓虹字體清晰，加入低調電路板科技元素、安全亞加力底板及清晰玻璃管彎位",
+        },
+      },
+      {
+        label: { en: "Harbour blue sign", zh: "海港藍招牌" },
+        prompt: {
+          en: "harbour-blue Hong Kong neon wall sign with safe acrylic backing and traditional tube spacing",
+          zh: "海港藍香港霓虹牆身招牌，安全亞加力底板及傳統燈管間距",
+        },
+      },
+    ];
+  }
+
+  if (craftName.includes("mahjong") || category.includes("mahjong")) {
+    return [
+      {
+        label: { en: "Family blessing tile", zh: "家福麻雀牌" },
+        prompt: {
+          en: "family blessing tile with carved Cantonese characters",
+          zh: "家福",
+        },
+      },
+      {
+        label: { en: "Cyberport tile", zh: "數碼港麻雀牌" },
+        prompt: {
+          en: "數碼港",
+          zh: "數碼港",
+        },
+      },
+      {
+        label: { en: "Harbour keepsake", zh: "海港紀念牌" },
+        prompt: {
+          en: "Hong Kong harbour keepsake mahjong tile with carved Cantonese characters",
+          zh: "港安",
+        },
+      },
+    ];
+  }
+
+  if (craftName.includes("cheongsam")) {
+    return [
+      {
+        label: { en: "Champagne dragon silk", zh: "香檳龍紋真絲" },
+        prompt: {
+          en: "champagne silk cheongsam with subtle dragon embroidery, satin piping, and handmade frog buttons",
+          zh: "香檳色真絲長衫，低調龍紋刺繡、緞面滾邊及手製盤扣",
+        },
+      },
+      {
+        label: { en: "Peony evening cheongsam", zh: "牡丹晚宴長衫" },
+        prompt: {
+          en: "deep blue evening cheongsam with hand-embroidered peony cuffs and precise Hong Kong tailoring",
+          zh: "深藍晚宴長衫，手繡牡丹袖口及精準香港剪裁",
+        },
+      },
+    ];
+  }
+
+  if (craftName.includes("letterpress")) {
+    return [
+      {
+        label: { en: "Bauhinia invitation", zh: "洋紫荊請帖" },
+        prompt: {
+          en: "wedding invitation card with debossed Bauhinia motif on thick cotton paper",
+          zh: "厚棉紙婚禮請帖，壓印洋紫荊圖案",
+        },
+      },
+      {
+        label: { en: "Red seal bookmark", zh: "紅印書籤" },
+        prompt: {
+          en: "letterpress bookmark with red seal-inspired border and tactile black ink impression",
+          zh: "活字印刷書籤，紅印章邊框及有觸感的黑色油墨壓印",
+        },
+      },
+    ];
+  }
+
+  return [
+    {
+      label: { en: "Craftable keepsake", zh: "可製作紀念品" },
+      prompt: {
+        en: "realistic handcrafted keepsake with traditional Hong Kong craft materials and visible handmade detail",
+        zh: "寫實手工紀念品，使用香港傳統工藝物料及清晰手作細節",
+      },
+    },
+  ];
+};
 
 const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const { activePersonaId } = useDemoPersona();
@@ -111,7 +244,9 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
   const isMahjongCraft =
     craft.category === "mahjong" ||
     craft.name.en.toLowerCase().includes("mahjong");
-  const requiresTranslation = language === "en" && isMahjongCraft;
+  const promptHasChineseCharacters = containsChineseCharacters(prompt);
+  const requiresTranslation =
+    language === "en" && isMahjongCraft && !promptHasChineseCharacters;
   const translationStrategyLabels = useMemo(
     () => ({
       phonetic: t("aiStudioTranslationStrategyPhonetic"),
@@ -120,6 +255,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     }),
     [t]
   );
+  const demoInspirations = useMemo(() => getDemoInspirations(craft), [craft]);
 
   useEffect(() => {
     setTranslationOptions([]);
@@ -185,6 +321,13 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       }
     },
     [requiresTranslation]
+  );
+
+  const handleUseDemoInspiration = useCallback(
+    (inspiration: DemoInspiration) => {
+      handlePromptChange(inspiration.prompt[language]);
+    },
+    [handlePromptChange, language]
   );
 
   const handleFaceSelect = useCallback(
@@ -302,15 +445,6 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       if (requiresTranslation && selectedTranslation) {
         return `${selectedTranslation.chinese} (${selectedTranslation.pronunciation}) — ${selectedTranslation.explanation}`;
       }
-      if (isCheongsamCraft && !isTryOnMode) {
-        return [
-          "Generate a standalone cheongsam product shot.",
-          "Focus solely on the garment on a neutral mannequin or hanger.",
-          "Exclude hands, artisans, sewing scenes, or background props.",
-          `Design inspiration: ${effectivePrompt}`,
-        ].join("\n");
-      }
-      // Default prompt for other crafts
       return effectivePrompt;
     })();
 
@@ -482,10 +616,10 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
               .filter(Boolean)
               .join(" / ");
             const patternPrompt = [
-              "Create a scanned version pattern draft image, breaking down each parts of the clothes, handdrawn by designer of this clothes",
+              "Create an artisan pattern draft sheet for this cheongsam, breaking down the front and back panels for production.",
               `Pattern inspiration: ${inspirationSource || craft.name.en}.`,
               "Use the attached reference image as a visual guide for the pattern details.",
-              "Render the draft as a flat scanned sheet with light paper texture, clear inked annotations, and no extra objects.",
+              "Render the draft as a flat scanned sheet with light paper texture, clear inked annotations for embroidery placement, stitch direction, piping, collar, side slits, and no extra objects.",
             ].join("\n");
             const generatedPattern = await generateCraftImage(
               `${craft.name[language]} pattern draft`,
@@ -1148,6 +1282,26 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         )}
 
         <div className="mt-4">
+          {demoInspirations.length > 0 && (
+            <div className="mb-3 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl p-3">
+              <p className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)] font-semibold mb-2">
+                {t("aiStudioDemoInspirationsLabel")}
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {demoInspirations.map((inspiration) => (
+                  <button
+                    key={inspiration.label.en}
+                    type="button"
+                    onClick={() => handleUseDemoInspiration(inspiration)}
+                    disabled={isLoading}
+                    className="px-3 py-2 rounded-full border border-[var(--color-primary-accent)]/35 bg-[var(--color-surface)] text-[var(--color-primary-accent)] text-[12px] font-semibold ios-shadow hover:border-[var(--color-button-cta)] hover:text-[var(--color-button-cta)] hover:bg-[var(--color-bg)] transition-colors disabled:opacity-50"
+                  >
+                    {inspiration.label[language]}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <textarea
             value={prompt}
             onChange={(e) => handlePromptChange(e.target.value)}

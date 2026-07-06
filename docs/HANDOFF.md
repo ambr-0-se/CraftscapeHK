@@ -149,4 +149,18 @@ Branch `mvp/deploy` (~45m).
 - Last agent/tool: Claude Code
 - Done so far: everything. Backend on Cloud Run (`craftscape-backend-00003-cm5`, billing account `Craftscape` linked); Vercel production env `VITE_API_BASE_URL` / `VITE_SOCKET_BASE_URL` set via REST API (CLI stdin add silently stores empty values — avoid) and prod redeployed; DNS live (`app.craftscape.studio` → Vercel, valid cert); full smoke passed: list APIs 200, WebSocket connects, simulated checkout end to end (order paid, booking confirmed, capacity decremented, order history populated)
 - Next step if resuming: none for this repo. Follow-ups elsewhere: attach apex to landing project (`vercel domains add craftscape.studio craftscape-landing-page` — cert already issued), point landing CTA at `https://app.craftscape.studio`
-- Blockers / decisions needed: none
+- Blockers / decisions needed: none. Reminder: production does not auto-deploy — after merging changes, run the manual deploy commands in `docs/DEPLOYMENT.md`
+
+---
+
+## Lane E — AI Studio Demo Realism Hotfix (Objective 1 follow-up)
+
+Worktree `worktrees/ai-studio-demo-realism`, branch `codex/ai-studio-demo-realism`.
+
+### Live handoff state — Lane E
+
+- Status: completed (PR #10 merged to main on 2026-07-07 as `5694083`; post-merge review re-verified typecheck, contract tests, server build, backend tests, and frontend build on main)
+- Last agent/tool: Claude Code (post-merge review)
+- Done so far: user approved the "Prompt + presets" plan for the VC demo; created feature worktree/branch; added backend craft-profile prompt builder, realism/feasibility constraints, Cheongsam pattern/try-on prompt cleanup, standalone preview `design-previews/ai-studio-demo-realism.html`, and AI Studio inspiration chips for major craft categories. Follow-up added DESIGN-aligned chip coloring, exposed chips in Cheongsam try-on, added Cyberport Neon/Mahjong chips, and replaced preset face images with the supplied formal/casual photos. Provider compatibility follow-up: Cyberport Neon prompt now writes `Cyberport X Craftscape HK` with tech/circuit elements; Mahjong generation is text-only for Chinese characters so HKU OpenAI image fallback is not blocked by image inputs; HKU Gemini `400: Insufficient token` is now treated as provider exhaustion so fallback reaches HKU OpenAI image deployments; HKU Gemini image deployment list now tries `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3-pro-image`, `gemini-3.1-flash-image-preview`, and `gemini-3.1-flash-image`. Translation routing follow-up: structured JSON calls now use text-provider fallback (`AI_TEXT_PROVIDER_ORDER`, default HKU Gemini → HKU OpenAI → Google), so Mahjong translation suggestions can fall back to HKU OpenAI chat completions when HKU Gemini text fails. Verification passed: `npm run typecheck`, `npm run test:contracts`, `npm run server:build`, `npm run build`, `npm --prefix server run test`; after follow-up, reran `npm run typecheck`, `npm run build`, `npm run server:build`; provider compatibility follow-up reran `npm run typecheck`, `npm run server:build`, `npm run build`; translation routing follow-up reran `npm run server:build`, `npm run typecheck`; HKU Gemini deployment list follow-up reran `npm run server:build`. Manual QA passed on `http://127.0.0.1:5001/`: opened Canton Porcelain AI Studio, chip row rendered, `Jade peony tea cup` filled the prompt, Generate became enabled. Follow-up asset QA: visually verified both face files. Browser runtime timed out during second UI smoke, so try-on chip UI was compile-verified but not re-smoked in-browser.
+- Next step if resuming: none — lane closed; the `worktrees/ai-studio-demo-realism` worktree can be removed. Optional follow-up: live AI generation smoke with configured provider keys (fallback chain was verified by build/tests only, not against live providers).
+- Blockers / decisions needed: none; no shared contract or API shape changes shipped

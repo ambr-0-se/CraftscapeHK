@@ -203,15 +203,15 @@ Notes:
 
 Description: Let users create AI-assisted craft concepts, submit them to artisans, and track artisan approval before any paid order is created.
 
-Current state: `Done`
+Current state: `Review`
 
-Worktree: `main`
+Worktree: `worktrees/ai-studio-demo-realism`
 
-Branch: `codex/ai-cocreation-flow` (merged)
+Branch: `codex/ai-studio-demo-realism`
 
 Owner: `Codex`
 
-Last Updated: `2026-07-06`
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -225,6 +225,15 @@ Acceptance Requirements:
 
 Notes:
 
+- Demo realism hotfix claimed on 2026-07-07 for VC demo prep. Scope: improve AI Studio concept prompt realism/craft feasibility, add lightweight demo-safe inspiration presets, preserve current API shape and Mahjong/Cheongsam special flows. Out of scope: model/provider migration, shared contract changes, auth, checkout, deployment.
+- Demo realism hotfix evidence: added backend craft-profile prompt builder for photorealistic/craftable concepts, tightened Cheongsam pattern/try-on prompts, added `design-previews/ai-studio-demo-realism.html`, and added AI Studio demo inspiration chips for major craft categories.
+- Follow-up evidence: updated inspiration chip colors to use the app's surface/harbour-blue/red-accent treatment, exposed inspirations in Cheongsam try-on mode, added Cyberport-specific Neon and Mahjong chips, and replaced the two preset face photos with the supplied formal/casual images.
+- Provider compatibility follow-up: Cyberport Neon prompt now writes `Cyberport X Craftscape HK` with tech/circuit elements; Mahjong generation is text-only for Chinese characters so HKU OpenAI image fallback is not blocked by image inputs.
+- Provider routing fix: HKU Gemini `400: Insufficient token` is now treated as provider exhaustion, allowing fallback to HKU OpenAI image deployments instead of terminating the request.
+- Translation routing fix: structured JSON calls now use provider fallback order (`AI_TEXT_PROVIDER_ORDER`, defaulting to HKU Gemini → HKU OpenAI → Google). Mahjong translation suggestions can fall back to HKU OpenAI chat completions when HKU Gemini text fails.
+- HKU Gemini image routing: default/local deployment list now tries `gemini-2.5-flash-image`, `gemini-3-pro-image-preview`, `gemini-3-pro-image`, `gemini-3.1-flash-image-preview`, and `gemini-3.1-flash-image` before moving to the next image provider.
+- Commands run: `npm run typecheck`, `npm run test:contracts`, `npm run server:build`, `npm run build`, `npm --prefix server run test`; after follow-up, reran `npm run typecheck`, `npm run build`, and `npm run server:build`.
+- Manual QA: Vite dev server on `http://127.0.0.1:5001/`; opened Explore → Canton Porcelain → AI Studio; verified demo inspiration chips render, `Jade peony tea cup` fills the prompt, and Generate becomes enabled. Follow-up asset QA: visually verified `public/images/faces/face1.jpg` and `public/images/faces/face4.jpeg` match the supplied photos. Browser runtime timed out during the second UI smoke after the follow-up, so try-on chip UI was compile-verified but not re-smoked in-browser.
 - Claimed for Objective 1 on branch `codex/ai-cocreation-flow` after kickoff confirmation on 2026-06-28.
 - Scope: persist AI concepts, submit co-creation requests, support artisan approve/reject/request-changes decisions, and expose approved requests as quote/checkout-ready before payment.
 - Boundary: real Stripe Checkout sessions, webhooks, paid order creation, real-time messaging, and broader artisan dashboard redesign remain out of scope/dependent on Objectives 8, 9, 7, and 6.
