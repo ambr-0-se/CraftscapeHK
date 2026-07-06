@@ -80,6 +80,7 @@
   "aiStudioCtaTitle": "Want to turn this unique design into a real object?",
   "aiStudioCtaButton": "Contact Artisan",
   "aiStudioInputPlaceholder": "e.g., a dragon in cyberpunk style, a summer lotus pond...",
+  "aiStudioDemoInspirationsLabel": "Demo inspirations",
   "aiStudioGenerate": "Generate",
   "aiStudioGenerating": "Generating...",
   "aiStudioModeLabel": "Studio mode",
