@@ -117,7 +117,7 @@ Branch `mvp/onboarding-journey` (~45m).
 
 - Status: review (Objectives 3+4 ready for PR)
 - Last agent/tool: Cursor (Composer)
-- Done so far: worktree `worktrees/mvp-onboarding-journey` on `mvp/onboarding-journey`; 5-slide onboarding with EN/zh + a11y; `docs/USER_JOURNEY_MAP.md`; `docs/MANUAL_QA_CORE_JOURNEYS.md`; fixes for `Profile.initialTab` and Stripe return error; minor `apiService` contract imports for typecheck
+- Done so far: worktree `worktrees/mvp-onboarding-journey` on `mvp/onboarding-journey`; 5-slide onboarding with EN/zh + a11y; journey map + QA docs; Profile tab navigation fix (`tabRequestId`); Stripe return error routing; marketplace E2E QA pass
 - Next step if resuming: push branch, open PR against `main`, optional full co-creation/workshop checkout re-run with dedicated `PAYMENTS_SIMULATED=true` backend
 - Blockers / decisions needed: none
 

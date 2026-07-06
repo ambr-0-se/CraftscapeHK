@@ -59,6 +59,7 @@ interface ProfileProps {
   onReopenOnboarding: () => void;
   onStartCheckout: (intent: CheckoutIntent) => void;
   initialTab?: ProfileTab;
+  tabRequestId?: number;
   ordersNotice?: string;
 }
 
@@ -67,6 +68,7 @@ const Profile: React.FC<ProfileProps> = ({
   onReopenOnboarding,
   onStartCheckout,
   initialTab,
+  tabRequestId,
   ordersNotice,
 }) => {
   const {
@@ -107,7 +109,7 @@ const Profile: React.FC<ProfileProps> = ({
     if (initialTab) {
       setActiveTab(initialTab);
     }
-  }, [initialTab]);
+  }, [initialTab, tabRequestId]);
 
   useEffect(() => {
     if (activeTab === "favorites") {

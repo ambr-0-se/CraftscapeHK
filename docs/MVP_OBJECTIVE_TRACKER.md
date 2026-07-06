@@ -304,7 +304,8 @@ Acceptance Requirements:
 
 Notes:
 
-- Review evidence (2026-07-07): expanded `OnboardingGuide` to 5 slides (Explore, co-creation, marketplace, workshops, profile/checkout tracking); EN + zh copy and a11y (`role="dialog"`, `aria-live`, localized Back/Close, Escape dismiss); persistence and Profile Help reopen unchanged.
+- Review evidence (2026-07-07): expanded `OnboardingGuide` to 5 slides (Explore, co-creation, marketplace, workshops, profile/checkout tracking); EN + zh copy and a11y (`role="dialog"`, `aria-live`, localized Back/Close, Escape dismiss, `.sr-only` utility); persistence and Profile Help reopen unchanged; onboarding reopen resets to step 1 via session key.
+- Bugbot fix: `profileTabRequest` counter ensures repeat “View my orders” navigates to Orders even when Profile stays mounted.
 - HTML preview gate exempt (same carousel layout, copy + icon extension only).
 - Commands: `npm run typecheck`, `npm run build`. Manual QA: `docs/MANUAL_QA_CORE_JOURNEYS.md` (onboarding, Stripe return error, Profile Orders).
 
@@ -332,8 +333,8 @@ Acceptance Requirements:
 
 Notes:
 
-- Review evidence (2026-07-07): `docs/USER_JOURNEY_MAP.md` (co-creation, workshop, marketplace paths + state matrix); `docs/MANUAL_QA_CORE_JOURNEYS.md`; dead-end fixes — `Profile.initialTab` honored, Stripe return load failure routes to Profile Orders + `checkoutReturnError`.
-- Browser QA at mobile viewport on `http://localhost:5004/` against shared backend `:3001`.
+- Review evidence (2026-07-07): `docs/USER_JOURNEY_MAP.md` (co-creation, workshop, marketplace paths + state matrix); `docs/MANUAL_QA_CORE_JOURNEYS.md`; dead-end fixes — `Profile.initialTab` + `tabRequestId` for repeat navigation, Stripe return load failure routes to Profile Orders + `checkoutReturnError`.
+- Browser QA (2026-07-07): marketplace purchase → confirmation → Profile Orders on `localhost:5010`; onboarding 5-slide pass; Stripe return error banner pass.
 - Commands: `npm run typecheck`, `npm run build`.
 
 ## Objective 5: Product And Craft Listing Pages

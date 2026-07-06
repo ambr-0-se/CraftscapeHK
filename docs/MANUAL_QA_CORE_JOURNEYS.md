@@ -3,8 +3,8 @@
 **Date:** 2026-07-07  
 **Branch:** `mvp/onboarding-journey`  
 **Worktree:** `worktrees/mvp-onboarding-journey`  
-**Frontend:** `http://localhost:5004/` (Vite; port varies if others are running)  
-**Backend:** `http://localhost:3001` (shared with another worktree when 3001 is in use)  
+**Frontend:** `http://localhost:5010/` (or next free Vite port)  
+**Backend:** `http://localhost:3001` (shared) or `PORT=3002` for isolated worktree backend  
 **Env:** `PAYMENTS_SIMULATED=true` on backend (when started from this worktree)  
 **Viewport:** Cursor embedded browser (~mobile shell)
 
@@ -32,6 +32,7 @@ Clear `localStorage.hasSeenOnboarding` before the onboarding pass. Use demo cust
 | `Escape` closes overlay | ✅ |
 | Dialog semantics (`role="dialog"`, localized Close/Back) | ✅ |
 | Switch EN ↔ 繁體中文 during onboarding | ⬜ Not re-run this session |
+| Repeat “View my orders” switches back to Orders tab after visiting Favorites | ✅ (via `tabRequestId` increment) |
 
 ---
 
@@ -39,11 +40,11 @@ Clear `localStorage.hasSeenOnboarding` before the onboarding pass. Use demo cust
 
 | Step | Pass |
 |------|------|
-| Explore → craft detail → AI Studio opens | ⬜ Deferred (prior lanes verified; not re-run end-to-end this session) |
+| Explore → craft detail → AI Studio opens | ⬜ Requires GEMINI_API_KEY for live generation |
 | Submit co-creation request → Profile Creations shows pending | ⬜ |
 | Artisan persona approves → customer Pay deposit | ⬜ |
 | Simulated checkout → confirmation success | ⬜ |
-| “View my orders” lands on Profile **Orders** tab | ⬜ (fix implemented: `initialTab` wired; confirm in follow-up) |
+| “View my orders” lands on Profile **Orders** tab | ✅ |
 
 ---
 
@@ -54,7 +55,7 @@ Clear `localStorage.hasSeenOnboarding` before the onboarding pass. Use demo cust
 | Events → Obellery workshop → select slot + seats | ⬜ Not re-run this session |
 | Reserve → Continue to checkout → pay | ⬜ |
 | Confirmation → Profile Orders shows booking | ⬜ |
-| Existing paid workshop orders visible in Profile Orders | ✅ (seed/backend data on :3001) |
+| Existing paid workshop orders visible in Profile Orders | ✅ |
 
 ---
 
@@ -62,9 +63,9 @@ Clear `localStorage.hasSeenOnboarding` before the onboarding pass. Use demo cust
 
 | Step | Pass |
 |------|------|
-| Marketplace ready-made product → Purchase → checkout | ⬜ Not re-run this session |
-| Confirmation → Profile Orders | ⬜ |
-| Existing product orders visible in Profile Orders | ✅ |
+| Marketplace ready-made product → Purchase → checkout | ✅ (Handmade Umbrella → Pay HK$418) |
+| Confirmation → “Payment received” | ✅ |
+| Profile Orders lists purchase | ✅ |
 
 ---
 
