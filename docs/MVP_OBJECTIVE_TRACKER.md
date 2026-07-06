@@ -201,13 +201,15 @@ Notes:
 
 Description: Let users create AI-assisted craft concepts, submit them to artisans, and track artisan approval before any paid order is created.
 
-Current state: `Review`
+Current state: `Done`
 
-Worktree: `.codex/worktrees/ff7c/CraftscapeHK`
+Worktree: `main`
+
+Branch: `codex/ai-cocreation-flow` (merged)
 
 Owner: `Codex`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -221,9 +223,6 @@ Acceptance Requirements:
 
 Notes:
 
-- Existing `AiStudio` and `TextLab` cover major prototype UI behavior.
-- Current contact form success is local-only and does not persist a request.
-- Need data model, API, artisan review UI, status flow, and tests.
 - Claimed for Objective 1 on branch `codex/ai-cocreation-flow` after kickoff confirmation on 2026-06-28.
 - Scope: persist AI concepts, submit co-creation requests, support artisan approve/reject/request-changes decisions, and expose approved requests as quote/checkout-ready before payment.
 - Boundary: real Stripe Checkout sessions, webhooks, paid order creation, real-time messaging, and broader artisan dashboard redesign remain out of scope/dependent on Objectives 8, 9, 7, and 6.
@@ -231,19 +230,25 @@ Notes:
 - Review evidence: added `AiCreationContract`, persisted AI concept and co-creation request entities, `/api/co-creation` concept/request/decision endpoints, customer submission/status UI, artisan approval queue, bilingual copy, and focused backend transition tests.
 - Commands run: `npm run contracts:build`, `npm run test:contracts`, `npm run typecheck`, `npm --prefix server run test -- co-creation.service.spec.ts`, `npm run build`, `npm run server:build`.
 - Second review/QA on 2026-07-06 fixed preset concept persistence, friendly AI generation errors, and onboarding dismissal initialization. API QA verified concept generation persistence, request creation as `pending_artisan_review` / `pending`, approve/reject/request-changes decisions, invalid transition rejection, and customer request listing. Browser smoke QA verified customer AI Studio generation/submission success, Profile → My AI Creations request visibility, and Artisan Mode → Orders approval queue/status/quote/deposit readiness copy.
-- Known remaining dependency: approved co-creation requests expose quote/deposit readiness, but real Stripe Checkout conversion remains Objective 8/9.
+- Merged via PR #4 (`684601a`) on 2026-07-06.
+- Post-merge audit on 2026-07-06: acceptance met for request submission, artisan approve/reject/request-changes, status visibility in Profile and artisan Orders queue, and user-facing AI/submission errors.
+- Acceptance partially met: backend AI generation (preset shortcuts in `AiStudio` bypass the API), concept persistence (hardcoded `customer-demo` instead of authenticated ownership), and quote/deposit readiness copy without an actionable checkout CTA.
+- Acceptance not met by design: real Stripe Checkout sessions, `convertedOrderId` population, and order conversion remain Objective 8/9 dependencies.
+- Known follow-ups: real auth scoping, live status refresh without manual Profile revisit, artisan queue filtered by authenticated artisan, and backend tests for generate/submit/reject/request-changes paths.
 
 ## Objective 2: Workshop Browsing And Booking
 
 Description: Treat workshops as events, then let users view details, select schedule options, add seats to cart, and book through checkout.
 
-Current state: `Review`
+Current state: `Done`
 
-Worktree: `worktrees/mvp-workshops-cart`
+Worktree: `main`
+
+Branch: `mvp/workshops-cart` (merged)
 
 Owner: `GPT-5.5`
 
-Last Updated: `2026-07-05`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -258,19 +263,20 @@ Acceptance Requirements:
 
 Notes:
 
-- Existing `Events` and `EventDetail` provide browsing and filtering.
-- Current event CTA links externally. There is no in-app booking, schedule selection, cart, or capacity tracking.
 - Kickoff approved 2026-06-28. Scope: event-backed workshop detail scheduling, quantity selection, add-to-cart, cart preservation of workshop schedule/quantity/price, and pending booking/order creation path.
 - UI/UX preview gate applies before React production changes. Standalone HTML preview required for workshop booking detail/cart states.
 - Depends on Objective 0 shared contracts and Foundation contract packaging being done. Coordinate any contract gaps before editing `shared/contracts.ts`.
 - Stripe redirect, webhook confirmation, and payment failure/cancellation reconciliation remain Objective 8 dependencies; this worktree should expose a pending checkout handoff without implementing Stripe.
 - Review evidence: added event-backed workshop schedules for the Obellery workshop, local workshop cart preservation after accepted pending-booking creation, simplified workshop detail scheduling UI aligned to `DESIGN.md`, and NestJS pending booking creation at `/api/bookings/workshops/pending`.
-- Acceptance met in this worktree: identifiable workshop event, detail description/host/location/price/capacity/slots, date-time and quantity selection, add-to-cart after backend acceptance, cart preservation, and pending booking creation handoff.
-- Acceptance not met by design: Stripe redirect, webhook payment confirmation, confirmed capacity decrement, and failed/cancelled payment reconciliation remain Objective 8 dependencies.
+- Acceptance met in this worktree: identifiable workshop event, detail description/host/location/price/capacity/slots, date-time and quantity selection, pending booking creation handoff, and disabled reserved-for-checkout UI after successful reservation.
+- Acceptance partially met: cart state is an in-memory `CartContext` mirror updated only after successful pending-booking creation; there is no user-facing cart or checkout surface, cart state is not persisted across refresh, and only the Obellery workshop (event id 8) supports in-app reservation.
+- Acceptance not met by design: Stripe redirect, webhook payment confirmation, confirmed capacity decrement, failed/cancelled payment reconciliation, order row creation, and capacity-hold entity usage remain Objective 8/9 dependencies.
 - Commands run: `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`.
 - Manual QA: approved standalone preview, simplified the design after visual review to remove duplicated price/quantity/top label content, opened local app on `http://127.0.0.1:5005/`, dismissed onboarding, opened Events, opened Obellery workshop detail, verified full slot disabled, selected an available slot, adjusted inline quantity, created a pending booking through the Vite proxy/backend, and confirmed the reserved-for-checkout state rendered without a dead-end checkout CTA.
 - Review fix 2026-07-05: resolved P2 review findings by moving local cart mutation after successful pending booking creation and replacing the no-op `Continue to checkout` success CTA with a disabled reserved status.
 - Verification rerun 2026-07-05 after review fixes: `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`.
+- Merged via PR #3 (`0f80a25`) on 2026-07-06.
+- Post-merge audit on 2026-07-06: `Done` is accurate for the scoped booking handoff; literal acceptance items for Stripe redirect, payment confirmation, and capacity decrement are intentionally deferred.
 
 ## Objective 3: User Onboarding Flow
 
@@ -307,7 +313,7 @@ Worktree: `N/A`
 
 Owner: `TBD`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -320,15 +326,18 @@ Acceptance Requirements:
 Notes:
 
 - `App.tsx` already connects several prototype views.
-- The journey cannot be considered complete until approval, cart, checkout, confirmation, and tracking exist.
+- Objectives 1, 2, 5, and 7 merged core discovery, co-creation, workshop reservation handoff, listings, and messaging slices, but checkout, confirmation, and tracking remain incomplete.
+- The journey cannot be considered complete until Stripe checkout, confirmation, order tracking, and remaining listing/dashboard gaps are closed.
 
 ## Objective 5: Product And Craft Listing Pages
 
 Description: Provide production-ready listing and detail pages for crafts, products, workshops, artisan profiles, and pricing.
 
-Current state: `Review`
+Current state: `Partial`
 
-Worktree: `/Users/ahbo/.codex/worktrees/1b2f/CraftscapeHK`
+Worktree: `N/A`
+
+Branch: `codex/listing-pages` (merged)
 
 Owner: `Codex`
 
@@ -345,12 +354,10 @@ Acceptance Requirements:
 
 Notes:
 
-- Existing Explore, Marketplace, CraftDetail, ProductDetail, and Events pages cover part of this.
-- Dedicated artisan profile and production purchase/booking CTAs are still missing.
 - Claimed on branch `codex/listing-pages` for production-ready visitor listings, detail pages, artisan profiles, pricing display, and loading/empty/error states.
 - UI/UX design preview approved, then production implementation added.
 - QA follow-up on 2026-07-04 found marketplace card alignment, product detail hierarchy, product artisan routing, and artisan profile clipping issues; these were redesigned and reverified.
-- Event/workshop production changes were reverted from this objective; workshop pricing/schedule work belongs in Objective 2.
+- Workshop listing and detail UX on `main` overlaps Objective 2; this objective owns visitor craft/product listings and artisan profile surfaces, not workshop booking flow.
 - Review evidence: added standalone preview at `docs/objective-5-listings-preview.html`; enriched artisan/product display data with product kind, customization mode, artisan IDs, material/fulfillment copy; added visitor-facing artisan profile sheet; rebuilt Marketplace with Ready-made/Customizable segmentation and standardized card rows; rebuilt Product Detail as an editorial commerce page with one primary CTA and working artisan profile route; added listing loading/empty/error states.
 - Visual QA: opened fresh dev server at `http://localhost:5174/`; checked Marketplace ready-made and customizable tabs; opened customizable product detail; confirmed product `View artisan` routes to artisan profile; confirmed artisan back button returns to Product Detail; confirmed custom design CTA opens design surface.
 - Commands run: `npm run typecheck`, `npm run build`.
@@ -358,6 +365,11 @@ Notes:
 - Corrective review evidence on 2026-07-06: removed Marketplace segment counts and repeated available/type tags; Product Detail now uses standardized description plus product information fields; all customizable product CTAs with craft IDs route to the matching AI Studio craft. Browser QA confirmed Marketplace labels/cards, ready-made Product Detail, artisan profile/back navigation, customizable tab, Mahjong Tile Carving detail, and Mahjong custom CTA to AI Studio.
 - Commands run after corrective work: `npm run typecheck`, `npm run build`, `npm run test:contracts`.
 - Review PR: https://github.com/ambr-0-se/CraftscapeHK/pull/5
+- Merged via PR #5 (`268fea8`) on 2026-07-06.
+- Post-merge audit on 2026-07-06: acceptance met for Marketplace rebuild, bilingual product/craft detail pages, artisan profile bio/expertise/products routing, and Explore/Marketplace loading/empty/error states.
+- Acceptance partially met: craft listing shows `short_description` only and first image only (no gallery or listing-level co-creation CTA); product purchase CTA prepares intent only (no cart/checkout handoff); workshop cards on Events show pricing and schedule summaries via the event model; product pricing uses display strings rather than cents/currency fields needed for Stripe line items.
+- Acceptance not met: artisan profile has no workshops section, the Contact artisan button is unwired, and `Events` has no fetch error state despite locale strings existing.
+- Known follow-ups: wire artisan contact to chat, add workshops to artisan profile, normalize product pricing to contract money fields, replace product intent stub with checkout handoff (Objective 8/9), add craft image gallery, and add Events error handling.
 
 ## Objective 6: Artisan Dashboard
 
@@ -369,7 +381,7 @@ Worktree: `N/A`
 
 Owner: `TBD`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -384,14 +396,17 @@ Notes:
 
 - Existing artisan dashboard, product list, order list, and messages are mostly read-only prototype surfaces.
 - Current product add button is an alert and order statuses cannot be updated.
+- Objective 1 merged co-creation approve/reject/request-changes into artisan Orders (`OrderManagement.tsx`), but the queue is not scoped to the authenticated artisan and broader dashboard requirements remain open.
 
 ## Objective 7: Real-Time Messaging With AI Translation
 
 Description: Support real-time customer/artisan conversations with automatic translation across English and Traditional Chinese/Cantonese.
 
-Current state: `Review`
+Current state: `Partial`
 
-Worktree: `/Users/ahbo/.codex/worktrees/945a/CraftscapeHK`
+Worktree: `N/A`
+
+Branch: `codex/real-time-messaging` (merged)
 
 Owner: `Codex`
 
@@ -409,8 +424,6 @@ Acceptance Requirements:
 
 Notes:
 
-- Existing artisan chat has local message append and rule-based quick translation.
-- Customer chat is static sample UI.
 - Claimed in branch `codex/real-time-messaging` on 2026-06-28.
 - Kickoff confirmed: WebSocket transport, persisted messages, backend AI translation metadata, reconnect/offline states, translation toggle, and context links for product, workshop/event, booking/order, and co-creation references.
 - Dependencies/conflicts: coordinate context-link fields with `mvp/ai-requests`, `mvp/workshops-cart`, and future Stripe/order work; keep shared message contracts canonical.
@@ -423,6 +436,11 @@ Notes:
 - Rebase evidence on 2026-07-06: rebased onto `origin/main` (`0f80a25`) after resolving additive conflicts with Objective 4 workshop booking entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
 - Pull request: https://github.com/ambr-0-se/CraftscapeHK/pull/6
 - Rebase refresh on 2026-07-06: rebased onto latest `origin/main` (`268fea8`) after resolving additive conflicts with listing pages and AI co-creation entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
+- Merged via PR #6 (`2e42d3f`) on 2026-07-06.
+- Post-merge audit on 2026-07-06: acceptance met for persisted messages, WebSocket real-time chat views, reconnect/offline/error handling, backend AI translation metadata, original/translated toggle, and product/craft thread creation from detail pages.
+- Acceptance partially met: thread context APIs and contracts support workshop, booking, order, and co-creation request types, but the frontend only wires product and craft entry points; co-creation fallback uses `contextId: "general"`; artisan inbox (`Messages.tsx`) is REST-only and does not live-update from `thread:updated`.
+- Acceptance not met by design for full production readiness: authenticated customer/artisan ownership (still `demo-customer` / `demo-artisan`), dedicated backend message service tests, and context-linked threads from workshop booking, orders, and co-creation request records.
+- Known follow-ups: wire `ensureMessageThread` from workshop detail, booking/checkout, order management, and co-creation status screens; subscribe artisan inbox to socket updates; add `messages.service` tests; replace demo IDs when auth lands.
 
 ## Objective 8: Stripe Payment Processing
 
@@ -461,7 +479,7 @@ Worktree: `N/A`
 
 Owner: `TBD`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -476,7 +494,8 @@ Acceptance Requirements:
 Notes:
 
 - Existing backend orders are read-only.
-- Existing artisan order management lists seeded data only.
+- Existing artisan order management lists seeded data only; co-creation decisions are now actionable via Objective 1, but order/booking status updates are not.
+- Objective 2 creates pending workshop bookings at `/api/bookings/workshops/pending`, but there is no customer-facing booking history, confirmation screen, or booking read API yet.
 - No customer-facing order history or booking confirmation flow exists yet.
 
 ## Objective 10: Vercel Hosting And `craftscape.studio` Domain
@@ -506,14 +525,12 @@ Notes:
 - `vercel.json` exists and README references the current Vercel demo URL.
 - Domain configuration and production smoke test status are not confirmed in repo.
 
-## Suggested Worktree Split
+## Suggested Remaining Worktree Split
 
-- `worktrees/mvp-ai-requests`: Objective 1 and co-creation approval pieces from Objective 6.
-- `worktrees/mvp-workshops-cart`: Objective 2 and event/workshop model changes.
 - `worktrees/mvp-stripe-orders`: Objectives 8 and 9.
-- `worktrees/mvp-realtime-messaging`: Objective 7.
 - `worktrees/mvp-artisan-portal`: Objective 6.
-- `worktrees/mvp-listings-profiles`: Objective 5.
+- `worktrees/mvp-listings-followup`: Objective 5 remaining acceptance gaps (artisan workshops/contact, product checkout pricing, Events error state, craft media).
+- `worktrees/mvp-messaging-context`: Objective 7 remaining context-link entry points and artisan inbox live updates.
 - `worktrees/mvp-onboarding-journey`: Objectives 3 and 4 after core flows stabilize.
 - `worktrees/mvp-vercel-domain`: Objective 10.
 

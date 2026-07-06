@@ -51,6 +51,7 @@ logs
 *.temp
 temp/
 tmp/
+worktrees/
 
 # Debug reference images
 public/debug-references/
