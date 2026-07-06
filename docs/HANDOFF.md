@@ -145,8 +145,8 @@ Branch `mvp/deploy` (~45m).
 
 ### Live handoff state — Lane D
 
-- Status: partial — Vercel + Cloud Run live; Vercel `VITE_*` env + name.com DNS pending
-- Last agent/tool: Cursor (Composer)
-- Done so far: worktree `worktrees/mvp-deploy` / `mvp/deploy`; `cloudbuild.yaml` context fix; `server/Dockerfile` copies `constants.cjs`; `scripts/deploy-backend-cloudrun.sh` (env-vars-file for comma-safe origins); Vercel app `https://mvp-deploy-three.vercel.app`; landing `https://craftscape-landing-page.vercel.app`; Cloud Run `https://craftscape-backend-ljtkkxnryq-uc.a.run.app`; domains added in Vercel (DNS pending)
-- Next step if resuming: (1) `vercel env add VITE_API_BASE_URL` + `VITE_SOCKET_BASE_URL` then `vercel deploy --prod`; (2) name.com A records; (3) full smoke (WebSocket, simulated checkout, Profile Orders)
-- Blockers / decisions needed: name.com DNS records; Vercel production env vars not yet set
+- Status: **complete** — production live end to end
+- Last agent/tool: Claude Code
+- Done so far: everything. Backend on Cloud Run (`craftscape-backend-00003-cm5`, billing account `Craftscape` linked); Vercel production env `VITE_API_BASE_URL` / `VITE_SOCKET_BASE_URL` set via REST API (CLI stdin add silently stores empty values — avoid) and prod redeployed; DNS live (`app.craftscape.studio` → Vercel, valid cert); full smoke passed: list APIs 200, WebSocket connects, simulated checkout end to end (order paid, booking confirmed, capacity decremented, order history populated)
+- Next step if resuming: none for this repo. Follow-ups elsewhere: attach apex to landing project (`vercel domains add craftscape.studio craftscape-landing-page` — cert already issued), point landing CTA at `https://app.craftscape.studio`
+- Blockers / decisions needed: none

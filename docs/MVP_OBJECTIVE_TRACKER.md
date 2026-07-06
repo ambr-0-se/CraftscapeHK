@@ -536,11 +536,11 @@ Notes:
 
 Description: Host the production frontend on Vercel with the `app.craftscape.studio` subdomain and deploy the NestJS backend to Cloud Run. The apex `craftscape.studio` hosts a separate landing page repo (deploy in same lane). The domain is registered at name.com.
 
-Current state: `Partial`
+Current state: `Done`
 
 Worktree: `worktrees/mvp-deploy`
 
-Owner: `Cursor`
+Owner: `Cursor` (deploy prep), `Claude Code` (Cloud Run deploy, Vercel wiring, smoke test)
 
 Last Updated: `2026-07-07`
 
@@ -567,9 +567,11 @@ Notes:
 - **Vercel — CraftscapeHK app:** project `mvp-deploy`, production `https://mvp-deploy-three.vercel.app`. Domain `app.craftscape.studio` added to project (DNS pending).
 - **Vercel — landing page:** repo `ambr-0-se/craftscape-landing-page` cloned; project `craftscape-landing-page`, production `https://craftscape-landing-page.vercel.app`. Domain `craftscape.studio` added to project (DNS pending).
 - **GCP:** project `gen-lang-client-0281544850` (craftscape). Cloud Run backend `https://craftscape-backend-ljtkkxnryq-uc.a.run.app` (`craftscape-backend`, us-central1). Deploy via `scripts/deploy-backend-cloudrun.sh` (repo-root Docker build, `--env-vars-file` for comma-safe `ALLOWED_ORIGINS`). `/api/events` returns 200 post-deploy.
-- **DNS (name.com):** Vercel inspect recommends `A craftscape.studio → 76.76.21.21` and `A app.craftscape.studio → 76.76.21.21`. Automated API step skipped — no name.com token in environment.
-- **Vercel env vars not set yet** (`VITE_API_BASE_URL=https://craftscape-backend-ljtkkxnryq-uc.a.run.app/api`, `VITE_SOCKET_BASE_URL=https://craftscape-backend-ljtkkxnryq-uc.a.run.app`) — set then `vercel deploy --prod`.
-- **Smoke (partial, frontend-only):** HTTP 200 on app `/`, `/explore`, `/marketplace`, `/events`, `/profile`, `/ai-studio` (static/seed fallback without live API). Landing `/` HTTP 200, Craftscape branding present. CTA on landing still points to `#waitlist`, not `app.craftscape.studio`. WebSocket, checkout, and Profile Orders flows **not verified** — require Cloud Run backend.
+- **DNS (name.com):** records now live — `app.craftscape.studio` and `craftscape.studio` both resolve to `76.76.21.21` (Vercel). `https://app.craftscape.studio` serves the production app with a valid certificate.
+- **Vercel env vars set (2026-07-07):** `VITE_API_BASE_URL=https://craftscape-backend-1039883173231.us-central1.run.app/api`, `VITE_SOCKET_BASE_URL=https://craftscape-backend-1039883173231.us-central1.run.app` (plain, production). Note: `vercel env add` via stdin created empty values silently — the values were set via the REST API (`POST /v10/projects/{id}/env?upsert=true`). Production redeployed; deployed bundle verified to contain the Cloud Run URL.
+- **Backend deploy evidence (2026-07-07):** billing account `Craftscape` (`016741-9F6127-3AAC63`) linked and open; `scripts/deploy-backend-cloudrun.sh` succeeded (revision `craftscape-backend-00003-cm5`). Both service URL forms are equivalent: `craftscape-backend-1039883173231.us-central1.run.app` / `craftscape-backend-ljtkkxnryq-uc.a.run.app`.
+- **Full production smoke (2026-07-07, all pass):** `/api/crafts`, `/api/products`, `/api/events`, `/api/messages?userId=customer-demo`, `/api/co-creation/concepts` all 200; socket.io WebSocket connects; end-to-end simulated checkout — pending booking created → `POST /api/checkout/session` → order `paid`, booking `confirmed`, schedule capacity decremented (confirmedSeats 1→2), order visible in `GET /api/checkout/orders?customerId=customer-demo`; `https://app.craftscape.studio` serves the correct bundle over HTTPS.
+- **Open follow-ups (non-blocking):** apex `craftscape.studio` is not yet attached to the `craftscape-landing-page` Vercel project (cert already issued; attach with `vercel domains add craftscape.studio craftscape-landing-page`) — HTTPS on the apex fails until then. Landing CTA still points to `#waitlist` instead of `app.craftscape.studio` (landing repo, out of scope here). Backend CORS currently responds `access-control-allow-origin: *`.
 
 ## Remaining Execution Plan (revised 2026-07-06 for the final build window)
 
