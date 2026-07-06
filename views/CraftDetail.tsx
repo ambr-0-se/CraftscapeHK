@@ -9,9 +9,10 @@ interface CraftDetailProps {
   onClose: () => void;
   onStartCreation: () => void;
   onStartTextLab?: () => void;
+  onViewArtisan?: () => void;
 }
 
-const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreation, onStartTextLab }) => {
+const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreation, onStartTextLab, onViewArtisan }) => {
   const { language, t } = useLanguage();
   const isLetterpress = craft.category === 'letterpress';
 
@@ -99,6 +100,30 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
           </p>
         </motion.section>
 
+        <motion.button
+          onClick={onViewArtisan}
+          disabled={!onViewArtisan}
+          className="w-full bg-[var(--color-surface)] p-5 text-left rounded-2xl border border-[var(--color-border)] flex items-center justify-between gap-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+        >
+          <div>
+            <p className="text-xs uppercase tracking-wide text-[var(--color-text-secondary)] font-bold mb-1">
+              {language === 'zh' ? '工藝師' : 'Artisan'}
+            </p>
+            <h3 className="text-lg font-bold text-[var(--color-text-primary)]">
+              {craft.artisan[language]}
+            </h3>
+            <p className="text-sm text-[var(--color-text-secondary)] mt-1">
+              {language === 'zh' ? '查看檔案、作品與工作坊' : 'View profile, products, and workshops'}
+            </p>
+          </div>
+          <span className="w-10 h-10 rounded-full bg-[var(--color-primary-accent)] text-white flex items-center justify-center flex-shrink-0">
+            →
+          </span>
+        </motion.button>
+
         {/* Museum-style CTA Section */}
         <motion.div 
           className="bg-[var(--color-surface)] p-8 text-center rounded-2xl border border-[var(--color-border)]"
@@ -106,8 +131,10 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          <div className="w-16 h-16 bg-[var(--color-primary-accent)] rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🎨</span>
+          <div className="w-16 h-16 bg-[var(--color-primary-accent)] rounded-full flex items-center justify-center mx-auto mb-4 text-white">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v18m9-9H3" />
+            </svg>
           </div>
           <h3 className="text-2xl font-bold text-[var(--color-text-primary)] mb-4">
             {t('craftDetailCtaTitle')}
@@ -115,8 +142,8 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
           <p className="text-base text-[var(--color-text-secondary)] mb-8 leading-relaxed">
             {isLetterpress 
               ? (language === 'zh' 
-                  ? '使用我們的 AI 工具設計您的專屬活字印刷作品，結合傳統工藝與現代創意。' 
-                  : 'Use our AI tools to design your custom letterpress text layout, combining traditional craftsmanship with modern creativity.')
+                  ? '先設計你的專屬活字印刷構想，再交由師傅審視材料、排版與製作可行性。'
+                  : 'Design a custom letterpress concept, then let the artisan review materials, layout, and production fit.')
               : t('craftDetailCtaDesc')
             }
           </p>

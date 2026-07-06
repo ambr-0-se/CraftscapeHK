@@ -79,7 +79,20 @@ export const getCrafts = async (): Promise<Craft[]> => {
 };
 
 export const getProducts = async (): Promise<Product[]> => {
-    return apiRequest<Product[]>('/products');
+    const products = await apiRequest<Product[]>('/products');
+
+    try {
+        const { PRODUCTS } = await import('../constants');
+        const remoteMap = new Map(products.map(product => [product.id, product]));
+
+        return PRODUCTS.map(product => ({
+            ...remoteMap.get(product.id),
+            ...product,
+        }));
+    } catch (error) {
+        console.warn('Failed to enrich products with local listing metadata:', error);
+        return products;
+    }
 };
 
 export const getEvents = async (): Promise<Event[]> => {

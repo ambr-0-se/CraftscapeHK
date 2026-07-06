@@ -326,13 +326,13 @@ Notes:
 
 Description: Provide production-ready listing and detail pages for crafts, products, workshops, artisan profiles, and pricing.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `/Users/ahbo/.codex/worktrees/1b2f/CraftscapeHK`
 
-Owner: `TBD`
+Owner: `Codex`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -347,6 +347,17 @@ Notes:
 
 - Existing Explore, Marketplace, CraftDetail, ProductDetail, and Events pages cover part of this.
 - Dedicated artisan profile and production purchase/booking CTAs are still missing.
+- Claimed on branch `codex/listing-pages` for production-ready visitor listings, detail pages, artisan profiles, pricing display, and loading/empty/error states.
+- UI/UX design preview approved, then production implementation added.
+- QA follow-up on 2026-07-04 found marketplace card alignment, product detail hierarchy, product artisan routing, and artisan profile clipping issues; these were redesigned and reverified.
+- Event/workshop production changes were reverted from this objective; workshop pricing/schedule work belongs in Objective 2.
+- Review evidence: added standalone preview at `docs/objective-5-listings-preview.html`; enriched artisan/product display data with product kind, customization mode, artisan IDs, material/fulfillment copy; added visitor-facing artisan profile sheet; rebuilt Marketplace with Ready-made/Customizable segmentation and standardized card rows; rebuilt Product Detail as an editorial commerce page with one primary CTA and working artisan profile route; added listing loading/empty/error states.
+- Visual QA: opened fresh dev server at `http://localhost:5174/`; checked Marketplace ready-made and customizable tabs; opened customizable product detail; confirmed product `View artisan` routes to artisan profile; confirmed artisan back button returns to Product Detail; confirmed custom design CTA opens design surface.
+- Commands run: `npm run typecheck`, `npm run build`.
+- Reopened on 2026-07-06 to address final QA: remove segment counts/repeated availability tags, standardize Product Detail fields, and route all customizable products to craft-specific AI Studio.
+- Corrective review evidence on 2026-07-06: removed Marketplace segment counts and repeated available/type tags; Product Detail now uses standardized description plus product information fields; all customizable product CTAs with craft IDs route to the matching AI Studio craft. Browser QA confirmed Marketplace labels/cards, ready-made Product Detail, artisan profile/back navigation, customizable tab, Mahjong Tile Carving detail, and Mahjong custom CTA to AI Studio.
+- Commands run after corrective work: `npm run typecheck`, `npm run build`, `npm run test:contracts`.
+- Review PR: https://github.com/ambr-0-se/CraftscapeHK/pull/5
 
 ## Objective 6: Artisan Dashboard
 

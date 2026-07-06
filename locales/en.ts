@@ -20,6 +20,8 @@ export const en = {
     // Explore Page
     exploreEmptyTitle: 'You\'ve seen all the crafts!',
     exploreEmptyDesc: 'Check back later for new discoveries.',
+    exploreLoadErrorTitle: 'Crafts unavailable',
+    exploreLoadError: 'We could not load the craft collection right now. Please try again soon.',
 
     // Marketplace Page
     marketplaceTitle: 'Marketplace',
@@ -35,6 +37,10 @@ export const en = {
     eventsCategory: 'Category',
     eventsFeatured: 'This Week\'s Highlights',
     eventsUpcoming: 'Upcoming Events',
+    eventsLoadErrorTitle: 'Events unavailable',
+    eventsLoadError: 'We could not load events and workshops right now. Please try again soon.',
+    eventsEmptyTitle: 'No events match your criteria',
+    eventsEmptyHint: 'Try adjusting your filters',
     // Event Filters
     dateAll: 'All Dates',
     dateToday: 'Today',

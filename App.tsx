@@ -11,13 +11,18 @@ import AiStudio from "./views/AiStudio";
 import EventDetail from "./views/EventDetail";
 import ProductDetail from "./views/ProductDetail";
 import Chatroom from "./views/Chatroom";
+import ArtisanProfile from "./views/ArtisanProfile";
 import TextLab from "./pages/TextLab";
 import { Tab, View, ArtisanTab, ArtisanView } from "./enums";
-import type { Craft, Event, Product, MessageThread } from "./types";
+import type { Artisan, Craft, Event, Product, MessageThread } from "./types";
 import { AnimatePresence, motion } from "framer-motion";
-import { PRODUCTS } from "./constants";
+import { CRAFTS, PRODUCTS } from "./constants";
 import OnboardingGuide from "./components/OnboardingGuide";
 import { useLanguage } from "./contexts/LanguageContext";
+import {
+  getArtisanForCraft,
+  getArtisanForProduct,
+} from "./utils/listingData";
 
 // Artisan Pages
 import Dashboard from "./pages/artisan/Dashboard";
@@ -55,6 +60,9 @@ export default function App() {
   const [selectedCraft, setSelectedCraft] = useState<Craft | null>(null);
   const [selectedEvent, setSelectedEvent] = useState<Event | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [selectedArtisan, setSelectedArtisan] = useState<Artisan | null>(null);
+  const [artisanReturnView, setArtisanReturnView] = useState<View>(View.Explore);
+  const [aiStudioReturnView, setAiStudioReturnView] = useState<View>(View.CraftDetail);
 
   // Artisan view management
   const [currentArtisanView, setCurrentArtisanView] = useState<ArtisanView>(
@@ -99,6 +107,7 @@ export default function App() {
       setSelectedCraft(null);
       setSelectedEvent(null);
       setSelectedProduct(null);
+      setSelectedArtisan(null);
     }, 300);
   }, []);
 
@@ -117,8 +126,34 @@ export default function App() {
     setCurrentView(View.ProductDetail);
   }, []);
 
+  const handleShowArtisanProfile = useCallback(
+    (artisan: Artisan, returnView = currentView) => {
+      setSelectedArtisan(artisan);
+      setArtisanReturnView(returnView);
+      setCurrentView(View.ArtisanProfile);
+    },
+    [currentView]
+  );
+
+  const handleShowCraftArtisan = useCallback(() => {
+    if (!selectedCraft) return;
+    const artisan = getArtisanForCraft(selectedCraft);
+    if (artisan) {
+      handleShowArtisanProfile(artisan, View.CraftDetail);
+    }
+  }, [handleShowArtisanProfile, selectedCraft]);
+
+  const handleShowProductArtisan = useCallback(() => {
+    if (!selectedProduct) return;
+    const artisan = getArtisanForProduct(selectedProduct);
+    if (artisan) {
+      handleShowArtisanProfile(artisan, View.ProductDetail);
+    }
+  }, [handleShowArtisanProfile, selectedProduct]);
+
   const handleStartCreation = useCallback(() => {
     if (selectedCraft) {
+      setAiStudioReturnView(View.CraftDetail);
       setCurrentView(View.AiStudio);
     }
   }, [selectedCraft]);
@@ -130,8 +165,8 @@ export default function App() {
   }, [selectedProduct]);
 
   const handleCloseStudio = useCallback(
-    () => setCurrentView(View.CraftDetail),
-    []
+    () => setCurrentView(aiStudioReturnView),
+    [aiStudioReturnView]
   );
   const handleCloseProductDetail = useCallback(
     () => setCurrentView(View.Explore),
@@ -141,10 +176,37 @@ export default function App() {
     () => setCurrentView(View.ProductDetail),
     []
   );
+  const handleCloseArtisanProfile = useCallback(() => {
+    setCurrentView(artisanReturnView);
+  }, [artisanReturnView]);
+
+  const handleSelectCraftFromArtisan = useCallback((craft: Craft) => {
+    setSelectedCraft(craft);
+    setCurrentView(View.CraftDetail);
+  }, []);
+
+  const handleSelectProductFromArtisan = useCallback((product: Product) => {
+    setSelectedProduct(product);
+    setCurrentView(View.ProductDetail);
+  }, []);
 
   const handleOpenTextLab = useCallback(() => {
     if (selectedProduct) {
       setCurrentView(View.TextLab);
+    }
+  }, [selectedProduct]);
+
+  const handleOpenProductCustomization = useCallback(() => {
+    if (!selectedProduct) return;
+
+    if (selectedProduct.productKind === "customizable" && selectedProduct.craftId) {
+      const craft = CRAFTS.find((item) => item.id === selectedProduct.craftId);
+      if (craft) {
+        setSelectedCraft(craft);
+        setAiStudioReturnView(View.ProductDetail);
+        setCurrentView(View.AiStudio);
+        return;
+      }
     }
   }, [selectedProduct]);
 
@@ -286,6 +348,7 @@ export default function App() {
                           setSelectedEvent(null);
                           setSelectedCraft(null);
                           setSelectedProduct(null);
+                          setSelectedArtisan(null);
                           setActiveTab(tab);
                         }
                       }}
@@ -310,6 +373,7 @@ export default function App() {
                     onClose={handleCloseDetail}
                     onStartCreation={handleStartCreation}
                     onStartTextLab={handleOpenCraftTextLab}
+                    onViewArtisan={handleShowCraftArtisan}
                   />
                 </motion.div>
               )}
@@ -343,7 +407,30 @@ export default function App() {
                     product={selectedProduct}
                     onClose={handleCloseProductDetail}
                     onContact={handleOpenChatroom}
-                    onAiGen={handleOpenTextLab}
+                    onAiGen={handleOpenProductCustomization}
+                    onViewArtisan={
+                      getArtisanForProduct(selectedProduct)
+                        ? handleShowProductArtisan
+                        : undefined
+                    }
+                  />
+                </motion.div>
+              )}
+
+              {currentView === View.ArtisanProfile && selectedArtisan && (
+                <motion.div
+                  key="artisan-profile"
+                  className="absolute inset-0 z-[25]"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <ArtisanProfile
+                    artisan={selectedArtisan}
+                    onClose={handleCloseArtisanProfile}
+                    onSelectCraft={handleSelectCraftFromArtisan}
+                    onSelectProduct={handleSelectProductFromArtisan}
                   />
                 </motion.div>
               )}

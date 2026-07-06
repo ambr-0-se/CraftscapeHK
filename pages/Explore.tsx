@@ -13,6 +13,7 @@ interface ExploreProps {
 const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
     const [crafts, setCrafts] = useState<Craft[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [activeIndex, setActiveIndex] = useState(0);
     const { t, language } = useLanguage();
     
@@ -20,28 +21,32 @@ const Explore: React.FC<ExploreProps> = ({ onShowDetails }) => {
         const fetchData = async () => {
             try {
                 setIsLoading(true);
+                setError(null);
                 const data = await getCrafts();
                 setCrafts(data);
             } catch (error) {
                 console.error('Error fetching crafts:', error);
                 setCrafts([]);
+                setError(t('exploreLoadError' as any));
             } finally {
                 setIsLoading(false);
             }
         };
         fetchData();
-    }, []);
+    }, [t]);
 
     if (isLoading) {
         return <Spinner text={t('spinnerExplore')} />;
     }
 
-    if (crafts.length === 0) {
+    if (error || crafts.length === 0) {
         return (
             <div className="w-full min-h-[100svh] bg-[var(--color-bg)] flex items-center justify-center">
                 <div className="text-center text-[var(--color-text-secondary)] bg-[var(--color-surface)] p-8 rounded-2xl ios-shadow">
-                    <h3 className="text-lg font-semibold mb-2">{t('exploreEmptyTitle')}</h3>
-                    <p className="text-sm">{t('exploreEmptyDesc')}</p>
+                    <h3 className="text-lg font-semibold mb-2 text-[var(--color-text-primary)]">
+                        {error ? t('exploreLoadErrorTitle' as any) : t('exploreEmptyTitle')}
+                    </h3>
+                    <p className="text-sm">{error || t('exploreEmptyDesc')}</p>
                 </div>
             </div>
         );

@@ -61,11 +61,86 @@ export const CRAFTS: Craft[] = [
 ];
 
 export const ARTISANS: Artisan[] = [
-    { id: 1, name: { zh: "張師傅", en: "Master Zhang" }, bio: "廣彩世家第三代傳人，致力於將現代設計融入傳統工藝。", image: "https://picsum.photos/seed/artisan1/200/200", craftIds: [1] },
-    { id: 2, name: { zh: "劉師傅", en: "Master Lau" }, bio: "四十年經驗的霓虹燈藝術家，堅持傳統手工製作。", image: "https://picsum.photos/seed/artisan2/200/200", craftIds: [2] },
-    { id: 3, name: { zh: "陳師傅", en: "Master Chan" }, bio: "香港碩果僅存的手雕麻雀師傅之一，守護著香港人的集體回憶。", image: "https://picsum.photos/seed/artisan3/200/200", craftIds: [3] },
-    { id: 4, name: { zh: "王師傅", en: "Master Wong" }, bio: "五十年經驗的海派長衫裁縫，相信每一件長衫都有生命。", image: "https://picsum.photos/seed/artisan4/200/200", craftIds: [4] },
-    { id: 5, name: { zh: "李師傅", en: "Master Lee" }, bio: "堅守傳統活字印刷的工匠，將舊技術轉化為新時代的藝術體驗。", image: "https://picsum.photos/seed/artisan5/200/200", craftIds: [5] },
+    {
+      id: 1,
+      name: { zh: "張師傅", en: "Master Zhang" },
+      bio: { zh: "廣彩世家第三代傳人，致力於將現代設計融入傳統工藝。", en: "Third-generation Canton porcelain artisan bringing modern composition into inherited brushwork." },
+      image: "https://picsum.photos/seed/artisan1/200/200",
+      craftIds: [1],
+      expertise: [{ zh: "廣彩瓷器", en: "Canton porcelain" }, { zh: "手繪茶具", en: "Hand-painted tableware" }],
+      responseTime: { zh: "通常 1 日內回覆", en: "Usually replies within 1 day" },
+      contactNote: { zh: "可查詢現貨、禮品包裝及客製圖案。", en: "Ask about available pieces, gift wrapping, and custom motifs." },
+    },
+    {
+      id: 2,
+      name: { zh: "劉師傅", en: "Master Lau" },
+      bio: { zh: "四十年經驗的霓虹燈藝術家，堅持傳統手工製作。", en: "Neon artisan with four decades of glass bending and sign-making experience." },
+      image: "https://picsum.photos/seed/artisan2/200/200",
+      craftIds: [2],
+      expertise: [{ zh: "霓虹屈管", en: "Neon glass bending" }, { zh: "中文招牌", en: "Chinese sign lettering" }],
+      responseTime: { zh: "通常 2 日內回覆", en: "Usually replies within 2 days" },
+      contactNote: { zh: "客製霓虹需先確認尺寸、字款及安裝方式。", en: "Custom neon begins with size, lettering, and installation details." },
+    },
+    {
+      id: 3,
+      name: { zh: "陳師傅", en: "Master Chan" },
+      bio: { zh: "香港碩果僅存的手雕麻雀師傅之一，守護著香港人的集體回憶。", en: "One of Hong Kong's remaining hand-carved mahjong artisans, preserving a shared table culture." },
+      image: "https://picsum.photos/seed/artisan3/200/200",
+      craftIds: [3],
+      expertise: [{ zh: "手雕麻雀", en: "Hand-carved mahjong" }, { zh: "客製牌面", en: "Custom tile faces" }],
+      responseTime: { zh: "通常 1 至 2 日內回覆", en: "Usually replies in 1-2 days" },
+      contactNote: { zh: "可查詢全副、單隻補牌及紀念刻字。", en: "Ask about full sets, replacement tiles, and commemorative engraving." },
+    },
+    {
+      id: 4,
+      name: { zh: "王師傅", en: "Master Wong" },
+      bio: { zh: "五十年經驗的海派長衫裁縫，相信每一件長衫都有生命。", en: "Shanghai-style cheongsam tailor with fifty years of fitting, cutting, and knot-button work." },
+      image: "https://picsum.photos/seed/artisan4/200/200",
+      craftIds: [4],
+      expertise: [{ zh: "海派長衫", en: "Shanghai-style cheongsam" }, { zh: "婚嫁訂製", en: "Bridal tailoring" }],
+      responseTime: { zh: "通常 1 日內回覆", en: "Usually replies within 1 day" },
+      contactNote: { zh: "可預約度身、試身及布料建議。", en: "Book measurements, fittings, and fabric consultation." },
+    },
+    {
+      id: 5,
+      name: { zh: "李師傅", en: "Master Lee" },
+      bio: { zh: "堅守傳統活字印刷的工匠，將舊技術轉化為新時代的藝術體驗。", en: "Letterpress printer turning lead type, ink, and old presses into hands-on cultural experiences." },
+      image: "https://picsum.photos/seed/artisan5/200/200",
+      craftIds: [5],
+      expertise: [{ zh: "活字排版", en: "Letterpress typesetting" }, { zh: "工作坊教學", en: "Workshop teaching" }],
+      responseTime: { zh: "通常 1 日內回覆", en: "Usually replies within 1 day" },
+      contactNote: { zh: "可查詢工作坊、請帖及小批量印刷。", en: "Ask about workshops, invitations, and small-batch printing." },
+    },
+    {
+      id: 6,
+      name: { zh: "Polar wafter 師傅", en: "Master Polar Wafter" },
+      bio: { zh: "以手繪小巴牌、麻雀刻字及香港街頭字款為主的本地客製工藝團隊。", en: "A local custom craft studio working across hand-painted minibus signs, mahjong engraving, and Hong Kong street lettering." },
+      image: "https://i.imgur.com/4X4sl42.jpeg",
+      craftIds: [3],
+      expertise: [{ zh: "麻雀刻字", en: "Mahjong engraving" }, { zh: "小巴牌手繪", en: "Hand-painted minibus signs" }],
+      responseTime: { zh: "通常 1 至 2 日內回覆", en: "Usually replies in 1-2 days" },
+      contactNote: { zh: "請先提供字款、尺寸及用途，師傅會確認可製作方案。", en: "Share wording, size, and use case first so the studio can confirm a feasible making plan." },
+    },
+    {
+      id: 7,
+      name: { zh: "梁蘇記 師傅", en: "Master from Leung So Kee" },
+      bio: { zh: "始於 1885 年的香港手工遮廠，保留人手裝嵌、維修與選料經驗。", en: "A Hong Kong handmade umbrella workshop founded in 1885, preserving hand assembly, repair, and material knowledge." },
+      image: "https://xn--zzvu34dizc.com/cdn/shop/files/18A1E420-BAA3-4C74-9E9D-68338466EC48_600x.jpg?v=1712039918",
+      craftIds: [],
+      expertise: [{ zh: "手工雨傘", en: "Handmade umbrellas" }, { zh: "傘骨維修", en: "Frame repair" }],
+      responseTime: { zh: "門市查詢為主", en: "Shop enquiry preferred" },
+      contactNote: { zh: "現貨視乎門市款式，維修及配件需由師傅檢查。", en: "Stock depends on shop availability; repairs and parts require artisan inspection." },
+    },
+    {
+      id: 8,
+      name: { zh: "Neonlitehk 師傅", en: "Master from Neonlitehk" },
+      bio: { zh: "製作冷光線霓虹燈與小型字牌，將香港招牌語彙轉化成可收藏燈飾。", en: "A maker of EL-wire neon pieces and small sign objects, translating Hong Kong signage into collectible light works." },
+      image: "https://i.imgur.com/4D9Sjub.png",
+      craftIds: [2],
+      expertise: [{ zh: "冷光線霓虹", en: "EL neon" }, { zh: "客製字牌", en: "Custom lettering" }],
+      responseTime: { zh: "通常 2 日內回覆", en: "Usually replies within 2 days" },
+      contactNote: { zh: "報價取決於字數、尺寸、顏色及供電方式。", en: "Quotes depend on wording, size, color, and power format." },
+    },
 ];
 
 export const PRODUCTS: Product[] = [
@@ -77,6 +152,13 @@ export const PRODUCTS: Product[] = [
     priceSubDisplay: { zh: "HKD $4560 / 副", en: "HKD $4560 / set" },
     image: "https://i.imgur.com/J2Ndpxa.jpeg", 
     artisan: { zh: "Polar wafter 師傅", en: "Master Polar Wafter" }, 
+    artisanId: 6,
+    craftId: 3,
+    productKind: "customizable",
+    customizationMode: "ai_studio",
+    materialDisplay: { zh: "麻雀牌・手刻填色", en: "Mahjong tile, hand-carved and filled" },
+    availability: "made_to_order",
+    fulfillmentDisplay: { zh: "接單後雕刻，需與師傅確認圖案", en: "Carved to order after motif confirmation" },
     full_description: { zh: `打牌打到好悶，想雕翻啲百撘同朋友打到天昏地暗？🤑
 生日紀念日，唔知送咩俾個雀精好？🤫
 突然有靈感，想自己設計一副麻雀？🤔
@@ -95,6 +177,13 @@ we can help you with all of it! 🤓` }
     priceSubDisplay: { zh: "匙扣・中牌・大牌", en: "Keychain・Medium・Large" },
     image: "https://i.imgur.com/4X4sl42.jpeg",
     artisan: { zh: "Polar wafter 師傅", en: "Master Polar Wafter" },
+    artisanId: 6,
+    craftId: 3,
+    productKind: "customizable",
+    customizationMode: "ai_studio",
+    materialDisplay: { zh: "手繪膠牌・可選尺寸", en: "Hand-painted acrylic sign, selectable sizes" },
+    availability: "available",
+    fulfillmentDisplay: { zh: "少量現貨，可按字款客製", en: "Limited ready stock, custom wording available" },
     full_description: { zh: `我哋仲有另一樣香港特色嘅 - 小巴牌🤨
 排板🖌️/顏色🎨/大細🔍都可以自訂
 唔似市面上一啲印刷嘅版本咁🙅🏻‍♂️
@@ -113,6 +202,11 @@ You can really feel the textured surface 🤩.` }
     priceSubDisplay: { zh: "高爾夫長遮、縮骨遮、長遮、拐杖遮", en: "Golf, foldable, standard, and cane umbrellas" },
     image: "https://xn--zzvu34dizc.com/cdn/shop/files/18A1E420-BAA3-4C74-9E9D-68338466EC48_600x.jpg?v=1712039918",
     artisan: { zh: "梁蘇記 師傅", en: "Master from Leung So Kee" },
+    artisanId: 7,
+    productKind: "standard",
+    materialDisplay: { zh: "手工傘骨・布料視乎款式", en: "Hand-assembled frame, fabric varies by model" },
+    availability: "available",
+    fulfillmentDisplay: { zh: "門市現貨視乎款式而定", en: "Shop availability varies by umbrella type" },
     full_description: { zh: `梁蘇記遮廠(創於1885年) 人手製造，骨架永久免費維修(遮頭﹑遮尾及遮布除外)。 於1880年代，梁智華(別字「蘇」)，主要買賣二手商品及提供維修服務，當中包括洋傘。`, en: `Leung So Kee Umbrella Factory (est. 1885). Handmade, with lifetime free repairs for the frame (excluding handle, tip, and fabric). In the 1880s, Leung Chi-wah (So) primarily dealt in second-hand goods and repair services, including Western umbrellas.` }
   },
   {
@@ -123,21 +217,27 @@ You can really feel the textured surface 🤩.` }
     priceSubDisplay: { zh: "自家手作冷光線霓虹燈 ", en: "Handmade portable EL neon light" },
     image: "https://i.imgur.com/4D9Sjub.png",
     artisan: { zh: "Neonlitehk 師傅", en: "Master from Neonlitehk" },
+    artisanId: 8,
+    craftId: 2,
+    productKind: "customizable",
+    customizationMode: "ai_studio",
+    materialDisplay: { zh: "冷光線・手工造型", en: "EL wire, handmade shaping" },
+    availability: "quote_only",
+    fulfillmentDisplay: { zh: "需按尺寸、字款及顏色報價", en: "Quoted by size, lettering, and color" },
     full_description: { zh: `自家手作冷光線霓虹燈
 Handmade portable EL neon light decoration`, en: `Custom handmade EL wire neon lights.
 Handmade portable EL neon light decoration.` }
   },
-  { id: 11, name: { zh: "活字印刷體驗工作坊", en: "Letterpress Printing Workshop" }, price: 680, priceDisplay: { zh: "HK$ 680 / 位", en: "HK$ 680 / person" }, image: "https://cdn.hk01.com/di/media/images/2154812/org/6bd88ee872d11b967e1fddd14ea038ab.jpg/Jln-gCmZQWIta0CnzU-v-7IVxvg-g76dmb3AoZm9wKE?v=w1280r16_9", artisan: { zh: "李師傅", en: "Master Lee" }, full_description: { zh: "親手操作百年歷史的印刷機，從揀字、排版到上墨、印刷，製作屬於你自己的活字印刷卡片。體驗每一個步驟，感受文字的觸感和油墨的香氣。", en: "Operate a century-old printing press yourself. From type-picking and typesetting to inking and printing, create your own letterpress cards. Experience every step and feel the texture of words and the aroma of ink." } },
   // Then fall back to placeholder-image products
-  { id: 1, name: { zh: "廣彩龍鳳呈祥茶具套裝", en: "Canton Porcelain Dragon & Phoenix Tea Set" }, price: 1888, priceDisplay: { zh: "HK$ 1,888", en: "HK$ 1,888" }, image: "https://image.hkstandard.com.hk/f/1024p0/0x0/100/none/f72127d693b9c8564b72757c39274a81/images/2022-06/20220626131153indexPhoto.jpeg", artisan: { zh: "張師傅", en: "Master Zhang" }, full_description: { zh: "一套精緻的廣彩茶具，繪有龍鳳圖案，寓意吉祥如意。適合自用或作為高雅禮品。", en: "An exquisite Canton Porcelain tea set, painted with dragon and phoenix motifs, symbolizing good fortune. Perfect for personal use or as an elegant gift." } },
-  { id: 2, name: { zh: "客製化中文霓虹燈", en: "Custom Chinese Neon Sign" }, price: 2500, priceDisplay: { zh: "HK$ 2,500 起", en: "From HK$ 2,500" }, image: "https://image5.sixthtone.com/image/5/66/29.jpg", artisan: { zh: "劉師傅", en: "Master Lau" }, full_description: { zh: "根據您的要求，由劉師傅親手打造獨一無二的中文霓虹燈。無論是您的名字、喜愛的詩句，都能化為閃爍的光影藝術。", en: "A unique Chinese neon sign handcrafted by Master Lau according to your specifications. Whether it's your name or a favorite poem, it can be transformed into sparkling light art." } },
-  { id: 3, name: { zh: "手雕牛骨麻雀", en: "Hand-Carved Bone Mahjong Set" }, price: 4800, priceDisplay: { zh: "HK$ 4,800", en: "HK$ 4,800" }, image: "https://zolimacitymag.com/wp-content/uploads/2016/06/Zolima_Majong-Icon_Nicolas-Petit-5.jpg", artisan: { zh: "陳師傅", en: "Master Chan" }, full_description: { zh: "由陳師傅精心雕琢的全副牛骨麻雀，手感溫潤，字體深刻。不僅是娛樂工具，更是值得收藏的藝術品。", en: "A full set of ox bone mahjong tiles meticulously carved by Master Chan, with a warm feel and deeply engraved characters. Not just a game, but a collectible work of art." } },
-  { id: 4, name: { zh: "真絲手繪長衫訂製", en: "Custom Silk Hand-Painted Cheongsam" }, price: 6800, priceDisplay: { zh: "HK$ 6,800 起", en: "From HK$ 6,800" }, image: "https://media.timeout.com/images/105549477/750/562/image.jpg", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "王師傅為您量身定做海派長衫，選用頂級真絲面料，並可根據您的喜好手繪圖案，打造專屬於您的優雅。", en: "Master Wong will custom-tailor a Shanghai-style cheongsam for you, using top-grade silk fabric. It can be hand-painted with a design of your choice to create your own unique elegance." } },
-  { id: 5, name: { zh: "廣彩花鳥圖案咖啡杯", en: "Canton Porcelain Flora & Fauna Coffee Cup" }, price: 580, priceDisplay: { zh: "HK$ 580", en: "HK$ 580" }, image: "https://picsum.photos/seed/product5/400/400", artisan: { zh: "張師傅", en: "Master Zhang" }, full_description: { zh: "將傳統廣彩藝術融入現代生活，這款咖啡杯繪有精美的花鳥圖案，為您的咖啡時光增添一抹東方韻味。", en: "Integrating traditional Canton Porcelain art into modern life, this coffee cup features exquisite flora and fauna patterns, adding a touch of Eastern charm to your coffee time." } },
-  { id: 6, name: { zh: "迷你桌面霓虹燈飾", en: "Mini Desktop Neon Light" }, price: 890, priceDisplay: { zh: "HK$ 890", en: "HK$ 890" }, image: "https://picsum.photos/seed/product6/400/400", artisan: { zh: "劉師傅", en: "Master Lau" }, full_description: { zh: "小巧精緻的桌面霓虹燈，可選擇預設圖案或簡單訂製，為您的書桌或床頭增添一抹賽博朋克風格的亮色。", en: "A small and exquisite desktop neon light. Choose from preset designs or simple customizations to add a touch of cyberpunk brightness to your desk or bedside." } },
-  { id: 12, name: { zh: "盤金鳳凰婚嫁長衫", en: "Goldwork Phoenix Bridal Cheongsam" }, price: 12800, priceDisplay: { zh: "HK$ 12,800", en: "HK$ 12,800" }, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "以廣東盤金繡線打造的鳳凰婚嫁長衫，配合立體珠片與手縫金線，呈現華麗層次。提供身段量度及試身服務。", en: "A bridal cheongsam featuring Cantonese goldwork phoenix embroidery with dimensional beadwork and hand-laid gold threads. Includes full measurements and fitting sessions." } },
-  { id: 13, name: { zh: "霞帔披肩長衫套裝", en: "Cheongsam with Xiapei Cape Ensemble" }, price: 9800, priceDisplay: { zh: "HK$ 9,800", en: "HK$ 9,800" }, image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "絲綢立體提花布配以可拆式霞帔披肩，適合茶禮及敬酒場合。可按身形調整腰線與裙擺開岔高度。", en: "Silk jacquard cheongsam paired with a detachable xiapei cape, ideal for tea ceremonies and banquets. Waistline and slit height tailored to each wearer." } },
-  { id: 14, name: { zh: "母女裝迷你長衫套裝", en: "Mother-Daughter Mini Cheongsam Set" }, price: 7600, priceDisplay: { zh: "HK$ 7,600", en: "HK$ 7,600" }, image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, full_description: { zh: "以柔軟竹節絲綢製作的親子長衫套裝，採用現代粉彩配色與暗紋刺繡，適合家庭影樓拍攝。", en: "A mother-daughter cheongsam set in bamboo silk with pastel palette and subtle embroidery, perfect for studio portraits." } },
+  { id: 1, name: { zh: "廣彩龍鳳呈祥茶具套裝", en: "Canton Porcelain Dragon & Phoenix Tea Set" }, price: 1888, priceDisplay: { zh: "HK$ 1,888", en: "HK$ 1,888" }, image: "https://image.hkstandard.com.hk/f/1024p0/0x0/100/none/f72127d693b9c8564b72757c39274a81/images/2022-06/20220626131153indexPhoto.jpeg", artisan: { zh: "張師傅", en: "Master Zhang" }, artisanId: 1, craftId: 1, productKind: "standard", materialDisplay: { zh: "廣彩瓷器・手繪釉上彩", en: "Canton porcelain, hand-painted on-glaze color" }, fulfillmentDisplay: { zh: "現貨作品，可安排取貨或配送", en: "Ready piece, pickup or delivery available" }, full_description: { zh: "一套精緻的廣彩茶具，繪有龍鳳圖案，寓意吉祥如意。適合自用或作為高雅禮品。", en: "An exquisite Canton Porcelain tea set, painted with dragon and phoenix motifs, symbolizing good fortune. Perfect for personal use or as an elegant gift." } },
+  { id: 2, name: { zh: "客製化中文霓虹燈", en: "Custom Chinese Neon Sign" }, price: 2500, priceDisplay: { zh: "HK$ 2,500 起", en: "From HK$ 2,500" }, image: "https://image5.sixthtone.com/image/5/66/29.jpg", artisan: { zh: "劉師傅", en: "Master Lau" }, artisanId: 2, craftId: 2, productKind: "customizable", customizationMode: "ai_studio", materialDisplay: { zh: "玻璃霓虹管・手工屈管", en: "Glass neon tube, hand bent" }, fulfillmentDisplay: { zh: "按字款、尺寸與安裝方式報價", en: "Quoted by lettering, size, and installation" }, availability: "quote_only", full_description: { zh: "根據您的要求，由劉師傅親手打造獨一無二的中文霓虹燈。無論是您的名字、喜愛的詩句，都能化為閃爍的光影藝術。", en: "A unique Chinese neon sign handcrafted by Master Lau according to your specifications. Whether it's your name or a favorite poem, it can be transformed into sparkling light art." } },
+  { id: 3, name: { zh: "手雕牛骨麻雀", en: "Hand-Carved Bone Mahjong Set" }, price: 4800, priceDisplay: { zh: "HK$ 4,800", en: "HK$ 4,800" }, image: "https://i.imgur.com/J2Ndpxa.jpeg", artisan: { zh: "陳師傅", en: "Master Chan" }, artisanId: 3, craftId: 3, productKind: "standard", materialDisplay: { zh: "牛骨牌・手雕填色", en: "Bone tiles, hand-carved and filled" }, fulfillmentDisplay: { zh: "收藏套裝，需確認存貨", en: "Collectible set, stock to be confirmed" }, full_description: { zh: "由陳師傅精心雕琢的全副牛骨麻雀，手感溫潤，字體深刻。不僅是娛樂工具，更是值得收藏的藝術品。", en: "A full set of ox bone mahjong tiles meticulously carved by Master Chan, with a warm feel and deeply engraved characters. Not just a game, but a collectible work of art." } },
+  { id: 4, name: { zh: "真絲手繪長衫訂製", en: "Custom Silk Hand-Painted Cheongsam" }, price: 6800, priceDisplay: { zh: "HK$ 6,800 起", en: "From HK$ 6,800" }, image: "https://media.timeout.com/images/105549477/750/562/image.jpg", artisan: { zh: "王師傅", en: "Master Wong" }, artisanId: 4, craftId: 4, productKind: "customizable", customizationMode: "ai_studio", materialDisplay: { zh: "真絲布料・手繪圖案", en: "Silk fabric, hand-painted motifs" }, fulfillmentDisplay: { zh: "需度身、試身及師傅確認圖案", en: "Requires measurement, fitting, and artisan motif approval" }, availability: "made_to_order", full_description: { zh: "王師傅為您量身定做海派長衫，選用頂級真絲面料，並可根據您的喜好手繪圖案，打造專屬於您的優雅。", en: "Master Wong will custom-tailor a Shanghai-style cheongsam for you, using top-grade silk fabric. It can be hand-painted with a design of your choice to create your own unique elegance." } },
+  { id: 5, name: { zh: "廣彩花鳥圖案咖啡杯", en: "Canton Porcelain Flora & Fauna Coffee Cup" }, price: 580, priceDisplay: { zh: "HK$ 580", en: "HK$ 580" }, image: "https://picsum.photos/seed/product5/400/400", artisan: { zh: "張師傅", en: "Master Zhang" }, artisanId: 1, craftId: 1, productKind: "standard", materialDisplay: { zh: "廣彩瓷杯・手繪花鳥", en: "Canton porcelain cup, hand-painted flora and fauna" }, fulfillmentDisplay: { zh: "現貨作品，可安排取貨或配送", en: "Ready piece, pickup or delivery available" }, full_description: { zh: "將傳統廣彩藝術融入現代生活，這款咖啡杯繪有精美的花鳥圖案，為您的咖啡時光增添一抹東方韻味。", en: "Integrating traditional Canton Porcelain art into modern life, this coffee cup features exquisite flora and fauna patterns, adding a touch of Eastern charm to your coffee time." } },
+  { id: 6, name: { zh: "迷你桌面霓虹燈飾", en: "Mini Desktop Neon Light" }, price: 890, priceDisplay: { zh: "HK$ 890", en: "HK$ 890" }, image: "https://picsum.photos/seed/product6/400/400", artisan: { zh: "劉師傅", en: "Master Lau" }, artisanId: 2, craftId: 2, productKind: "standard", materialDisplay: { zh: "小型霓虹燈・預設圖案", en: "Small neon light, preset motif" }, fulfillmentDisplay: { zh: "少量現貨，簡單字款可另議", en: "Limited ready stock; simple lettering can be discussed" }, full_description: { zh: "小巧精緻的桌面霓虹燈，可選擇預設圖案或簡單訂製，為您的書桌或床頭增添一抹賽博朋克風格的亮色。", en: "A small and exquisite desktop neon light. Choose from preset designs or simple customizations to add a touch of cyberpunk brightness to your desk or bedside." } },
+  { id: 12, name: { zh: "盤金鳳凰婚嫁長衫", en: "Goldwork Phoenix Bridal Cheongsam" }, price: 12800, priceDisplay: { zh: "HK$ 12,800", en: "HK$ 12,800" }, image: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, artisanId: 4, craftId: 4, productKind: "standard", materialDisplay: { zh: "盤金繡線・婚嫁長衫", en: "Goldwork embroidery, bridal cheongsam" }, fulfillmentDisplay: { zh: "成衣基礎上需度身微調", en: "Ready piece with fitting adjustments" }, full_description: { zh: "以廣東盤金繡線打造的鳳凰婚嫁長衫，配合立體珠片與手縫金線，呈現華麗層次。提供身段量度及試身服務。", en: "A bridal cheongsam featuring Cantonese goldwork phoenix embroidery with dimensional beadwork and hand-laid gold threads. Includes full measurements and fitting sessions." } },
+  { id: 13, name: { zh: "霞帔披肩長衫套裝", en: "Cheongsam with Xiapei Cape Ensemble" }, price: 9800, priceDisplay: { zh: "HK$ 9,800", en: "HK$ 9,800" }, image: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, artisanId: 4, craftId: 4, productKind: "standard", materialDisplay: { zh: "絲綢提花・可拆霞帔", en: "Silk jacquard with detachable xiapei cape" }, fulfillmentDisplay: { zh: "成衣基礎上需度身微調", en: "Ready piece with fitting adjustments" }, full_description: { zh: "絲綢立體提花布配以可拆式霞帔披肩，適合茶禮及敬酒場合。可按身形調整腰線與裙擺開岔高度。", en: "Silk jacquard cheongsam paired with a detachable xiapei cape, ideal for tea ceremonies and banquets. Waistline and slit height tailored to each wearer." } },
+  { id: 14, name: { zh: "母女裝迷你長衫套裝", en: "Mother-Daughter Mini Cheongsam Set" }, price: 7600, priceDisplay: { zh: "HK$ 7,600", en: "HK$ 7,600" }, image: "https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?q=80&w=600&auto=format&fit=crop", artisan: { zh: "王師傅", en: "Master Wong" }, artisanId: 4, craftId: 4, productKind: "customizable", customizationMode: "ai_studio", materialDisplay: { zh: "竹節絲綢・親子訂製", en: "Bamboo silk, parent-child custom set" }, fulfillmentDisplay: { zh: "按尺寸與配色訂製", en: "Made to measure with selected palette" }, availability: "made_to_order", full_description: { zh: "以柔軟竹節絲綢製作的親子長衫套裝，採用現代粉彩配色與暗紋刺繡，適合家庭影樓拍攝。", en: "A mother-daughter cheongsam set in bamboo silk with pastel palette and subtle embroidery, perfect for studio portraits." } },
 ];
 
 export const EVENTS: Event[] = [

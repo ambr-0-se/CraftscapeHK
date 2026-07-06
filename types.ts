@@ -30,9 +30,12 @@ export interface Craft {
 export interface Artisan {
   id: number;
   name: LocalizedString;
-  bio: string;
+  bio: LocalizedString;
   image: string;
   craftIds: number[];
+  expertise?: LocalizedString[];
+  responseTime?: LocalizedString;
+  contactNote?: LocalizedString;
 }
 
 export interface Event {
@@ -87,6 +90,13 @@ export interface Product {
   artisan: LocalizedString;
   full_description: LocalizedString;
   category?: string;
+  availability?: 'available' | 'made_to_order' | 'quote_only' | 'sold_out';
+  fulfillmentDisplay?: LocalizedString;
+  productKind?: 'standard' | 'customizable';
+  customizationMode?: 'ai_studio' | 'text_lab' | 'quote';
+  craftId?: number;
+  artisanId?: number;
+  materialDisplay?: LocalizedString;
 }
 
 /**
