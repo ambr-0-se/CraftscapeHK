@@ -1,5 +1,7 @@
 import type {
+  AiCreationContract,
   BookingContract,
+  CoCreationRequestContract,
   CurrencyCode,
   EventType,
   LocalizedString,
@@ -158,7 +160,12 @@ export interface AiCreation {
   craftName: string;
   prompt: string;
   imageUrl: string;
+  backendId?: string;
+  requestStatus?: CoCreationRequestContract['status'];
 }
+
+export type PersistedAiCreation = AiCreationContract;
+export type CoCreationRequest = CoCreationRequestContract;
 
 export type TranslationStrategy = 'phonetic' | 'meaning' | 'mixed';
 

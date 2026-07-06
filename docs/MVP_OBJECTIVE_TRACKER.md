@@ -145,7 +145,7 @@ Worktree: `main`
 
 Owner: `GPT-5.5`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -201,11 +201,11 @@ Notes:
 
 Description: Let users create AI-assisted craft concepts, submit them to artisans, and track artisan approval before any paid order is created.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `.codex/worktrees/ff7c/CraftscapeHK`
 
-Owner: `TBD`
+Owner: `Codex`
 
 Last Updated: `2026-06-28`
 
@@ -224,6 +224,14 @@ Notes:
 - Existing `AiStudio` and `TextLab` cover major prototype UI behavior.
 - Current contact form success is local-only and does not persist a request.
 - Need data model, API, artisan review UI, status flow, and tests.
+- Claimed for Objective 1 on branch `codex/ai-cocreation-flow` after kickoff confirmation on 2026-06-28.
+- Scope: persist AI concepts, submit co-creation requests, support artisan approve/reject/request-changes decisions, and expose approved requests as quote/checkout-ready before payment.
+- Boundary: real Stripe Checkout sessions, webhooks, paid order creation, real-time messaging, and broader artisan dashboard redesign remain out of scope/dependent on Objectives 8, 9, 7, and 6.
+- UI gate: standalone co-creation approval HTML preview was approved before React production edits.
+- Review evidence: added `AiCreationContract`, persisted AI concept and co-creation request entities, `/api/co-creation` concept/request/decision endpoints, customer submission/status UI, artisan approval queue, bilingual copy, and focused backend transition tests.
+- Commands run: `npm run contracts:build`, `npm run test:contracts`, `npm run typecheck`, `npm --prefix server run test -- co-creation.service.spec.ts`, `npm run build`, `npm run server:build`.
+- Second review/QA on 2026-07-06 fixed preset concept persistence, friendly AI generation errors, and onboarding dismissal initialization. API QA verified concept generation persistence, request creation as `pending_artisan_review` / `pending`, approve/reject/request-changes decisions, invalid transition rejection, and customer request listing. Browser smoke QA verified customer AI Studio generation/submission success, Profile → My AI Creations request visibility, and Artisan Mode → Orders approval queue/status/quote/deposit readiness copy.
+- Known remaining dependency: approved co-creation requests expose quote/deposit readiness, but real Stripe Checkout conversion remains Objective 8/9.
 
 ## Objective 2: Workshop Browsing And Booking
 

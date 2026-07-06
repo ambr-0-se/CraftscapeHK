@@ -8,6 +8,7 @@ import type {
     MessageThread,
     PendingWorkshopBookingResponse,
 } from '../types';
+import type { AiCreationContract, CoCreationRequestContract } from '../shared/contracts';
 import { authService } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -152,6 +153,91 @@ export const generateCraftImageApi = async (
         console.error('Failed to generate craft image:', error);
         throw new Error('Failed to generate image. Please try again later.');
     }
+};
+
+export const generateAndPersistAiConcept = async (
+    craftId: string | number,
+    craftName: { zh: string; en: string },
+    userPrompt: string,
+    referenceImageUrl?: string
+): Promise<AiCreationContract> => {
+    return apiRequest<AiCreationContract>('/co-creation/concepts/generate', {
+        method: 'POST',
+        body: JSON.stringify({
+            craftId,
+            craftName,
+            userPrompt,
+            referenceImageUrl,
+        }),
+    });
+};
+
+export const persistAiConcept = async (
+    craftId: string | number,
+    craftName: { zh: string; en: string },
+    prompt: string,
+    imageUrl: string,
+    referenceImageUrls?: string[]
+): Promise<AiCreationContract> => {
+    return apiRequest<AiCreationContract>('/co-creation/concepts', {
+        method: 'POST',
+        body: JSON.stringify({
+            craftId,
+            craftName,
+            prompt,
+            imageUrl,
+            referenceImageUrls,
+        }),
+    });
+};
+
+export const getAiConcepts = async (): Promise<AiCreationContract[]> => {
+    return apiRequest<AiCreationContract[]>('/co-creation/concepts?customerId=customer-demo');
+};
+
+export const submitCoCreationRequest = async (input: {
+    aiCreationId?: string;
+    craftId: string | number;
+    prompt: string;
+    referenceImageUrls: string[];
+    customerName?: string;
+    customerEmail?: string;
+    customerMessage?: string;
+}): Promise<CoCreationRequestContract> => {
+    return apiRequest<CoCreationRequestContract>('/co-creation/requests', {
+        method: 'POST',
+        body: JSON.stringify(input),
+    });
+};
+
+export const getCoCreationRequests = async (filters?: {
+    customerId?: string;
+    artisanId?: string;
+}): Promise<CoCreationRequestContract[]> => {
+    const params = new URLSearchParams();
+    if (filters?.customerId) {
+        params.set('customerId', filters.customerId);
+    }
+    if (filters?.artisanId) {
+        params.set('artisanId', filters.artisanId);
+    }
+    const query = params.toString();
+    return apiRequest<CoCreationRequestContract[]>(`/co-creation/requests${query ? `?${query}` : ''}`);
+};
+
+export const applyCoCreationArtisanDecision = async (
+    requestId: string,
+    input: {
+        decision: 'approve' | 'reject' | 'request_changes';
+        artisanNote?: string;
+        quoteAmountCents?: number;
+        depositAmountCents?: number;
+    }
+): Promise<CoCreationRequestContract> => {
+    return apiRequest<CoCreationRequestContract>(`/co-creation/requests/${requestId}/artisan-decision`, {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+    });
 };
 
 /**

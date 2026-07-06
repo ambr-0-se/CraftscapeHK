@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAppContext } from "../contexts/AppContext";
-import { getCrafts } from "../services/apiService";
+import { getCoCreationRequests, getCrafts } from "../services/apiService";
 import ThemeToggle from "../components/ThemeToggle";
 import { motion } from "framer-motion";
 import type { Craft } from "../types";
+import type { CoCreationRequestContract } from "../shared/contracts";
+import {
+  CO_CREATION_REQUEST_STATUS_LABELS,
+  CoCreationRequestStatus,
+  getLocalizedLabel,
+} from "../shared/contracts";
 import Spinner from "../components/Spinner";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
@@ -52,6 +58,10 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
   const [activeTab, setActiveTab] = useState<ProfileTab>("favorites");
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [coCreationRequests, setCoCreationRequests] = useState<
+    CoCreationRequestContract[]
+  >([]);
+  const [isRequestsLoading, setIsRequestsLoading] = useState(false);
   const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
   const [isFaceUploading, setIsFaceUploading] = useState(false);
   const faceUploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -66,6 +76,20 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
         setIsLoading(false);
       });
     }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== "creations") {
+      return;
+    }
+    setIsRequestsLoading(true);
+    getCoCreationRequests({ customerId: "customer-demo" })
+      .then(setCoCreationRequests)
+      .catch((error) => {
+        console.error("Failed to load co-creation requests:", error);
+        setCoCreationRequests([]);
+      })
+      .finally(() => setIsRequestsLoading(false));
   }, [activeTab]);
 
   const favoriteCrafts = allCrafts.filter((craft) => favorites.has(craft.id));
@@ -346,40 +370,110 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
             </div>
           ))}
         {activeTab === "creations" && (
-          <div className="grid grid-cols-2 gap-4">
-            {aiCreations.map((creation) => (
-              <motion.div
-                key={creation.id}
-                className="museum-card overflow-hidden group"
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.98 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              >
-                <div className="relative overflow-hidden">
-                  <img
-                    src={creation.imageUrl}
-                    alt={creation.prompt}
-                    className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <div className="p-4">
-                  <p className="text-sm font-semibold text-[var(--color-primary-accent)] mb-1">
-                    {creation.craftName}
+          <div className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              {aiCreations.map((creation) => (
+                <motion.div
+                  key={creation.id}
+                  className="museum-card overflow-hidden group"
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <div className="relative overflow-hidden">
+                    <img
+                      src={creation.imageUrl}
+                      alt={creation.prompt}
+                      className="w-full h-40 object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-sm font-semibold text-[var(--color-primary-accent)] mb-1">
+                      {creation.craftName}
+                    </p>
+                    <p className="text-sm text-[var(--color-text-secondary)] truncate">
+                      {creation.prompt}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+              {aiCreations.length === 0 && (
+                <div className="col-span-2 text-center py-12">
+                  <p className="text-[var(--color-text-secondary)] mb-2">
+                    {t("profileCreationsEmpty")}
                   </p>
-                  <p className="text-sm text-[var(--color-text-secondary)] truncate">
-                    {creation.prompt}
-                  </p>
                 </div>
-              </motion.div>
-            ))}
-            {aiCreations.length === 0 && (
-              <div className="col-span-2 text-center py-12">
-                <p className="text-[var(--color-text-secondary)] mb-2">
-                  {t("profileCreationsEmpty")}
+              )}
+            </div>
+
+            <section className="space-y-3">
+              <div>
+                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+                  {t("profileCoCreationRequestsTitle")}
+                </h2>
+                <p className="text-sm text-[var(--color-text-secondary)]">
+                  {t("profileCoCreationRequestsDesc")}
                 </p>
               </div>
-            )}
+              {isRequestsLoading ? (
+                <Spinner text={t("loading")} />
+              ) : coCreationRequests.length > 0 ? (
+                coCreationRequests.map((request) => {
+                  const status = getLocalizedLabel(
+                    CO_CREATION_REQUEST_STATUS_LABELS,
+                    request.status,
+                    language
+                  );
+                  const approved =
+                    request.status === CoCreationRequestStatus.Approved;
+                  return (
+                    <div key={request.id} className="museum-card overflow-hidden">
+                      {request.referenceImageUrls[0] && (
+                        <img
+                          src={request.referenceImageUrls[0]}
+                          alt={t("profileCoCreationImageAlt")}
+                          className="h-36 w-full object-cover"
+                        />
+                      )}
+                      <div className="space-y-3 p-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+                              {t("profileCoCreationRequestTitle")}
+                            </p>
+                            <p className="mt-1 max-h-10 overflow-hidden text-xs text-[var(--color-text-secondary)]">
+                              {request.prompt}
+                            </p>
+                          </div>
+                          <span className="rounded-full bg-[var(--color-primary-accent)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--color-primary-accent)]">
+                            {status}
+                          </span>
+                        </div>
+                        {request.artisanNote && (
+                          <p className="rounded-xl bg-[var(--color-bg)] p-3 text-xs text-[var(--color-text-secondary)]">
+                            {request.artisanNote}
+                          </p>
+                        )}
+                        {approved && request.deposit && (
+                          <p className="rounded-xl bg-[var(--color-success)]/10 p-3 text-xs font-medium text-[var(--color-success)]">
+                            {t("profileCoCreationApprovedPaymentReady", {
+                              deposit: (
+                                request.deposit.amount / 100
+                              ).toLocaleString(),
+                            })}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="museum-card p-4 text-sm text-[var(--color-text-secondary)]">
+                  {t("profileCoCreationRequestsEmpty")}
+                </p>
+              )}
+            </section>
           </div>
         )}
         {activeTab === "wardrobe" && (

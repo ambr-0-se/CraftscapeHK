@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CraftscapeHK AI Co-Creation Flow Preview</title>
+    <style>
+      :root {
+        --color-bg: #f8f9fa;
+        --color-surface: #ffffff;
+        --color-primary-accent: #053a6a;
+        --color-text-primary: #053a6a;
+        --color-text-secondary: #68717a;
+        --color-border: #8a8a8a;
+        --color-success: #045832;
+        --color-button-cta: #972226;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        background: #f3f4f6;
+        color: var(--color-text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        gap: 28px;
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 30px 18px;
+      }
+      .phone {
+        width: min(100%, 430px);
+        min-height: 820px;
+        margin: 0 auto;
+        overflow: hidden;
+        border: 1px solid rgba(5, 58, 106, 0.2);
+        border-radius: 30px;
+        background: var(--color-bg);
+        box-shadow: 0 18px 46px rgba(5, 58, 106, 0.16);
+      }
+      header { padding: 24px 20px 16px; }
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--color-button-cta);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+      h1 { margin: 0 0 10px; font-size: 29px; line-height: 1.08; }
+      p { margin: 0; }
+      .subcopy { color: var(--color-text-secondary); font-size: 14px; }
+      .content { display: grid; gap: 14px; padding: 0 20px 24px; }
+      .concept, .card {
+        overflow: hidden;
+        border: 1px solid rgba(138, 138, 138, .5);
+        border-radius: 18px;
+        background: var(--color-surface);
+      }
+      .concept { border-radius: 22px; }
+      .concept img { width: 100%; height: 340px; object-fit: cover; display: block; }
+      .concept.draft img { object-fit: contain; padding: 14px; background: #fbfaf5; }
+      .card { padding: 16px; }
+      .row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+      .status {
+        flex: 0 0 auto;
+        border-radius: 999px;
+        padding: 5px 10px;
+        background: rgba(5, 58, 106, .09);
+        color: var(--color-primary-accent);
+        font-size: 12px;
+        font-weight: 800;
+      }
+      .status.approved { background: rgba(4, 88, 50, .12); color: var(--color-success); }
+      .prompt {
+        margin-top: 12px;
+        padding: 12px;
+        border-left: 3px solid var(--color-button-cta);
+        background: #fbfcfd;
+        color: #1e2f45;
+        font-size: 14px;
+      }
+      button {
+        min-height: 50px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--color-button-cta);
+        color: white;
+        font: inherit;
+        font-weight: 800;
+      }
+      .actions { display: grid; gap: 10px; }
+      .secondary {
+        border: 1px solid rgba(5, 58, 106, .24);
+        background: white;
+        color: var(--color-primary-accent);
+      }
+      .thumb {
+        width: 72px;
+        height: 72px;
+        object-fit: cover;
+        border-radius: 15px;
+        border: 1px solid rgba(138, 138, 138, .42);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="phone">
+        <header>
+          <p class="eyebrow">AI Co-Creation · AI 共創</p>
+          <h1>Dragon embroidery draft for Master Wong</h1>
+          <p class="subcopy">A saved concept becomes a request only after the artisan reviews craft method, material, schedule, and price.</p>
+        </header>
+        <div class="content">
+          <div class="concept draft">
+            <img src="../public/images/presets/dragon_draft.png" alt="Technical draft of a dragon embroidery cheongsam concept" />
+          </div>
+          <section class="card">
+            <div class="row">
+              <h2>Submit to artisan</h2>
+              <span class="status">Pending artisan review</span>
+            </div>
+            <p class="subcopy">Payment remains locked until approval and quote.</p>
+            <p class="prompt">“A midnight-blue cheongsam with hand-embroidered dragon, red cloud accents, and restrained gold threadwork.”</p>
+          </section>
+          <div class="actions">
+            <button>Submit request to Master Wong</button>
+            <button class="secondary">Save concept only</button>
+          </div>
+        </div>
+      </section>
+      <section class="phone">
+        <header>
+          <p class="eyebrow">Co-Creation Requests · 共創申請</p>
+          <h1>Review the craft, then quote</h1>
+          <p class="subcopy">The artisan sees material feasibility, customer intent, decision, and next step in one pass.</p>
+        </header>
+        <div class="content">
+          <div class="concept">
+            <img src="../public/images/presets/dragon.jpeg" alt="Rendered dragon embroidery cheongsam concept reference" />
+          </div>
+          <section class="card">
+            <div class="row">
+              <img class="thumb" src="../public/images/presets/dragon_draft.png" alt="Small technical draft preview" />
+              <div>
+                <h2>Dragon cheongsam embroidery</h2>
+                <p class="subcopy">HK$ 6,800 quote · HK$ 1,500 deposit · fitting required</p>
+              </div>
+              <span class="status approved">Approved</span>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
