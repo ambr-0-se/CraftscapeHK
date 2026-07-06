@@ -92,6 +92,20 @@ These are the names `services/apiService.ts` and `services/messagingService.ts` 
 
 Secrets live only in Cloud Run env / `.env` (gitignored); never in the repo or frontend bundle.
 
+## AI provider status (diagnosed 2026-07-07)
+
+The AI chain is `hku-gemini → hku-openai → google` for both text and images (`AI_TEXT_PROVIDER_ORDER` / `AI_IMAGE_PROVIDER_ORDER`).
+
+- **HKU gateways:** both return `400 Insufficient token` — the HKU account's token quota is exhausted. Nothing to fix in this repo; wait for reset or request more quota from HKU.
+- **Google text (translation, structured JSON):** WORKS in production on the free-tier `GEMINI_API_KEY` (`gemini-3.5-flash` has free quota). Verified live via `POST /api/translation/suggest`.
+- **Google images:** WORKS as of 2026-07-07 after buying prepayment credits at https://ai.studio/projects for project `gen-lang-client-0281544850`. Production (and local `.env` / `server/.env`) use the restricted API key `craftscape-backend-gemini` from that project — free-tier keys have **zero** image-model quota, so a free key can never serve images. Verified live: `POST /api/ai/generate-image` returns an image through the full fallback chain. **If images break again, check remaining credits first** — the same "prepayment credits are depleted" 429 comes back when they run out (key management: `gcloud services api-keys list --project gen-lang-client-0281544850`, fetch with `get-key-string`).
+
+Diagnose provider failures with:
+
+```bash
+gcloud logging read 'resource.type=cloud_run_revision AND resource.labels.service_name=craftscape-backend AND severity>=WARNING' --limit 20 --freshness=2h
+```
+
 ## Gotchas
 
 - **SQLite on Cloud Run is ephemeral.** Data resets whenever an instance is replaced (deploys, scale-to-zero restarts). Seeding runs on startup; do not expect user-entered data to persist.
