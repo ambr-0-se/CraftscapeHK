@@ -18,6 +18,7 @@ import {
   ChatMessageContract,
   CoCreationRequestContract,
   CoCreationRequestStatus,
+  CreateMessageThreadInputContract,
   EVENT_TYPE_LABELS,
   EventType,
   MESSAGE_THREAD_CONTEXT_TYPE_LABELS,
@@ -35,6 +36,7 @@ import {
   PAYMENT_STATUS_TRANSITIONS,
   PaymentStatus,
   StripePaymentReferenceContract,
+  SendChatMessageInputContract,
   WORKSHOP_SCHEDULE_STATUS_TRANSITIONS,
   WORKSHOP_SCHEDULE_STATUS_LABELS,
   WorkshopCapacityHoldContract,
@@ -346,5 +348,27 @@ describe('MVP cart and messaging contracts', () => {
     expect(cursor.afterSequence).toBeLessThan(message.sequence);
     expect(summary).not.toHaveProperty('messages');
     expect(message.clientMutationId).toBe('client_msg_123');
+  });
+
+  it('defines thread creation and send payloads for real-time messaging', () => {
+    const createThread: CreateMessageThreadInputContract = {
+      customerId: 'user_customer_1',
+      artisanId: 'user_artisan_1',
+      contextType: MessageThreadContextType.Product,
+      contextId: 'product_12',
+      contextLabel: 'Blue dragon cheongsam',
+      productId: 12,
+    };
+    const sendMessage: SendChatMessageInputContract = {
+      senderRole: MessageSenderRole.Customer,
+      type: MessageType.Text,
+      originalText: 'Can we keep the dragon embroidery softer?',
+      sourceLanguage: 'en',
+      targetLanguage: 'zh',
+      clientMutationId: 'client_abc',
+    };
+
+    expect(createThread.contextType).toBe(MessageThreadContextType.Product);
+    expect(sendMessage.clientMutationId).toBe('client_abc');
   });
 });

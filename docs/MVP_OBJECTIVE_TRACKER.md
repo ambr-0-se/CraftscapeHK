@@ -389,13 +389,13 @@ Notes:
 
 Description: Support real-time customer/artisan conversations with automatic translation across English and Traditional Chinese/Cantonese.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `/Users/ahbo/.codex/worktrees/945a/CraftscapeHK`
 
-Owner: `TBD`
+Owner: `Codex`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -411,7 +411,18 @@ Notes:
 
 - Existing artisan chat has local message append and rule-based quick translation.
 - Customer chat is static sample UI.
-- Need real-time transport decision and implementation, likely WebSocket gateway or SSE plus persistence.
+- Claimed in branch `codex/real-time-messaging` on 2026-06-28.
+- Kickoff confirmed: WebSocket transport, persisted messages, backend AI translation metadata, reconnect/offline states, translation toggle, and context links for product, workshop/event, booking/order, and co-creation references.
+- Dependencies/conflicts: coordinate context-link fields with `mvp/ai-requests`, `mvp/workshops-cart`, and future Stripe/order work; keep shared message contracts canonical.
+- Progress: added persisted chat message rows, WebSocket gateway, REST replay/send endpoints, backend AI chat translation, frontend socket subscription service, customer/artisan chat wiring, and context labels in the message inbox.
+- Verification run: `npm run test:contracts`, `npm run typecheck`, `npm run server:build`, `npm run build`, `npm --prefix server run test`.
+- Visual review note: frontend dev server started, but backend startup approval and in-app browser navigation to the local dev URL were blocked by environment policy, so live visual QA remains pending in an unblocked browser session.
+- Fix/re-review pass on 2026-07-06: repairing DTO validation for whitelisted Nest request bodies, customer pending-send persistence, artisan optimistic dedupe, craft-detail context links, and chat composer containment before re-running objective validation.
+- Review evidence on 2026-07-06: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build` passed. Runtime smoke on a clean SQLite database passed for REST thread creation, persisted message send, idempotent duplicate send, replay, craft context creation, and WebSocket message echo. Translation path attempted backend AI translation and stored fallback metadata when the provider returned errors in this environment.
+- PR handoff on 2026-07-06: branch `codex/real-time-messaging` is ready for rebase, final verification, push, and pull request creation against `main`.
+- Rebase evidence on 2026-07-06: rebased onto `origin/main` (`0f80a25`) after resolving additive conflicts with Objective 4 workshop booking entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
+- Pull request: https://github.com/ambr-0-se/CraftscapeHK/pull/6
+- Rebase refresh on 2026-07-06: rebased onto latest `origin/main` (`268fea8`) after resolving additive conflicts with listing pages and AI co-creation entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
 
 ## Objective 8: Stripe Payment Processing
 

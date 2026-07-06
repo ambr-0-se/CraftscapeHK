@@ -102,6 +102,7 @@ export enum ArtisanApprovalState {
 
 export enum MessageThreadContextType {
   Product = 'product',
+  Craft = 'craft',
   Workshop = 'workshop',
   Booking = 'booking',
   Order = 'order',
@@ -202,6 +203,7 @@ export const ARTISAN_APPROVAL_STATE_LABELS: Record<ArtisanApprovalState, Localiz
 
 export const MESSAGE_THREAD_CONTEXT_TYPE_LABELS: Record<MessageThreadContextType, LocalizedString> = {
   [MessageThreadContextType.Product]: { zh: '產品查詢', en: 'Product conversation' },
+  [MessageThreadContextType.Craft]: { zh: '工藝查詢', en: 'Craft conversation' },
   [MessageThreadContextType.Workshop]: { zh: '工作坊查詢', en: 'Workshop conversation' },
   [MessageThreadContextType.Booking]: { zh: '工作坊預約', en: 'Booking conversation' },
   [MessageThreadContextType.Order]: { zh: '訂單', en: 'Order conversation' },
@@ -535,6 +537,28 @@ export interface ChatMessageContract {
   attachmentUrls?: string[];
   clientMutationId?: string;
   createdAt: string;
+}
+
+export interface CreateMessageThreadInputContract {
+  customerId?: string;
+  artisanId?: string;
+  customerName?: string;
+  avatar?: string;
+  contextType: MessageThreadContextType;
+  contextId: string;
+  contextLabel?: string;
+  productId?: number;
+}
+
+export interface SendChatMessageInputContract {
+  senderId?: string;
+  senderRole: MessageSenderRole;
+  type?: MessageType;
+  originalText: string;
+  sourceLanguage?: LanguageCode;
+  targetLanguage?: LanguageCode;
+  attachmentUrls?: string[];
+  clientMutationId?: string;
 }
 
 export interface MessageReplayCursorContract {

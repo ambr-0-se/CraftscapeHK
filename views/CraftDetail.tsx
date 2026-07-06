@@ -8,11 +8,19 @@ interface CraftDetailProps {
   craft: Craft;
   onClose: () => void;
   onStartCreation: () => void;
+  onContactArtisan?: () => void;
   onStartTextLab?: () => void;
   onViewArtisan?: () => void;
 }
 
-const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreation, onStartTextLab, onViewArtisan }) => {
+const CraftDetail: React.FC<CraftDetailProps> = ({
+  craft,
+  onClose,
+  onStartCreation,
+  onContactArtisan,
+  onStartTextLab,
+  onViewArtisan,
+}) => {
   const { language, t } = useLanguage();
   const isLetterpress = craft.category === 'letterpress';
 
@@ -155,6 +163,17 @@ const CraftDetail: React.FC<CraftDetailProps> = ({ craft, onClose, onStartCreati
           >
             {t('craftDetailCtaButton')}
           </motion.button>
+          {onContactArtisan && (
+            <motion.button
+              type="button"
+              onClick={onContactArtisan}
+              className="mt-3 w-full border border-[var(--color-primary-accent)] text-[var(--color-primary-accent)] bg-[var(--color-surface)] font-bold py-3 px-6 rounded-full text-base transition-all duration-200 hover:bg-[var(--color-primary-accent)]/10"
+              whileHover={{ scale: 1.02, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+            >
+              {t('craftDetailContactButton')}
+            </motion.button>
+          )}
         </motion.div>
 
         {/* History Section */}

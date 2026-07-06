@@ -1,0 +1,578 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Objective 7 Messaging Preview</title>
+    <style>
+      :root {
+        --color-bg: #f8f9fa;
+        --color-page-bg: #f3f4f6;
+        --color-surface: #ffffff;
+        --color-primary-accent: #053a6a;
+        --color-secondary-accent: #085ea7;
+        --color-text-primary: #053a6a;
+        --color-text-secondary: #666f78;
+        --color-border: rgba(5, 58, 106, 0.18);
+        --color-button-cta: #972226;
+        --color-success: #045832;
+        --color-error: #e23940;
+        --paper: #fffdf8;
+        --seal: #972226;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(180deg, rgba(5, 58, 106, 0.08), transparent 32%),
+          var(--color-page-bg);
+        color: var(--color-text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      .stage {
+        width: min(100%, 1060px);
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .preview-note {
+        max-width: 680px;
+        color: var(--color-text-secondary);
+        line-height: 1.6;
+        font-size: 15px;
+      }
+
+      .phones {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(320px, 390px));
+        gap: 22px;
+        align-items: start;
+      }
+
+      .phone {
+        min-height: 760px;
+        border: 1px solid rgba(5, 58, 106, 0.22);
+        border-radius: 28px;
+        overflow: hidden;
+        background: var(--color-bg);
+        box-shadow: 0 18px 48px rgba(5, 58, 106, 0.18);
+        display: flex;
+        flex-direction: column;
+      }
+
+      .topbar {
+        padding: 18px 18px 14px;
+        background: rgba(255, 255, 255, 0.86);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--color-border);
+      }
+
+      .eyebrow {
+        margin: 0 0 5px;
+        color: var(--seal);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 26px;
+        line-height: 1.12;
+      }
+
+      h2 {
+        font-size: 20px;
+        line-height: 1.18;
+      }
+
+      .subcopy {
+        margin-top: 6px;
+        color: var(--color-text-secondary);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .thread-list {
+        padding: 16px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .thread {
+        border: 1px solid var(--color-border);
+        border-radius: 18px;
+        padding: 14px;
+        background: var(--color-surface);
+        display: grid;
+        grid-template-columns: 52px 1fr;
+        gap: 12px;
+      }
+
+      .avatar {
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background:
+          linear-gradient(rgba(5, 58, 106, 0.12), rgba(151, 34, 38, 0.14)),
+          url("https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=240&auto=format&fit=crop");
+        background-size: cover;
+        background-position: center;
+      }
+
+      .thread-title {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: baseline;
+        font-weight: 800;
+      }
+
+      .time {
+        color: var(--color-text-secondary);
+        font-size: 12px;
+        white-space: nowrap;
+      }
+
+      .preview {
+        margin-top: 4px;
+        color: var(--color-text-secondary);
+        font-size: 14px;
+        line-height: 1.35;
+      }
+
+      .context-pill {
+        margin-top: 10px;
+        width: fit-content;
+        max-width: 100%;
+        padding: 6px 9px;
+        border-radius: 999px;
+        background: rgba(5, 58, 106, 0.08);
+        color: var(--color-primary-accent);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .status-row {
+        margin-top: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .connection {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--color-success);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: currentColor;
+      }
+
+      .segmented {
+        display: inline-flex;
+        padding: 3px;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        background: rgba(5, 58, 106, 0.06);
+      }
+
+      .segmented span {
+        padding: 6px 10px;
+        border-radius: 999px;
+        color: var(--color-text-secondary);
+        font-size: 12px;
+        font-weight: 800;
+      }
+
+      .segmented .active {
+        background: var(--color-primary-accent);
+        color: white;
+      }
+
+      .context-card {
+        margin: 14px 16px 0;
+        border: 1px solid var(--color-border);
+        border-radius: 18px;
+        background: var(--paper);
+        overflow: hidden;
+      }
+
+      .context-image {
+        min-height: 116px;
+        background:
+          linear-gradient(90deg, rgba(5, 58, 106, 0.72), rgba(5, 58, 106, 0.2)),
+          url("https://images.unsplash.com/photo-1612512362902-9420d4c36bdf?q=80&w=900&auto=format&fit=crop");
+        background-size: cover;
+        background-position: center;
+        padding: 16px;
+        display: flex;
+        align-items: end;
+        color: white;
+      }
+
+      .context-body {
+        padding: 12px 14px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .meta-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        color: var(--color-text-secondary);
+        font-size: 12px;
+      }
+
+      .banner {
+        margin: 12px 16px 0;
+        border-radius: 14px;
+        padding: 10px 12px;
+        background: rgba(151, 34, 38, 0.08);
+        border: 1px solid rgba(151, 34, 38, 0.18);
+        color: var(--seal);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .messages {
+        flex: 1;
+        padding: 16px 16px 132px;
+        display: grid;
+        align-content: start;
+        gap: 14px;
+      }
+
+      .message-row {
+        display: flex;
+      }
+
+      .message-row.mine {
+        justify-content: flex-end;
+      }
+
+      .bubble {
+        width: min(82%, 300px);
+        border-radius: 18px;
+        padding: 12px 13px;
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+      }
+
+      .mine .bubble {
+        background: var(--color-primary-accent);
+        color: white;
+        border-color: var(--color-primary-accent);
+      }
+
+      .label {
+        margin-bottom: 5px;
+        color: var(--seal);
+        font-size: 10px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .mine .label {
+        color: rgba(255, 255, 255, 0.78);
+      }
+
+      .bubble p {
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .translated {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(5, 58, 106, 0.12);
+        color: var(--color-text-secondary);
+      }
+
+      .mine .translated {
+        border-top-color: rgba(255, 255, 255, 0.24);
+        color: rgba(255, 255, 255, 0.82);
+      }
+
+      .system {
+        justify-content: center;
+      }
+
+      .system .bubble {
+        width: min(90%, 330px);
+        background: rgba(4, 88, 50, 0.08);
+        border-color: rgba(4, 88, 50, 0.22);
+        color: var(--color-success);
+        text-align: center;
+      }
+
+      .composer {
+        position: sticky;
+        bottom: 0;
+        padding: 12px 14px 16px;
+        background: rgba(255, 255, 255, 0.9);
+        border-top: 1px solid var(--color-border);
+        backdrop-filter: blur(18px);
+      }
+
+      .input-row {
+        display: grid;
+        grid-template-columns: 1fr 46px;
+        gap: 9px;
+      }
+
+      .input {
+        min-height: 46px;
+        border-radius: 999px;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        padding: 12px 14px;
+        color: var(--color-text-secondary);
+        font-size: 14px;
+      }
+
+      .send {
+        width: 46px;
+        height: 46px;
+        border: 0;
+        border-radius: 50%;
+        background: var(--color-primary-accent);
+        color: white;
+        font-size: 20px;
+      }
+
+      .draft-translation {
+        margin-top: 8px;
+        color: var(--color-text-secondary);
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .states {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        padding: 0 16px 16px;
+      }
+
+      .state {
+        min-height: 92px;
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        background: var(--color-surface);
+        padding: 11px;
+      }
+
+      .state strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 13px;
+      }
+
+      .state p {
+        color: var(--color-text-secondary);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      @media (max-width: 820px) {
+        .phones {
+          grid-template-columns: minmax(0, 390px);
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage">
+      <section>
+        <p class="eyebrow">CraftscapeHK MVP Objective 7</p>
+        <h1>Real-Time Messaging With AI Translation</h1>
+        <p class="preview-note">
+          Standalone design preview for the production chat flow. The UI keeps
+          artisan context visible, gives connection status plain language, and
+          treats AI translation as a practical bridge between English and
+          Traditional Chinese/Cantonese.
+        </p>
+      </section>
+
+      <section class="phones" aria-label="Messaging preview screens">
+        <article class="phone">
+          <header class="topbar">
+            <p class="eyebrow">Artisan inbox</p>
+            <h2>Messages 訊息</h2>
+            <p class="subcopy">2 unread conversations need a reply today.</p>
+          </header>
+
+          <div class="thread-list">
+            <section class="thread">
+              <div class="avatar" aria-hidden="true"></div>
+              <div>
+                <div class="thread-title">
+                  <span>Goldwinter Homantin</span>
+                  <span class="time">4:05 PM</span>
+                </div>
+                <p class="preview">
+                  太好了，我今晚會傳量身數據，保持進度。
+                </p>
+                <div class="context-pill">Co-creation request COC-1024</div>
+              </div>
+            </section>
+
+            <section class="thread">
+              <div class="avatar" style="background-image: linear-gradient(rgba(5,58,106,.12), rgba(151,34,38,.14)), url('https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=240&auto=format&fit=crop')" aria-hidden="true"></div>
+              <div>
+                <div class="thread-title">
+                  <span>Natalie Brooks</span>
+                  <span class="time">10:40 AM</span>
+                </div>
+                <p class="preview">
+                  I'll confirm the flight dates and book the fitting slot.
+                </p>
+                <div class="context-pill">Workshop EVT-304 fitting session</div>
+              </div>
+            </section>
+
+            <section class="thread">
+              <div class="avatar" style="background-image: linear-gradient(rgba(5,58,106,.12), rgba(151,34,38,.14)), url('https://picsum.photos/seed/msg3/240/240')" aria-hidden="true"></div>
+              <div>
+                <div class="thread-title">
+                  <span>設計師 Ada</span>
+                  <span class="time">Yesterday</span>
+                </div>
+                <p class="preview">
+                  I'd like a mother-daughter cheongsam set with a floral base.
+                </p>
+                <div class="context-pill">Product PRD-014 silk cheongsam</div>
+              </div>
+            </section>
+          </div>
+
+          <section class="states" aria-label="Required states">
+            <div class="state">
+              <strong>Empty</strong>
+              <p>No active conversations. New product and workshop enquiries appear here.</p>
+            </div>
+            <div class="state">
+              <strong>Loading</strong>
+              <p>Loading latest message replay and reconnecting to the thread.</p>
+            </div>
+            <div class="state">
+              <strong>Error</strong>
+              <p>Messages could not sync. Retry keeps drafts on this device.</p>
+            </div>
+          </section>
+        </article>
+
+        <article class="phone">
+          <header class="topbar">
+            <p class="eyebrow">Live thread</p>
+            <h2>Chat with Master Wong</h2>
+            <p class="subcopy">王師傅 · Dragon embroidery cheongsam</p>
+            <div class="status-row">
+              <span class="connection"><span class="dot"></span>Live, reconnect ready</span>
+              <span class="segmented">
+                <span class="active">Translated</span>
+                <span>Original</span>
+              </span>
+            </div>
+          </header>
+
+          <section class="context-card">
+            <div class="context-image">
+              <div>
+                <p class="eyebrow" style="color: white">Context link</p>
+                <h3>Blue dragon cheongsam concept</h3>
+              </div>
+            </div>
+            <div class="context-body">
+              <div class="meta-line">
+                <span>Co-creation COC-1024</span>
+                <span>Approved for quote</span>
+                <span>Order ORD-778 pending</span>
+              </div>
+            </div>
+          </section>
+
+          <div class="banner">
+            Offline for 22 seconds. Reconnecting and keeping your draft.
+          </div>
+
+          <section class="messages">
+            <div class="message-row">
+              <div class="bubble">
+                <div class="label">Customer · translated from English</div>
+                <p>王師傅您好，我啱啱生成咗一個藍龍長衫概念。可唔可以幫我做成實物？</p>
+                <div class="translated">
+                  <p>Hello Master Wong, I generated this blue dragon cheongsam concept. Could we explore making a real piece together?</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="message-row mine">
+              <div class="bubble">
+                <div class="label">You · original Cantonese</div>
+                <p>多謝你分享藍龍嘅概念圖同草稿。我會安排龍紋盤金繡穿過前幅。</p>
+                <div class="translated">
+                  <p>Thanks for sharing the blue dragon concept and draft. I can sweep the dragon embroidery across the front panel.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="message-row system">
+              <div class="bubble">
+                <div class="label">System message</div>
+                <p>Deposit HK$2,000 received via Craftscape Pay. The artisan can now prepare line art and fabric proposals.</p>
+              </div>
+            </div>
+
+            <div class="message-row">
+              <div class="bubble">
+                <div class="label">Customer · translated from English</div>
+                <p>太好了，我今晚會傳量身數據，保持進度。</p>
+                <div class="translated">
+                  <p>Perfect, I'll send my measurements tonight so we stay on track.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <footer class="composer">
+            <div class="input-row">
+              <div class="input">訂金已收到，我會喺兩日內發初稿...</div>
+              <button class="send" aria-label="Send message">↑</button>
+            </div>
+            <p class="draft-translation">
+              AI translation preview: Deposit received. I will send the first sketch within two days...
+            </p>
+          </footer>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

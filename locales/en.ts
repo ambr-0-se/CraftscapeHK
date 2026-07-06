@@ -93,6 +93,7 @@ export const en = {
     craftDetailCtaTitle: 'Do you want to make your own version?',
     craftDetailCtaDesc: 'Combine traditional aesthetics with your inspiration, and let AI lend a hand.',
     craftDetailCtaButton: 'Enter AI Studio',
+    craftDetailContactButton: 'Contact Artisan',
     craftDetailHistory: 'History',
     craftDetailStory: 'The Artisan\'s Story',
 
@@ -205,6 +206,14 @@ export const en = {
     // Chatroom
     chatroomWith: 'Chatting with {name}',
     chatroomPlaceholder: 'Type a message...',
+    chatroomClose: 'Close chat',
+    chatroomSend: 'Send message',
+    chatroomSending: 'Sending...',
+    chatroomLoadError: 'Messages could not load. Please try again.',
+    chatroomOfflineDraftNotice: 'Chat opened in offline mode. Your draft is kept until the backend reconnects.',
+    chatroomSendError: 'Message could not send. Your draft has been restored.',
+    chatroomEmptyThread: 'Start the conversation with a question about this craft piece.',
+    chatroomContextProduct: 'Product conversation',
 
     // Onboarding
     onboardingTitle1: 'Swipe Through Masterpieces',
@@ -283,6 +292,8 @@ export const en = {
     
     // Artisan Chatroom
     artisanChatroomProductInquiry: 'Inquiring about:',
+    artisanChatroomContextFallback: 'Craft conversation',
+    artisanChatroomContextLabel: 'Linked context: {context}',
     artisanChatroomShowTranslated: 'Show Cantonese',
     artisanChatroomShowOriginal: 'Show original text',
     artisanChatroomOriginalLabel: 'Original ({language})',
@@ -290,6 +301,7 @@ export const en = {
     artisanChatroomAutoTranslationFallback: 'Auto translation:',
     artisanChatroomAutoTranslatedTag: 'Auto translated',
     artisanChatroomAutoTranslateNotice: "We'll send this in English automatically:",
+    artisanChatroomBackendTranslateNotice: 'AI translation will be added after sending.',
     artisanChatroomYouLabel: 'You',
     artisanChatroomCustomerLabel: 'Customer',
     languageEnglish: 'English',

@@ -1,3 +1,4 @@
+import type * as MvpContracts from './shared/contracts';
 import type {
   AiCreationContract,
   BookingContract,
@@ -121,9 +122,19 @@ export interface Order {
  */
 export interface ChatMessage {
     id: string;
-    sender: 'customer' | 'artisan';
+    threadId?: string;
+    sequence?: number;
+    senderId?: string;
+    senderRole?: MvpContracts.MessageSenderRole;
+    sender: 'customer' | 'artisan' | 'system';
+    type?: MvpContracts.MessageType;
     originalText: string;
     translatedText?: string;
+    sourceLanguage?: MvpContracts.LanguageCode;
+    targetLanguage?: MvpContracts.LanguageCode;
+    attachmentUrls?: string[];
+    clientMutationId?: string;
+    createdAt?: string;
     language: 'en' | 'zh';
     timestamp: string;
 }
@@ -155,12 +166,20 @@ export interface TryOnLook {
  */
 export interface MessageThread {
     id: string;
+    customerId?: string;
+    artisanId?: string;
     customerName: string;
     lastMessage: string;
+    lastMessagePreview?: string;
+    lastMessageAt?: string;
     timestamp: string;
     unread: boolean;
+    unreadCount?: number;
     avatar: string;
-    productId: number;
+    contextType?: MvpContracts.MessageThreadContextType;
+    contextId?: string;
+    contextLabel?: string;
+    productId?: number;
     messages?: ChatMessage[];
 }
 
