@@ -91,6 +91,11 @@ export default function App() {
   const [profileInitialTab, setProfileInitialTab] = useState<ProfileTab | undefined>(
     undefined
   );
+  const [profileOrdersNotice, setProfileOrdersNotice] = useState<string | undefined>(
+    undefined
+  );
+  const [profileTabRequest, setProfileTabRequest] = useState(0);
+  const [onboardingSessionKey, setOnboardingSessionKey] = useState(0);
 
   // Artisan view management
   const [currentArtisanView, setCurrentArtisanView] = useState<ArtisanView>(
@@ -106,7 +111,7 @@ export default function App() {
     }
     return localStorage.getItem("hasSeenOnboarding") !== "true";
   });
-  const { language } = useLanguage();
+  const { language, t } = useLanguage();
   const { activeArtisanId, activePersonaId } = useDemoPersona();
 
   useEffect(() => {
@@ -120,7 +125,16 @@ export default function App() {
   }, []);
 
   const handleReopenOnboarding = useCallback(() => {
+    setOnboardingSessionKey((key) => key + 1);
     setShowOnboarding(true);
+  }, []);
+
+  const openProfileTab = useCallback((tab: ProfileTab, notice?: string) => {
+    setProfileOrdersNotice(notice);
+    setProfileInitialTab(tab);
+    setProfileTabRequest((request) => request + 1);
+    setActiveTab(Tab.Profile);
+    setCurrentView(View.Explore);
   }, []);
 
   // Handle the Stripe Checkout return redirect (?checkout=success|cancelled&orderId=…)
@@ -140,8 +154,9 @@ export default function App() {
       })
       .catch((error) => {
         console.error("Failed to load order after Stripe redirect:", error);
+        openProfileTab("orders", t("checkoutReturnError"));
       });
-  }, []);
+  }, [openProfileTab, t]);
 
   const handleStartCheckout = useCallback((intent: CheckoutIntent) => {
     setCheckoutIntent(intent);
@@ -178,10 +193,8 @@ export default function App() {
   const handleViewOrders = useCallback(() => {
     setConfirmationEntry(null);
     setConfirmationHint(undefined);
-    setProfileInitialTab("orders");
-    setActiveTab(Tab.Profile);
-    setCurrentView(View.Explore);
-  }, []);
+    openProfileTab("orders");
+  }, [openProfileTab]);
 
   const handleConfirmationRetry = useCallback(
     (order: OrderContract) => {
@@ -392,11 +405,12 @@ export default function App() {
       case Tab.Profile:
         return (
           <Profile
-            key={profileInitialTab ?? "default"}
             onToggleArtisanMode={toggleArtisanMode}
             onReopenOnboarding={handleReopenOnboarding}
             onStartCheckout={handleStartCheckout}
             initialTab={profileInitialTab}
+            tabRequestId={profileTabRequest}
+            ordersNotice={profileOrdersNotice}
           />
         );
       default:
@@ -430,7 +444,10 @@ export default function App() {
     >
       <AnimatePresence>
         {showOnboarding && (
-          <OnboardingGuide key="onboarding-guide" onClose={handleCloseOnboarding} />
+          <OnboardingGuide
+            key={`onboarding-${onboardingSessionKey}`}
+            onClose={handleCloseOnboarding}
+          />
         )}
       </AnimatePresence>
       <main className="flex-grow relative">

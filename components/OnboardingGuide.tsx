@@ -1,4 +1,4 @@
-import React, { ReactNode, useMemo, useState } from 'react';
+import React, { ReactNode, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useLanguage } from '../contexts/LanguageContext';
 
@@ -53,10 +53,10 @@ const DoodleLayer: React.FC = () => (
           strokeLinecap="round"
           strokeDasharray="18 22"
           animate={{ strokeDashoffset: [0, -160] }}
-        transition={{ duration: motif.duration, repeat: Infinity, ease: 'linear' }}
-      />
-    </motion.svg>
-  ))}
+          transition={{ duration: motif.duration, repeat: Infinity, ease: 'linear' }}
+        />
+      </motion.svg>
+    ))}
     <motion.div
       className="absolute inset-x-10 top-10 h-36 rounded-full bg-white/12 blur-3xl"
       initial={{ opacity: 0.18 }}
@@ -143,6 +143,46 @@ const SwipeHandIcon = () => (
           transition={{ delay: 1.5, duration: 0.5, ease: 'easeOut' }}
         />
       </motion.g>
+    </motion.svg>
+  </IconShell>
+);
+
+const CoCreationIcon = () => (
+  <IconShell>
+    <motion.svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 64 64"
+      className="w-28 h-28"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.05 }}
+      stroke="currentColor"
+      strokeWidth={1.6}
+      fill="none"
+    >
+      <motion.path
+        d="M18 44 L28 20 L36 32 L46 16"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        animate={{ pathLength: [0.3, 1, 0.5] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.circle
+        cx="46"
+        cy="16"
+        r="4"
+        animate={{ scale: [1, 1.15, 1] }}
+        transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.rect
+        x="14"
+        y="46"
+        width="36"
+        height="8"
+        rx="2"
+        animate={{ opacity: [0.5, 1, 0.5] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+      />
     </motion.svg>
   </IconShell>
 );
@@ -246,9 +286,53 @@ const EventsIcon = () => (
   </IconShell>
 );
 
+const ProfileIcon = () => (
+  <IconShell>
+    <motion.svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 64 64"
+      className="w-28 h-28"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, delay: 0.05 }}
+      stroke="currentColor"
+      strokeWidth={1.6}
+      fill="none"
+    >
+      <motion.circle
+        cx="32"
+        cy="22"
+        r="8"
+        animate={{ scale: [1, 1.04, 1] }}
+        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.path
+        d="M16 50 C16 38 24 34 32 34 C40 34 48 38 48 50"
+        strokeLinecap="round"
+        animate={{ opacity: [0.7, 1, 0.7] }}
+        transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.rect
+        x="40"
+        y="12"
+        width="14"
+        height="10"
+        rx="2"
+        animate={{ y: [0, -1, 0] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <motion.path d="M43 16 H51" strokeLinecap="round" />
+    </motion.svg>
+  </IconShell>
+);
+
 const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
   const [step, setStep] = useState(0);
-  const { t, language } = useLanguage();
+  const { t } = useLanguage();
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const titleId = useId();
+  const descriptionId = useId();
+  const liveRegionId = useId();
 
   const slides = useMemo(
     () => [
@@ -259,49 +343,86 @@ const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
         description: t('onboardingDesc1'),
       },
       {
-        key: 'market',
-        icon: <MarketplaceIcon />,
+        key: 'cocreation',
+        icon: <CoCreationIcon />,
         title: t('onboardingTitle2'),
         description: t('onboardingDesc2'),
       },
       {
-        key: 'events',
-        icon: <EventsIcon />,
+        key: 'marketplace',
+        icon: <MarketplaceIcon />,
         title: t('onboardingTitle3'),
         description: t('onboardingDesc3'),
       },
+      {
+        key: 'workshops',
+        icon: <EventsIcon />,
+        title: t('onboardingTitle4'),
+        description: t('onboardingDesc4'),
+      },
+      {
+        key: 'profile',
+        icon: <ProfileIcon />,
+        title: t('onboardingTitle5'),
+        description: t('onboardingDesc5'),
+      },
     ],
-    [t]
+    [t],
   );
 
   const isLastStep = step === slides.length - 1;
-  const backLabel = language === 'zh' ? '返回' : 'Back';
+  const stepAnnouncement = t('onboardingStepIndicator', {
+    current: step + 1,
+    total: slides.length,
+  });
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     if (isLastStep) {
       onClose();
       return;
     }
-    setStep(previous => Math.min(previous + 1, slides.length - 1));
-  };
+    setStep((previous) => Math.min(previous + 1, slides.length - 1));
+  }, [isLastStep, onClose, slides.length]);
 
-  const handleBack = () => {
-    setStep(previous => Math.max(previous - 1, 0));
-  };
+  const handleBack = useCallback(() => {
+    setStep((previous) => Math.max(previous - 1, 0));
+  }, []);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
 
   return (
     <motion.div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex flex-col bg-[var(--color-primary-accent)] text-white overflow-hidden"
     >
       <DoodleLayer />
+      <p id={liveRegionId} className="sr-only" aria-live="polite" aria-atomic="true">
+        {stepAnnouncement}
+      </p>
       <button
+        ref={closeButtonRef}
         type="button"
         onClick={onClose}
-        className="absolute top-6 right-6 text-white/75 hover:text-white transition-colors duration-300 z-30 focus:outline-none"
-        aria-label="Close onboarding"
+        className="absolute top-6 right-6 text-white/75 hover:text-white transition-colors duration-300 z-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/80 rounded-full"
+        aria-label={t('onboardingClose')}
       >
         <motion.svg
           xmlns="http://www.w3.org/2000/svg"
@@ -332,6 +453,7 @@ const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
               {slides[step].icon}
               <div className="max-w-md space-y-4 px-2">
                 <motion.h2
+                  id={titleId}
                   className="text-2xl sm:text-3xl font-semibold tracking-tight"
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -340,6 +462,7 @@ const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
                   {slides[step].title}
                 </motion.h2>
                 <motion.p
+                  id={descriptionId}
                   className="text-base sm:text-lg text-white/85 leading-relaxed"
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -353,10 +476,17 @@ const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
         </div>
 
         <div className="w-full max-w-sm mx-auto space-y-7 mb-6 sm:mb-10">
-          <div className="flex items-center justify-center gap-2">
+          <div
+            className="flex items-center justify-center gap-2"
+            role="tablist"
+            aria-label={stepAnnouncement}
+          >
             {slides.map((slide, index) => (
               <motion.span
                 key={slide.key}
+                role="tab"
+                aria-current={index === step ? 'step' : undefined}
+                aria-label={`${index + 1}`}
                 className="h-2 rounded-full bg-white/35"
                 initial={{ opacity: 0.5 }}
                 animate={{
@@ -372,15 +502,15 @@ const OnboardingGuide: React.FC<OnboardingGuideProps> = ({ onClose }) => {
               type="button"
               onClick={handleBack}
               disabled={step === 0}
-              className="flex-1 h-12 rounded-full border border-white/35 text-sm font-semibold text-white/85 hover:text-white hover:border-white/60 disabled:opacity-40 disabled:hover:border-white/35 disabled:hover:text-white/85 transition"
+              className="flex-1 h-12 rounded-full border border-white/35 text-sm font-semibold text-white/85 hover:text-white hover:border-white/60 disabled:opacity-40 disabled:hover:border-white/35 disabled:hover:text-white/85 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               whileTap={{ scale: 0.97 }}
             >
-              {backLabel}
+              {t('onboardingBack')}
             </motion.button>
             <motion.button
               type="button"
               onClick={handleNext}
-              className="flex-[1.4] h-12 rounded-full bg-white text-[var(--color-primary-accent)] font-semibold tracking-wide shadow-lg shadow-black/10 hover:shadow-xl transition"
+              className="flex-[1.4] h-12 rounded-full bg-white text-[var(--color-primary-accent)] font-semibold tracking-wide shadow-lg shadow-black/10 hover:shadow-xl transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80"
               whileTap={{ scale: 0.97 }}
             >
               {isLastStep ? t('onboardingStart') : t('onboardingNext')}
