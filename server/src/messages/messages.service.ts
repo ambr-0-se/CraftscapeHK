@@ -27,8 +27,8 @@ type UiMessageThread = MessageThread &
     messages?: UiChatMessage[];
   };
 
-const DEFAULT_CUSTOMER_ID = 'demo-customer';
-const DEFAULT_ARTISAN_ID = 'demo-artisan';
+const DEFAULT_CUSTOMER_ID = 'customer-demo';
+const DEFAULT_ARTISAN_ID = 'artisan-1';
 
 @Injectable()
 export class MessagesService {
@@ -42,12 +42,25 @@ export class MessagesService {
     private readonly aiService: AiService,
   ) {}
 
-  async findAll(): Promise<UiMessageThread[]> {
+  async findAll(filters?: {
+    customerId?: string;
+    artisanId?: string;
+  }): Promise<UiMessageThread[]> {
     const threads = await this.threadRepository.find({
       order: { lastMessageAt: 'DESC', timestamp: 'DESC' },
     });
 
-    return Promise.all(threads.map((thread) => this.toThreadResponse(thread, true)));
+    const scopedThreads = threads.filter((thread) => {
+      if (filters?.customerId && (thread.customerId ?? DEFAULT_CUSTOMER_ID) !== filters.customerId) {
+        return false;
+      }
+      if (filters?.artisanId && (thread.artisanId ?? DEFAULT_ARTISAN_ID) !== filters.artisanId) {
+        return false;
+      }
+      return true;
+    });
+
+    return Promise.all(scopedThreads.map((thread) => this.toThreadResponse(thread, true)));
   }
 
   async findOne(id: string): Promise<UiMessageThread> {

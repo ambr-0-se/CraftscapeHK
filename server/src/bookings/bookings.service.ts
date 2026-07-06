@@ -1,11 +1,13 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   BookingContract,
   BookingStatus,
+  BOOKING_STATUS_TRANSITIONS,
   EventType,
   PaymentStatus,
   WorkshopScheduleStatus,
+  canTransition,
 } from '@craftscape/contracts';
 import { randomUUID } from 'crypto';
 import { Repository } from 'typeorm';
@@ -77,7 +79,7 @@ export class BookingsService {
 
     const booking: Booking = this.bookingRepository.create({
       id: `booking_${randomUUID()}`,
-      customerId: dto.customerId ?? 'customer_demo',
+      customerId: dto.customerId ?? 'customer-demo',
       artisanId: event.artisanId,
       eventId: String(event.id),
       scheduleId: schedule.id,
@@ -112,6 +114,69 @@ export class BookingsService {
           en: 'Pending booking created; Stripe checkout will be attached by the payments workflow.',
         },
       },
+    };
+  }
+
+  async findAll(filters?: {
+    customerId?: string;
+    artisanId?: string;
+  }): Promise<BookingContract[]> {
+    const bookings = await this.bookingRepository.find({
+      order: { createdAt: 'DESC' },
+    });
+    return bookings
+      .filter((booking) => {
+        if (filters?.customerId && booking.customerId !== filters.customerId) {
+          return false;
+        }
+        if (filters?.artisanId && booking.artisanId !== filters.artisanId) {
+          return false;
+        }
+        return true;
+      })
+      .map((booking) => this.toContract(booking));
+  }
+
+  async updateStatus(
+    id: string,
+    input: {
+      status: BookingStatus;
+      artisanId: string;
+    },
+  ): Promise<BookingContract> {
+    const booking = await this.bookingRepository.findOne({ where: { id } });
+    if (!booking) {
+      throw new NotFoundException(`Booking with ID "${id}" not found`);
+    }
+    if (booking.artisanId !== input.artisanId) {
+      throw new ForbiddenException('This artisan cannot update this booking.');
+    }
+    if (
+      !canTransition(
+        BOOKING_STATUS_TRANSITIONS,
+        booking.status as BookingStatus,
+        input.status,
+      )
+    ) {
+      throw new BadRequestException('This booking cannot move to the requested status.');
+    }
+
+    booking.status = input.status;
+    return this.toContract(await this.bookingRepository.save(booking));
+  }
+
+  private toContract(booking: Booking): BookingContract {
+    return {
+      id: booking.id,
+      customerId: booking.customerId,
+      artisanId: booking.artisanId,
+      eventId: booking.eventId,
+      scheduleId: booking.scheduleId,
+      quantity: booking.quantity,
+      status: booking.status as BookingStatus,
+      paymentStatus: booking.paymentStatus as PaymentStatus,
+      capacityHoldId: booking.capacityHoldId,
+      orderId: booking.orderId,
     };
   }
 }

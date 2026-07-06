@@ -104,11 +104,13 @@ export interface Product {
  * @deprecated Prototype UI status labels. New MVP work should use
  * `MvpContracts.OrderStatus` plus `MvpContracts.ORDER_STATUS_LABELS`.
  */
-export type OrderStatus = '待處理' | '已發貨' | '已完成' | '已取消';
+export type LegacyOrderStatus = '待處理' | '已發貨' | '已完成' | '已取消';
+export type OrderStatus = LegacyOrderStatus | MvpContracts.OrderStatus;
 
 export interface Order {
     id: string;
     customerName: string;
+    customerId?: string;
     product: Product;
     quantity: number;
     total: number;

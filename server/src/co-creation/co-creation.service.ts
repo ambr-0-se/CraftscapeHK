@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
   ARTISAN_APPROVAL_STATE_TRANSITIONS,
@@ -166,6 +166,7 @@ export class CoCreationService {
     id: string,
     input: {
       decision: 'approve' | 'reject' | 'request_changes';
+      artisanId?: string;
       artisanNote?: string;
       quoteAmountCents?: number;
       depositAmountCents?: number;
@@ -174,6 +175,10 @@ export class CoCreationService {
     const request = await this.requestsRepository.findOne({ where: { id } });
     if (!request) {
       throw new NotFoundException(`Co-creation request with ID "${id}" not found`);
+    }
+
+    if (!input.artisanId || request.artisanId !== input.artisanId) {
+      throw new ForbiddenException('This artisan cannot update this co-creation request.');
     }
 
     const next = this.getDecisionState(input.decision);

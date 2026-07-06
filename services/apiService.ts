@@ -9,6 +9,7 @@ import type {
     PendingWorkshopBookingResponse,
 } from '../types';
 import type { AiCreationContract, CoCreationRequestContract } from '../shared/contracts';
+import type { BookingContract, BookingStatus, OrderStatus } from '../shared/contracts';
 import { authService } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -47,9 +48,9 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
     } catch (error) {
         console.error(`API request failed for ${endpoint}:`, error);
         const method = (options?.method || 'GET').toString().toUpperCase();
-        const isPublicGet = method === 'GET' && !endpoint.includes('/orders') && !endpoint.includes('/messages') && !endpoint.includes('/ai/');
-        // Fallback to mock data only for GET requests to public resources
-        if (isPublicGet) {
+        // Fallback GET reads to local seed data when the backend is unavailable
+        // or a running dev backend is older than this worktree's API surface.
+        if (method === 'GET') {
             return fallbackToMockData<T>(endpoint);
         }
         throw error;
@@ -59,16 +60,52 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
 // Fallback to constants.ts data when backend is unavailable
 async function fallbackToMockData<T>(endpoint: string): Promise<T> {
     console.warn(`Falling back to mock data for ${endpoint}`);
+    const url = new URL(endpoint, 'http://craftscape.local');
+    const { pathname, searchParams } = url;
     
     // Dynamic import to avoid circular dependencies
     const { CRAFTS, PRODUCTS, EVENTS, ORDERS, ARTISANS, MESSAGE_THREADS } = await import('../constants');
     
-    if (endpoint === '/crafts') return CRAFTS as T;
-    if (endpoint === '/products') return PRODUCTS as T;
-    if (endpoint === '/events') return EVENTS as T;
-    if (endpoint === '/orders') return ORDERS as T;
-    if (endpoint === '/artisans') return ARTISANS as T;
-    if (endpoint === '/messages') return MESSAGE_THREADS as T;
+    if (pathname === '/crafts') return CRAFTS as T;
+    if (pathname === '/products') return PRODUCTS as T;
+    if (pathname === '/events') return EVENTS as T;
+    if (pathname === '/artisans') return ARTISANS as T;
+    if (pathname === '/orders') {
+        const customerId = searchParams.get('customerId');
+        const artisanId = searchParams.get('artisanId');
+        const orders = ORDERS.filter((order) => {
+            if (customerId && order.customerId !== customerId) {
+                return false;
+            }
+            if (artisanId) {
+                const productArtisanId = order.product?.artisanId
+                    ? `artisan-${order.product.artisanId}`
+                    : null;
+                if (productArtisanId !== artisanId) {
+                    return false;
+                }
+            }
+            return true;
+        });
+        return orders as T;
+    }
+    if (pathname === '/messages') {
+        const customerId = searchParams.get('customerId');
+        const artisanId = searchParams.get('artisanId');
+        const threads = MESSAGE_THREADS.filter((thread) => {
+            if (customerId && thread.customerId !== customerId) {
+                return false;
+            }
+            if (artisanId && thread.artisanId !== artisanId) {
+                return false;
+            }
+            return true;
+        });
+        return threads as T;
+    }
+    if (pathname === '/bookings') return [] as T;
+    if (pathname === '/co-creation/concepts') return [] as T;
+    if (pathname === '/co-creation/requests') return [] as T;
     
     throw new Error(`No fallback data available for ${endpoint}`);
 }
@@ -99,16 +136,38 @@ export const getEvents = async (): Promise<Event[]> => {
     return apiRequest<Event[]>('/events');
 };
 
-export const getOrders = async (): Promise<Order[]> => {
-    return apiRequest<Order[]>('/orders');
+export const getOrders = async (filters?: {
+    customerId?: string;
+    artisanId?: string;
+}): Promise<Order[]> => {
+    const params = new URLSearchParams();
+    if (filters?.customerId) {
+        params.set('customerId', filters.customerId);
+    }
+    if (filters?.artisanId) {
+        params.set('artisanId', filters.artisanId);
+    }
+    const query = params.toString();
+    return apiRequest<Order[]>(`/orders${query ? `?${query}` : ''}`);
 };
 
 export const getArtisans = async (): Promise<Artisan[]> => {
     return apiRequest<Artisan[]>('/artisans');
 };
 
-export const getMessageThreads = async (): Promise<MessageThread[]> => {
-    const threads = await apiRequest<MessageThread[]>('/messages');
+export const getMessageThreads = async (filters?: {
+    customerId?: string;
+    artisanId?: string;
+}): Promise<MessageThread[]> => {
+    const params = new URLSearchParams();
+    if (filters?.customerId) {
+        params.set('customerId', filters.customerId);
+    }
+    if (filters?.artisanId) {
+        params.set('artisanId', filters.artisanId);
+    }
+    const query = params.toString();
+    const threads = await apiRequest<MessageThread[]>(`/messages${query ? `?${query}` : ''}`);
 
     try {
         const { MESSAGE_THREADS } = await import('../constants');
@@ -150,6 +209,47 @@ export const createPendingWorkshopBooking = async (payload: {
     });
 };
 
+export const getBookings = async (filters?: {
+    customerId?: string;
+    artisanId?: string;
+}): Promise<BookingContract[]> => {
+    const params = new URLSearchParams();
+    if (filters?.customerId) {
+        params.set('customerId', filters.customerId);
+    }
+    if (filters?.artisanId) {
+        params.set('artisanId', filters.artisanId);
+    }
+    const query = params.toString();
+    return apiRequest<BookingContract[]>(`/bookings${query ? `?${query}` : ''}`);
+};
+
+export const updateOrderStatus = async (
+    orderId: string,
+    input: {
+        status: OrderStatus;
+        artisanId: string;
+    },
+): Promise<Order> => {
+    return apiRequest<Order>(`/orders/${orderId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+    });
+};
+
+export const updateBookingStatus = async (
+    bookingId: string,
+    input: {
+        status: BookingStatus;
+        artisanId: string;
+    },
+): Promise<BookingContract> => {
+    return apiRequest<BookingContract>(`/bookings/${bookingId}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify(input),
+    });
+};
+
 /**
  * AI Image Generation API
  * This calls the backend endpoint that securely handles the AI API key
@@ -176,7 +276,8 @@ export const generateAndPersistAiConcept = async (
     craftId: string | number,
     craftName: { zh: string; en: string },
     userPrompt: string,
-    referenceImageUrl?: string
+    referenceImageUrl?: string,
+    customerId?: string,
 ): Promise<AiCreationContract> => {
     return apiRequest<AiCreationContract>('/co-creation/concepts/generate', {
         method: 'POST',
@@ -185,6 +286,7 @@ export const generateAndPersistAiConcept = async (
             craftName,
             userPrompt,
             referenceImageUrl,
+            customerId,
         }),
     });
 };
@@ -194,7 +296,8 @@ export const persistAiConcept = async (
     craftName: { zh: string; en: string },
     prompt: string,
     imageUrl: string,
-    referenceImageUrls?: string[]
+    referenceImageUrls?: string[],
+    customerId?: string,
 ): Promise<AiCreationContract> => {
     return apiRequest<AiCreationContract>('/co-creation/concepts', {
         method: 'POST',
@@ -204,12 +307,18 @@ export const persistAiConcept = async (
             prompt,
             imageUrl,
             referenceImageUrls,
+            customerId,
         }),
     });
 };
 
-export const getAiConcepts = async (): Promise<AiCreationContract[]> => {
-    return apiRequest<AiCreationContract[]>('/co-creation/concepts?customerId=customer-demo');
+export const getAiConcepts = async (customerId?: string): Promise<AiCreationContract[]> => {
+    const params = new URLSearchParams();
+    if (customerId) {
+        params.set('customerId', customerId);
+    }
+    const query = params.toString();
+    return apiRequest<AiCreationContract[]>(`/co-creation/concepts${query ? `?${query}` : ''}`);
 };
 
 export const submitCoCreationRequest = async (input: {
@@ -220,6 +329,8 @@ export const submitCoCreationRequest = async (input: {
     customerName?: string;
     customerEmail?: string;
     customerMessage?: string;
+    customerId?: string;
+    artisanId?: string;
 }): Promise<CoCreationRequestContract> => {
     return apiRequest<CoCreationRequestContract>('/co-creation/requests', {
         method: 'POST',
@@ -246,6 +357,7 @@ export const applyCoCreationArtisanDecision = async (
     requestId: string,
     input: {
         decision: 'approve' | 'reject' | 'request_changes';
+        artisanId?: string;
         artisanNote?: string;
         quoteAmountCents?: number;
         depositAmountCents?: number;

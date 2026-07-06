@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { getMessageThreads } from '../../services/apiService';
 import type { MessageThread } from '../../types';
 import Spinner from '../../components/Spinner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useDemoPersona } from '../../contexts/DemoPersonaContext';
+import { subscribeToThreadUpdates } from '../../services/messagingService';
 
 const stripMarkup = (value: string): { text: string; hadImage: boolean } => {
     const imageRegex = /<image[^>]*\/>/g;
@@ -78,22 +80,48 @@ interface MessagesProps {
 const Messages: React.FC<MessagesProps> = ({ onSelectThread }) => {
     const [threads, setThreads] = useState<MessageThread[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const { t, language } = useLanguage();
+    const { activeArtisanId } = useDemoPersona();
+
+    const fetchData = useCallback(async (showLoading = true) => {
+        if (!activeArtisanId) {
+            setThreads([]);
+            setIsLoading(false);
+            return;
+        }
+        if (showLoading) {
+            setIsLoading(true);
+        }
+        try {
+            const data = await getMessageThreads({ artisanId: activeArtisanId });
+            setThreads(data);
+            setError(null);
+        } catch (error) {
+            console.error("Failed to fetch message threads:", error);
+            setError(language === 'zh' ? '未能載入訊息。' : 'Unable to load messages.');
+        } finally {
+            setIsLoading(false);
+        }
+    }, [activeArtisanId, language]);
 
     useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true);
-            try {
-                const data = await getMessageThreads();
-                setThreads(data);
-            } catch (error) {
-                console.error("Failed to fetch message threads:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
         fetchData();
-    }, []);
+    }, [fetchData]);
+
+    useEffect(() => {
+        if (!activeArtisanId) {
+            return;
+        }
+
+        const subscription = subscribeToThreadUpdates({
+            onThreadUpdated: () => {
+                fetchData(false);
+            },
+        });
+
+        return () => subscription.disconnect();
+    }, [activeArtisanId, fetchData]);
     
     const unreadCount = threads.filter(t => t.unread).length;
 
@@ -105,10 +133,26 @@ const Messages: React.FC<MessagesProps> = ({ onSelectThread }) => {
             </header>
 
             <div className="flex-grow p-6 space-y-3 pb-24">
-                {isLoading ? <Spinner text={t('spinnerMessages')} /> : (
+                {!activeArtisanId && (
+                    <p className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm text-[var(--color-text-secondary)]">
+                        {language === 'zh' ? '請先在個人頁選擇工藝師身份。' : 'Choose an artisan identity in Profile first.'}
+                    </p>
+                )}
+                {error && (
+                    <p className="rounded-xl border border-[var(--color-error)]/40 bg-[var(--color-error)]/10 p-4 text-sm text-[var(--color-error)]">
+                        {error}
+                    </p>
+                )}
+                {isLoading ? <Spinner text={t('spinnerMessages')} /> : activeArtisanId && threads.length > 0 ? (
                     threads.map(thread => (
                         <MessageThreadCard key={thread.id} thread={thread} language={language} onSelect={() => onSelectThread(thread)} />
                     ))
+                ) : activeArtisanId ? (
+                    <p className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm text-[var(--color-text-secondary)]">
+                        {language === 'zh' ? '暫時沒有顧客訊息。' : 'No customer messages yet.'}
+                    </p>
+                ) : (
+                    null
                 )}
             </div>
         </div>

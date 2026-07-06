@@ -5,6 +5,7 @@ import { AppContextProvider } from './contexts/AppContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { CartProvider } from './contexts/CartContext';
+import { DemoPersonaProvider } from './contexts/DemoPersonaContext';
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -17,9 +18,11 @@ root.render(
     <ThemeProvider>
       <LanguageProvider>
         <CartProvider>
-          <AppContextProvider>
-            <App />
-          </AppContextProvider>
+          <DemoPersonaProvider>
+            <AppContextProvider>
+              <App />
+            </AppContextProvider>
+          </DemoPersonaProvider>
         </CartProvider>
       </LanguageProvider>
     </ThemeProvider>

@@ -13,6 +13,7 @@ import {
 import Spinner from "../components/Spinner";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { useDemoPersona } from "../contexts/DemoPersonaContext";
 
 type ProfileTab = "favorites" | "creations" | "wardrobe";
 
@@ -59,6 +60,13 @@ const Profile: React.FC<ProfileProps> = ({
   } = useAppContext();
   const { language, setLanguage, t } = useLanguage();
   const { theme } = useTheme();
+  const {
+    personas,
+    activePersona,
+    activePersonaId,
+    activeArtisanId,
+    setActivePersonaId,
+  } = useDemoPersona();
   const [activeTab, setActiveTab] = useState<ProfileTab>("favorites");
   const [allCrafts, setAllCrafts] = useState<Craft[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,14 +95,14 @@ const Profile: React.FC<ProfileProps> = ({
       return;
     }
     setIsRequestsLoading(true);
-    getCoCreationRequests({ customerId: "customer-demo" })
+    getCoCreationRequests({ customerId: activePersonaId })
       .then(setCoCreationRequests)
       .catch((error) => {
         console.error("Failed to load co-creation requests:", error);
         setCoCreationRequests([]);
       })
       .finally(() => setIsRequestsLoading(false));
-  }, [activeTab]);
+  }, [activePersonaId, activeTab]);
 
   const favoriteCrafts = allCrafts.filter((craft) => favorites.has(craft.id));
   const tabs = [
@@ -202,9 +210,48 @@ const Profile: React.FC<ProfileProps> = ({
 
       {/* Museum-style Sections */}
       <div className="px-4 py-6 space-y-6">
+        {/* Demo persona switcher */}
+        <div className="museum-card p-4 space-y-4">
+          <div className="flex items-center gap-3">
+            <img
+              src={activePersona.image}
+              alt={activePersona.label[language]}
+              className="h-14 w-14 rounded-full border-2 border-[var(--color-primary-accent)] object-cover"
+            />
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wide text-[var(--color-text-secondary)]">
+                {language === "zh" ? "示範身份" : "Demo identity"}
+              </p>
+              <h2 className="truncate text-lg font-bold text-[var(--color-text-primary)]">
+                {activePersona.label[language]}
+              </h2>
+              <p className="text-sm text-[var(--color-text-secondary)] line-clamp-2">
+                {activePersona.description[language]}
+              </p>
+            </div>
+          </div>
+          <label className="block">
+            <span className="mb-2 block text-sm font-semibold text-[var(--color-text-secondary)]">
+              {language === "zh" ? "切換目前身份" : "Switch active identity"}
+            </span>
+            <select
+              value={activePersonaId}
+              onChange={(event) => setActivePersonaId(event.target.value)}
+              className="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-3 text-[var(--color-text-primary)]"
+            >
+              {personas.map((persona) => (
+                <option key={persona.id} value={persona.id}>
+                  {persona.label[language]} - {persona.role}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
         {/* Artisan Mode Toggle */}
         <motion.button
           onClick={onToggleArtisanMode}
+          disabled={!activeArtisanId}
           className="w-full museum-card p-4 text-center font-semibold transition-all duration-200 hover:shadow-lg hover:shadow-[var(--color-primary-accent)]/10"
           style={{
             color:
@@ -236,7 +283,13 @@ const Profile: React.FC<ProfileProps> = ({
                 d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <span>{t("profileSwitchToArtisan")}</span>
+            <span>
+              {activeArtisanId
+                ? t("profileSwitchToArtisan")
+                : language === "zh"
+                ? "請先選擇工藝師身份"
+                : "Choose an artisan identity first"}
+            </span>
           </div>
         </motion.button>
 

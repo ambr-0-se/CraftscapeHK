@@ -71,6 +71,7 @@ export class CoCreationController {
     @Body()
     body: {
       decision: 'approve' | 'reject' | 'request_changes';
+      artisanId?: string;
       artisanNote?: string;
       quoteAmountCents?: number;
       depositAmountCents?: number;
