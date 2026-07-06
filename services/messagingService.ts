@@ -18,6 +18,11 @@ type ThreadSubscription = {
   disconnect: () => void;
 };
 
+type ThreadUpdatesSubscription = {
+  socket: Socket;
+  disconnect: () => void;
+};
+
 function deriveSocketBaseUrl(apiBaseUrl: string): string {
   if (/^https?:\/\//.test(apiBaseUrl)) {
     return apiBaseUrl.replace(/\/api\/?$/, '');
@@ -139,6 +144,45 @@ export function subscribeToThread(
     },
     disconnect: () => {
       socket.emit('thread:leave', { threadId });
+      socket.disconnect();
+    },
+  };
+}
+
+export function subscribeToThreadUpdates(options: {
+  onThreadUpdated: (payload: { threadId: string; message?: ChatMessage }) => void;
+  onConnectionChange?: (state: ConnectionState) => void;
+}): ThreadUpdatesSubscription {
+  options.onConnectionChange?.('connecting');
+  const socket = io(SOCKET_BASE_URL, {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionAttempts: Infinity,
+    reconnectionDelay: 600,
+    reconnectionDelayMax: 5000,
+    auth: {
+      token: authService.getToken(),
+    },
+  });
+
+  socket.on('connect', () => {
+    options.onConnectionChange?.('connected');
+  });
+  socket.io.on('reconnect_attempt', () => {
+    options.onConnectionChange?.('reconnecting');
+  });
+  socket.on('disconnect', () => {
+    options.onConnectionChange?.('offline');
+  });
+  socket.on('connect_error', () => {
+    options.onConnectionChange?.('error');
+  });
+  socket.on('thread:updated', options.onThreadUpdated);
+
+  return {
+    socket,
+    disconnect: () => {
+      socket.off('thread:updated', options.onThreadUpdated);
       socket.disconnect();
     },
   };

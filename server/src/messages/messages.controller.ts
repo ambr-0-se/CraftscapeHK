@@ -16,8 +16,11 @@ export class MessagesController {
   ) {}
 
   @Get()
-  async findAll() {
-    return this.messagesService.findAll();
+  async findAll(
+    @Query('customerId') customerId?: string,
+    @Query('artisanId') artisanId?: string,
+  ) {
+    return this.messagesService.findAll({ customerId, artisanId });
   }
 
   @Post('threads')

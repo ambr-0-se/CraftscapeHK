@@ -87,11 +87,12 @@ Worktree `worktrees/mvp-artisan-portal`, branch `mvp/artisan-portal`. Parallel t
 
 ### Live handoff state — Lane B
 
-- Status: not started
-- Last agent/tool: —
-- Done so far: —
-- Next step if resuming: create the worktree and run the kickoff prompt above
-- Blockers / decisions needed: none to start; must rebase after Lane A merges
+- Status: review
+- Last agent/tool: Codex
+- Done so far: created `worktrees/mvp-artisan-portal` on branch `mvp/artisan-portal`; read tracker, ownership model, handoff, and design guardrails; added and approved standalone preview `design-previews/artisan-portal-persona-dashboard.html`; implemented localStorage-backed demo persona context and Profile switcher; scoped dashboard/orders/messages/co-creation to the selected artisan; added order/booking status update endpoints and actions using existing shared transition maps; added co-creation artisan ownership checks; wired artisan profile Contact artisan to chat; subscribed artisan inbox to `thread:updated` refresh
+- Latest fix: dashboard GET fallback now tolerates absent/stale backend APIs by using scoped local seed orders/messages and empty booking/co-creation queues, preventing `/api/bookings` 404s from collapsing Artisan Dashboard
+- Next step if resuming: rebase onto latest `origin/main` after Lane A merges, resolve order/payment conflicts if any without editing Lane A contracts, rerun verification, and open review/PR
+- Blockers / decisions needed: must rebase after Lane A merges; product create/edit management remains lowest-priority/out-of-scope for this pass
 
 ---
 

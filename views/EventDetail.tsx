@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import type { CheckoutIntent, Event } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
+import { useDemoPersona } from '../contexts/DemoPersonaContext';
 import { createPendingWorkshopBooking } from '../services/apiService';
 import {
   EventType,
@@ -75,6 +76,7 @@ const formatScheduleRange = (schedule: WorkshopScheduleContract, language: 'zh' 
 const EventDetail: React.FC<EventDetailProps> = ({ event, onClose, onStartCheckout }) => {
   const { language, t } = useLanguage();
   const { addWorkshopSeats } = useCart();
+  const { activePersonaId } = useDemoPersona();
   const schedules = event.schedules ?? [];
   const isWorkshop = event.eventType === EventType.Workshop || event.type === '工作坊';
   const firstOpenSchedule = schedules.find(
@@ -119,7 +121,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose, onStartChecko
         eventId: String(event.id),
         scheduleId: selectedSchedule.id,
         quantity,
-        customerId: 'customer-demo',
+        customerId: activePersonaId,
       });
       addWorkshopSeats({ event, schedule: selectedSchedule, quantity });
       setReservedBooking(response.booking);

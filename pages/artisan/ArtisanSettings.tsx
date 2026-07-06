@@ -1,13 +1,15 @@
 import React from 'react';
 import ThemeToggle from '../../components/ThemeToggle';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useDemoPersona } from '../../contexts/DemoPersonaContext';
 
 interface ArtisanSettingsProps {
     onToggleArtisanMode: () => void;
 }
 
 const ArtisanSettings: React.FC<ArtisanSettingsProps> = ({ onToggleArtisanMode }) => {
-    const { t } = useLanguage();
+    const { language, t } = useLanguage();
+    const { activePersona } = useDemoPersona();
 
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
@@ -15,13 +17,13 @@ const ArtisanSettings: React.FC<ArtisanSettingsProps> = ({ onToggleArtisanMode }
                 <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-4">
                         <img
-                            src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?q=80&w=400&auto=format&fit=crop"
-                            alt="Master Wong portrait"
+                            src={activePersona.image}
+                            alt={activePersona.label[language]}
                             className="w-20 h-20 rounded-full border-2 border-[var(--color-primary-accent)] object-cover"
                         />
                         <div>
-                            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{t('artisanNameZhang')}</h1>
-                            <p className="text-[17px] text-[var(--color-text-secondary)]">{t('artisanSettingsBio')}</p>
+                            <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{activePersona.label[language]}</h1>
+                            <p className="text-[17px] text-[var(--color-text-secondary)]">{activePersona.description[language]}</p>
                         </div>
                     </div>
                      <div className="flex items-center space-x-2">

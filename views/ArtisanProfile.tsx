@@ -14,6 +14,7 @@ interface ArtisanProfileProps {
   onClose: () => void;
   onSelectCraft: (craft: Craft) => void;
   onSelectProduct: (product: Product) => void;
+  onContactArtisan: (artisan: Artisan) => void;
 }
 
 const ArtisanProfile: React.FC<ArtisanProfileProps> = ({
@@ -21,6 +22,7 @@ const ArtisanProfile: React.FC<ArtisanProfileProps> = ({
   onClose,
   onSelectCraft,
   onSelectProduct,
+  onContactArtisan,
 }) => {
   const { language } = useLanguage();
   const products = getProductsForArtisan(artisan);
@@ -160,7 +162,10 @@ const ArtisanProfile: React.FC<ArtisanProfileProps> = ({
       </div>
 
       <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-lg p-4 bg-[var(--color-surface)]/95 backdrop-blur-xl border-t border-[var(--color-border)]">
-        <button className="w-full bg-[var(--color-primary-accent)] text-white font-bold py-4 px-6 rounded-full">
+        <button
+          onClick={() => onContactArtisan(artisan)}
+          className="w-full bg-[var(--color-primary-accent)] text-white font-bold py-4 px-6 rounded-full"
+        >
           {language === "zh" ? "聯絡工藝師" : "Contact artisan"}
         </button>
       </div>

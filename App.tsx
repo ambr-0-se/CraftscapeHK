@@ -35,6 +35,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CRAFTS, PRODUCTS } from "./constants";
 import OnboardingGuide from "./components/OnboardingGuide";
 import { useLanguage } from "./contexts/LanguageContext";
+import { useDemoPersona } from "./contexts/DemoPersonaContext";
 import {
   getArtisanForCraft,
   getArtisanForProduct,
@@ -106,6 +107,7 @@ export default function App() {
     return localStorage.getItem("hasSeenOnboarding") !== "true";
   });
   const { language } = useLanguage();
+  const { activeArtisanId, activePersonaId } = useDemoPersona();
 
   useEffect(() => {
     const hasSeen = localStorage.getItem("hasSeenOnboarding");
@@ -199,13 +201,17 @@ export default function App() {
   const toggleArtisanMode = useCallback(() => {
     setIsArtisanMode((prev) => {
       if (!prev) {
+        if (!activeArtisanId) {
+          setActiveTab(Tab.Profile);
+          return false;
+        }
         setActiveArtisanTab(ArtisanTab.Dashboard);
       } else {
         setActiveTab(Tab.Explore);
       }
       return !prev;
     });
-  }, []);
+  }, [activeArtisanId]);
 
   const handleCloseDetail = useCallback(() => {
     setCurrentView(View.Explore);
@@ -265,10 +271,15 @@ export default function App() {
   }, [selectedCraft]);
 
   const handleOpenChatroom = useCallback(() => {
-    if (selectedProduct || selectedCraft) {
+    if (selectedProduct || selectedCraft || selectedArtisan) {
       setCurrentView(View.Chatroom);
     }
-  }, [selectedCraft, selectedProduct]);
+  }, [selectedArtisan, selectedCraft, selectedProduct]);
+
+  const handleContactArtisanProfile = useCallback((artisan: Artisan) => {
+    setSelectedArtisan(artisan);
+    setCurrentView(View.Chatroom);
+  }, []);
 
   const handleCloseStudio = useCallback(
     () => setCurrentView(aiStudioReturnView),
@@ -279,8 +290,20 @@ export default function App() {
     []
   );
   const handleCloseChatroom = useCallback(() => {
-    setCurrentView(selectedProduct ? View.ProductDetail : View.CraftDetail);
-  }, [selectedProduct]);
+    if (selectedProduct) {
+      setCurrentView(View.ProductDetail);
+      return;
+    }
+    if (selectedCraft) {
+      setCurrentView(View.CraftDetail);
+      return;
+    }
+    if (selectedArtisan) {
+      setCurrentView(View.ArtisanProfile);
+      return;
+    }
+    setCurrentView(View.Explore);
+  }, [selectedArtisan, selectedCraft, selectedProduct]);
 
   const handleCloseArtisanProfile = useCallback(() => {
     setCurrentView(artisanReturnView);
@@ -346,6 +369,15 @@ export default function App() {
   const selectedThreadProduct = selectedMessageThread
     ? PRODUCTS.find((p) => p.id === selectedMessageThread.productId)
     : null;
+  const selectedChatArtisan =
+    selectedProduct
+      ? getArtisanForProduct(selectedProduct)
+      : selectedCraft
+      ? getArtisanForCraft(selectedCraft)
+      : selectedArtisan;
+  const selectedChatArtisanId = selectedChatArtisan
+    ? `artisan-${selectedChatArtisan.id}`
+    : undefined;
 
   const renderUserPage = () => {
     switch (activeTab) {
@@ -555,6 +587,7 @@ export default function App() {
                     onClose={handleCloseArtisanProfile}
                     onSelectCraft={handleSelectCraftFromArtisan}
                     onSelectProduct={handleSelectProductFromArtisan}
+                    onContactArtisan={handleContactArtisanProfile}
                   />
                 </motion.div>
               )}
@@ -572,7 +605,7 @@ export default function App() {
                 </motion.div>
               )}
 
-              {currentView === View.Chatroom && (selectedProduct || selectedCraft) && (
+              {currentView === View.Chatroom && (selectedProduct || selectedCraft || selectedArtisan) && (
                 <motion.div
                   key="chatroom"
                   className="absolute inset-0 z-30"
@@ -584,6 +617,9 @@ export default function App() {
                   <Chatroom
                     product={selectedProduct ?? undefined}
                     craft={selectedProduct ? undefined : selectedCraft ?? undefined}
+                    artisan={!selectedProduct && !selectedCraft ? selectedArtisan ?? undefined : undefined}
+                    customerId={activePersonaId}
+                    artisanId={selectedChatArtisanId}
                     onClose={handleCloseChatroom}
                   />
                 </motion.div>

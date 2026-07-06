@@ -1,4 +1,4 @@
-import { BadRequestException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ArtisanApprovalState, CoCreationRequestStatus } from '@craftscape/contracts';
@@ -65,6 +65,7 @@ describe('CoCreationService', () => {
 
     const result = await service.applyArtisanDecision('request_123', {
       decision: 'approve',
+      artisanId: 'artisan-4',
       quoteAmountCents: 680000,
       depositAmountCents: 150000,
       artisanNote: 'Approved with quote.',
@@ -107,7 +108,30 @@ describe('CoCreationService', () => {
     await expect(
       service.applyArtisanDecision('request_123', {
         decision: 'request_changes',
+        artisanId: 'artisan-4',
       }),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('rejects artisan decisions from non-owner artisans', async () => {
+    requestsRepository.findOne.mockResolvedValue({
+      id: 'request_123',
+      customerId: 'customer-demo',
+      artisanId: 'artisan-4',
+      craftId: '4',
+      prompt: 'Dragon embroidery',
+      referenceImageUrls: ['image.png'],
+      status: CoCreationRequestStatus.PendingArtisanReview,
+      approvalState: ArtisanApprovalState.Pending,
+      createdAt: '2026-06-28T00:00:00.000Z',
+      updatedAt: '2026-06-28T00:00:00.000Z',
+    });
+
+    await expect(
+      service.applyArtisanDecision('request_123', {
+        decision: 'approve',
+        artisanId: 'artisan-2',
+      }),
+    ).rejects.toBeInstanceOf(ForbiddenException);
   });
 });

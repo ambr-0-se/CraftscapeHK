@@ -23,6 +23,9 @@ export class Product {
   @Column('json')
   artisan: { zh: string; en: string };
 
+  @Column({ nullable: true })
+  artisanId?: number;
+
   @Column('json')
   full_description: { zh: string; en: string };
 }

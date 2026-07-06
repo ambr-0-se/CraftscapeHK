@@ -1,33 +1,77 @@
 import React, { useState, useEffect } from 'react';
 import {
     applyCoCreationArtisanDecision,
+    getBookings,
     getCoCreationRequests,
     getOrders,
+    updateBookingStatus,
+    updateOrderStatus,
 } from '../../services/apiService';
 import type { Order, OrderStatus } from '../../types';
-import type { CoCreationRequestContract, LocaleCode } from '../../shared/contracts';
+import type { BookingContract, CoCreationRequestContract, LocaleCode } from '../../shared/contracts';
 import {
+    BOOKING_STATUS_LABELS,
+    BOOKING_STATUS_TRANSITIONS,
+    BookingStatus,
     CO_CREATION_REQUEST_STATUS_LABELS,
     CoCreationRequestStatus,
+    ORDER_STATUS_LABELS,
+    ORDER_STATUS_TRANSITIONS,
+    OrderStatus as ContractOrderStatus,
     getLocalizedLabel,
 } from '../../shared/contracts';
 import Spinner from '../../components/Spinner';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useDemoPersona } from '../../contexts/DemoPersonaContext';
 
 const getStatusColor = (status: OrderStatus) => {
     switch (status) {
-        case '待處理': return 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400';
-        case '已發貨': return 'bg-blue-500/20 text-blue-700 dark:text-blue-400';
-        case '已完成': return 'bg-green-500/20 text-green-700 dark:text-green-500';
-        case '已取消': return 'bg-red-500/20 text-red-700 dark:text-red-500';
+        case '待處理':
+        case ContractOrderStatus.Paid:
+        case ContractOrderStatus.InProduction:
+            return 'bg-yellow-500/20 text-yellow-700 dark:text-yellow-400';
+        case '已發貨':
+        case ContractOrderStatus.Ready:
+        case ContractOrderStatus.Shipped:
+            return 'bg-blue-500/20 text-blue-700 dark:text-blue-400';
+        case '已完成':
+        case ContractOrderStatus.Completed:
+            return 'bg-green-500/20 text-green-700 dark:text-green-500';
+        case '已取消':
+        case ContractOrderStatus.Cancelled:
+        case ContractOrderStatus.Refunded:
+            return 'bg-red-500/20 text-red-700 dark:text-red-500';
         default: return 'bg-gray-500/20 text-gray-700 dark:text-gray-400';
     }
 };
 
-const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
+const toContractOrderStatus = (status: OrderStatus): ContractOrderStatus => {
+    switch (status) {
+        case '待處理':
+            return ContractOrderStatus.Paid;
+        case '已發貨':
+            return ContractOrderStatus.Shipped;
+        case '已完成':
+            return ContractOrderStatus.Completed;
+        case '已取消':
+            return ContractOrderStatus.Cancelled;
+        default:
+            return status as ContractOrderStatus;
+    }
+};
+
+const OrderCard: React.FC<{
+    order: Order;
+    locale: LocaleCode;
+    onUpdateStatus: (orderId: string, status: ContractOrderStatus) => void;
+    isUpdating: boolean;
+}> = ({ order, locale, onUpdateStatus, isUpdating }) => {
     const { language, t } = useLanguage();
+    const contractStatus = toContractOrderStatus(order.status);
+    const nextStatuses = ORDER_STATUS_TRANSITIONS[contractStatus] ?? [];
+    const statusLabel = ORDER_STATUS_LABELS[contractStatus]?.[locale] ?? order.status;
     return (
-        <div className="bg-[var(--color-surface)] p-3 rounded-xl border border-[var(--color-border)] ios-shadow">
+        <div className="bg-[var(--color-surface)] p-3 rounded-xl border border-[var(--color-border)] ios-shadow space-y-3">
             <div className="flex items-center justify-between gap-3">
                 {/* Product Image - smaller */}
                 <img src={order.product.image} alt={order.product.name[language]} className="w-12 h-12 object-cover rounded-lg flex-shrink-0" />
@@ -37,7 +81,7 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
                     <div className="flex items-center justify-between">
                         <p className="font-bold text-sm text-[var(--color-text-primary)] truncate">{order.customerName}</p>
                         <div className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${getStatusColor(order.status)}`}>
-                            {order.status}
+                            {statusLabel}
                         </div>
                     </div>
                     <p className="text-xs text-[var(--color-text-secondary)] truncate">{order.product.name[language]}</p>
@@ -47,9 +91,64 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
                     </div>
                 </div>
             </div>
+            {nextStatuses.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {nextStatuses.map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => onUpdateStatus(order.id, status)}
+                            disabled={isUpdating}
+                            className="rounded-full border border-[var(--color-border)] px-3 py-2 text-xs font-semibold text-[var(--color-primary-accent)] disabled:opacity-50"
+                        >
+                            {ORDER_STATUS_LABELS[status][locale]}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }
+
+const BookingCard: React.FC<{
+    booking: BookingContract;
+    locale: LocaleCode;
+    onUpdateStatus: (bookingId: string, status: BookingStatus) => void;
+    isUpdating: boolean;
+}> = ({ booking, locale, onUpdateStatus, isUpdating }) => {
+    const nextStatuses = BOOKING_STATUS_TRANSITIONS[booking.status] ?? [];
+
+    return (
+        <div className="bg-[var(--color-surface)] p-4 rounded-xl border border-[var(--color-border)] ios-shadow space-y-3">
+            <div className="flex items-start justify-between gap-3">
+                <div>
+                    <p className="font-bold text-sm text-[var(--color-text-primary)]">
+                        #{booking.id}
+                    </p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                        Workshop {booking.eventId} • Schedule {booking.scheduleId} • {booking.quantity} seat{booking.quantity === 1 ? '' : 's'}
+                    </p>
+                </div>
+                <span className="rounded-full bg-[var(--color-primary-accent)]/10 px-2 py-1 text-[11px] font-semibold text-[var(--color-primary-accent)]">
+                    {BOOKING_STATUS_LABELS[booking.status][locale]}
+                </span>
+            </div>
+            {nextStatuses.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {nextStatuses.map((status) => (
+                        <button
+                            key={status}
+                            onClick={() => onUpdateStatus(booking.id, status)}
+                            disabled={isUpdating}
+                            className="rounded-full border border-[var(--color-border)] px-3 py-2 text-xs font-semibold text-[var(--color-primary-accent)] disabled:opacity-50"
+                        >
+                            {BOOKING_STATUS_LABELS[status][locale]}
+                        </button>
+                    ))}
+                </div>
+            )}
+        </div>
+    );
+};
 
 const formatMoney = (amount: { amount: number; currency: 'HKD' } | undefined, fallback: string) => {
     if (!amount) {
@@ -172,21 +271,34 @@ const CoCreationRequestCard: React.FC<{
 
 const OrderManagement: React.FC = () => {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [bookings, setBookings] = useState<BookingContract[]>([]);
     const [requests, setRequests] = useState<CoCreationRequestContract[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [requestError, setRequestError] = useState<string | null>(null);
     const [updatingRequestId, setUpdatingRequestId] = useState<string | null>(null);
+    const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+    const [updatingBookingId, setUpdatingBookingId] = useState<string | null>(null);
     const { language, t } = useLanguage();
+    const { activeArtisanId } = useDemoPersona();
 
     useEffect(() => {
+        if (!activeArtisanId) {
+            setIsLoading(false);
+            setOrders([]);
+            setBookings([]);
+            setRequests([]);
+            return;
+        }
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const [ordersData, requestsData] = await Promise.all([
-                    getOrders(),
-                    getCoCreationRequests(),
+                const [ordersData, bookingsData, requestsData] = await Promise.all([
+                    getOrders({ artisanId: activeArtisanId }),
+                    getBookings({ artisanId: activeArtisanId }),
+                    getCoCreationRequests({ artisanId: activeArtisanId }),
                 ]);
                 setOrders(ordersData);
+                setBookings(bookingsData);
                 setRequests(requestsData);
                 setRequestError(null);
             } catch (error) {
@@ -197,17 +309,21 @@ const OrderManagement: React.FC = () => {
             }
         };
         fetchData();
-    }, [t]);
+    }, [activeArtisanId, t]);
 
     const handleDecision = async (
         requestId: string,
         decision: 'approve' | 'reject' | 'request_changes',
     ) => {
+        if (!activeArtisanId) {
+            return;
+        }
         setUpdatingRequestId(requestId);
         setRequestError(null);
         try {
             const updated = await applyCoCreationArtisanDecision(requestId, {
                 decision,
+                artisanId: activeArtisanId,
                 artisanNote:
                     decision === 'approve'
                         ? t('artisanCoCreationApprovedNote')
@@ -228,6 +344,50 @@ const OrderManagement: React.FC = () => {
         }
     };
 
+    const handleOrderStatus = async (orderId: string, status: ContractOrderStatus) => {
+        if (!activeArtisanId) {
+            return;
+        }
+        setUpdatingOrderId(orderId);
+        setRequestError(null);
+        try {
+            const updated = await updateOrderStatus(orderId, {
+                status,
+                artisanId: activeArtisanId,
+            });
+            setOrders((current) =>
+                current.map((order) => (order.id === updated.id ? updated : order)),
+            );
+        } catch (error) {
+            console.error(error);
+            setRequestError(language === 'zh' ? '未能更新訂單狀態。' : 'Unable to update order status.');
+        } finally {
+            setUpdatingOrderId(null);
+        }
+    };
+
+    const handleBookingStatus = async (bookingId: string, status: BookingStatus) => {
+        if (!activeArtisanId) {
+            return;
+        }
+        setUpdatingBookingId(bookingId);
+        setRequestError(null);
+        try {
+            const updated = await updateBookingStatus(bookingId, {
+                status,
+                artisanId: activeArtisanId,
+            });
+            setBookings((current) =>
+                current.map((booking) => (booking.id === updated.id ? updated : booking)),
+            );
+        } catch (error) {
+            console.error(error);
+            setRequestError(language === 'zh' ? '未能更新預約狀態。' : 'Unable to update booking status.');
+        } finally {
+            setUpdatingBookingId(null);
+        }
+    };
+
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
             <header className="p-6 pt-10">
@@ -236,6 +396,11 @@ const OrderManagement: React.FC = () => {
             </header>
 
             <div className="flex-grow p-6 space-y-2 pb-24">
+                {!activeArtisanId && (
+                    <p className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm text-[var(--color-text-secondary)]">
+                        {language === 'zh' ? '請先在個人頁選擇工藝師身份。' : 'Choose an artisan identity in Profile before managing orders.'}
+                    </p>
+                )}
                 {isLoading ? <Spinner text={t('spinnerOrders')} /> : (
                     <>
                         <section className="space-y-3 pb-5">
@@ -279,9 +444,43 @@ const OrderManagement: React.FC = () => {
                                     {t('artisanCoCreationOrdersDesc')}
                                 </p>
                             </div>
-                            {orders.map(order => (
-                                <OrderCard key={order.id} order={order} />
-                            ))}
+                            {orders.length > 0 ? orders.map(order => (
+                                <OrderCard
+                                    key={order.id}
+                                    order={order}
+                                    locale={language}
+                                    onUpdateStatus={handleOrderStatus}
+                                    isUpdating={updatingOrderId === order.id}
+                                />
+                            )) : (
+                                <p className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm text-[var(--color-text-secondary)]">
+                                    {language === 'zh' ? '此工藝師暫時沒有產品訂單。' : 'This artisan has no product orders yet.'}
+                                </p>
+                            )}
+                        </section>
+
+                        <section className="space-y-2 pt-5">
+                            <div>
+                                <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+                                    {language === 'zh' ? '工作坊預約' : 'Workshop bookings'}
+                                </h2>
+                                <p className="text-sm text-[var(--color-text-secondary)]">
+                                    {language === 'zh' ? '按合約狀態轉換更新預約。' : 'Move bookings through the shared status lifecycle.'}
+                                </p>
+                            </div>
+                            {bookings.length > 0 ? bookings.map((booking) => (
+                                <BookingCard
+                                    key={booking.id}
+                                    booking={booking}
+                                    locale={language}
+                                    onUpdateStatus={handleBookingStatus}
+                                    isUpdating={updatingBookingId === booking.id}
+                                />
+                            )) : (
+                                <p className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-sm text-[var(--color-text-secondary)]">
+                                    {language === 'zh' ? '此工藝師暫時沒有工作坊預約。' : 'This artisan has no workshop bookings yet.'}
+                                </p>
+                            )}
                         </section>
                     </>
                 )}

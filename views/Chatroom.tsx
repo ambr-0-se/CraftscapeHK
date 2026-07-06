@@ -6,7 +6,7 @@ import {
   MessageType,
 } from "../shared/contracts";
 import type { LanguageCode, SendChatMessageInputContract } from "../shared/contracts";
-import type { ChatMessage, Craft, MessageThread, Product } from "../types";
+import type { Artisan, ChatMessage, Craft, MessageThread, Product } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
 import {
   ensureMessageThread,
@@ -17,6 +17,9 @@ import {
 interface ChatroomProps {
   product?: Product;
   craft?: Craft;
+  artisan?: Artisan;
+  customerId: string;
+  artisanId?: string;
   onClose: () => void;
 }
 
@@ -48,11 +51,13 @@ const connectionCopy: Record<ConnectionState, { en: string; zh: string }> = {
 };
 
 const buildLocalThread = (
-  context: ChatContext
+  context: ChatContext,
+  customerId: string,
+  artisanId: string
 ): MessageThread => ({
   id: `local-${context.contextType}-${context.contextId}`,
-  customerId: "demo-customer",
-  artisanId: "demo-artisan",
+  customerId,
+  artisanId,
   customerName: "Craftscape customer",
   lastMessage: "",
   lastMessagePreview: "",
@@ -70,6 +75,7 @@ const buildLocalThread = (
 
 type ChatContext = {
   artisanName: string;
+  artisanId: string;
   contextType: MessageThreadContextType;
   contextId: string;
   contextLabel: string;
@@ -79,7 +85,16 @@ type ChatContext = {
 
 const isLocalThread = (threadId: string) => threadId.startsWith("local-");
 
-const Chatroom: React.FC<ChatroomProps> = ({ product, craft, onClose }) => {
+const toArtisanUserId = (id?: number) => (id ? `artisan-${id}` : "artisan-1");
+
+const Chatroom: React.FC<ChatroomProps> = ({
+  product,
+  craft,
+  artisan,
+  customerId,
+  artisanId,
+  onClose,
+}) => {
   const { language, t } = useLanguage();
   const [thread, setThread] = useState<MessageThread | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -98,6 +113,7 @@ const Chatroom: React.FC<ChatroomProps> = ({ product, craft, onClose }) => {
     if (product) {
       return {
         artisanName: product.artisan[language],
+        artisanId: artisanId ?? toArtisanUserId(product.artisanId),
         contextType: MessageThreadContextType.Product,
         contextId: String(product.id),
         contextLabel: product.name[language],
@@ -109,6 +125,7 @@ const Chatroom: React.FC<ChatroomProps> = ({ product, craft, onClose }) => {
     if (craft) {
       return {
         artisanName: craft.artisan[language],
+        artisanId: artisanId ?? "artisan-1",
         contextType: MessageThreadContextType.Craft,
         contextId: String(craft.id),
         contextLabel: craft.name[language],
@@ -116,18 +133,30 @@ const Chatroom: React.FC<ChatroomProps> = ({ product, craft, onClose }) => {
       };
     }
 
+    if (artisan) {
+      return {
+        artisanName: artisan.name[language],
+        artisanId: artisanId ?? toArtisanUserId(artisan.id),
+        contextType: MessageThreadContextType.Craft,
+        contextId: `artisan-profile-${artisan.id}`,
+        contextLabel: artisan.name[language],
+        image: artisan.image,
+      };
+    }
+
     return {
       artisanName: t("artisanChatroomContextFallback"),
+      artisanId: artisanId ?? "artisan-1",
       contextType: MessageThreadContextType.CoCreationRequest,
       contextId: "general",
       contextLabel: t("artisanChatroomContextFallback"),
       image: "",
     };
-  }, [craft, language, product, t]);
+  }, [artisan, artisanId, craft, language, product, t]);
 
   useEffect(() => {
     let isActive = true;
-    const localThread = buildLocalThread(chatContext);
+    const localThread = buildLocalThread(chatContext, customerId, chatContext.artisanId);
     setThread(localThread);
     setMessages([]);
     setError(null);
@@ -140,6 +169,8 @@ const Chatroom: React.FC<ChatroomProps> = ({ product, craft, onClose }) => {
           contextId: chatContext.contextId,
           contextLabel: chatContext.contextLabel,
           productId: chatContext.productId,
+          customerId,
+          artisanId: chatContext.artisanId,
           customerName: "Craftscape customer",
         });
         if (!isActive) return;
@@ -195,7 +226,7 @@ const Chatroom: React.FC<ChatroomProps> = ({ product, craft, onClose }) => {
       subscriptionRef.current?.disconnect();
       subscriptionRef.current = null;
     };
-  }, [chatContext, t]);
+  }, [chatContext, customerId, t]);
 
   const latestSequence = useMemo(
     () => Math.max(0, ...messages.map((message) => message.sequence ?? 0)),

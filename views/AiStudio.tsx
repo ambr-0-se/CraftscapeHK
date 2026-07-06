@@ -20,6 +20,8 @@ import {
 } from "../services/apiService";
 import { getMahjongTranslationSuggestions } from "../services/translationService";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useDemoPersona } from "../contexts/DemoPersonaContext";
+import { getArtisanForCraft } from "../utils/listingData";
 
 interface AiStudioProps {
   craft: Craft;
@@ -45,6 +47,8 @@ const sleep = (ms: number) =>
   });
 
 const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
+  const { activePersonaId } = useDemoPersona();
+  const targetArtisan = useMemo(() => getArtisanForCraft(craft), [craft]);
   const [prompt, setPrompt] = useState("");
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [generatedImageFit, setGeneratedImageFit] = useState<
@@ -394,7 +398,9 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
         const concept = await generateAndPersistAiConcept(
           craft.id,
           craft.name,
-          modelPrompt
+          modelPrompt,
+          undefined,
+          activePersonaId
         );
         imageUrl = concept.imageUrl;
         savedConcept = concept;
@@ -421,7 +427,8 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           craft.name,
           effectivePrompt,
           imageUrl,
-          [imageUrl]
+          [imageUrl],
+          activePersonaId
         );
         savedConcept = concept;
         setPersistedConcept(concept);
@@ -514,6 +521,7 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
     isTryOnMode,
     isCheongsamCraft,
     selectedFace,
+    activePersonaId,
     t,
     addTryOnLook,
   ]);
@@ -575,6 +583,8 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
           customerName: contactName,
           customerEmail: contactEmail,
           customerMessage: contactMessage,
+          customerId: activePersonaId,
+          artisanId: targetArtisan ? `artisan-${targetArtisan.id}` : undefined,
         });
         setSubmittedRequest(request);
         setIsSubmittingContact(false);
@@ -597,6 +607,8 @@ const AiStudio: React.FC<AiStudioProps> = ({ craft, onClose }) => {
       contactName,
       contactEmail,
       contactMessage,
+      activePersonaId,
+      targetArtisan,
       t,
     ]
   );

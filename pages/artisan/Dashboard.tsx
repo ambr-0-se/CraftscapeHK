@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { getOrders, getMessageThreads } from '../../services/apiService';
+import { getBookings, getCoCreationRequests, getOrders, getMessageThreads } from '../../services/apiService';
 import { ArtisanTab } from '../../enums';
 import type { Order, MessageThread } from '../../types';
+import type { BookingContract, CoCreationRequestContract } from '../../shared/contracts';
+import { BookingStatus, CoCreationRequestStatus } from '../../shared/contracts';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useDemoPersona } from '../../contexts/DemoPersonaContext';
 
 interface StatCardProps {
     title: string;
@@ -45,39 +48,60 @@ interface DashboardProps {
 
 const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
     const [orders, setOrders] = useState<Order[]>([]);
+    const [bookings, setBookings] = useState<BookingContract[]>([]);
+    const [requests, setRequests] = useState<CoCreationRequestContract[]>([]);
     const [messages, setMessages] = useState<MessageThread[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const { t } = useLanguage();
+    const [error, setError] = useState<string | null>(null);
+    const { language, t } = useLanguage();
+    const { activeArtisanId, activePersona } = useDemoPersona();
 
     useEffect(() => {
+        if (!activeArtisanId) {
+            setIsLoading(false);
+            setOrders([]);
+            setBookings([]);
+            setRequests([]);
+            setMessages([]);
+            return;
+        }
         const fetchData = async () => {
             setIsLoading(true);
             try {
-                const [ordersData, messagesData] = await Promise.all([
-                    getOrders(),
-                    getMessageThreads()
+                const [ordersData, bookingsData, requestsData, messagesData] = await Promise.all([
+                    getOrders({ artisanId: activeArtisanId }),
+                    getBookings({ artisanId: activeArtisanId }),
+                    getCoCreationRequests({ artisanId: activeArtisanId }),
+                    getMessageThreads({ artisanId: activeArtisanId })
                 ]);
                 setOrders(ordersData);
+                setBookings(bookingsData);
+                setRequests(requestsData);
                 setMessages(messagesData);
+                setError(null);
             } catch (error) {
                 console.error("Failed to fetch dashboard data:", error);
+                setError('Unable to load this artisan dashboard. Please try again.');
             } finally {
                 setIsLoading(false);
             }
         };
         fetchData();
-    }, []);
+    }, [activeArtisanId]);
 
     const stats = useMemo(() => {
-        const todayStr = new Date().toISOString().split('T')[0];
         const currentMonth = new Date().getMonth();
         const currentYear = new Date().getFullYear();
 
-        const todaysOrders = orders.filter(o => o.date === todayStr && o.status !== '已取消').length;
+        const actionOrders = orders.filter(o => !['completed', 'cancelled', 'refunded', '已完成', '已取消'].includes(o.status)).length;
+        const activeBookings = bookings.filter(booking =>
+            [BookingStatus.PendingPayment, BookingStatus.Confirmed].includes(booking.status)
+        ).length;
+        const approvalRequests = requests.filter(request => request.status === CoCreationRequestStatus.PendingArtisanReview).length;
         const monthlyRevenue = orders
             .filter(o => {
                 const orderDate = new Date(o.date);
-                return orderDate.getMonth() === currentMonth && orderDate.getFullYear() === currentYear && o.status === '已完成';
+                return orderDate.getMonth() === currentMonth && currentYear === orderDate.getFullYear() && ['completed', '已完成'].includes(o.status);
             })
             .reduce((sum, o) => sum + o.total, 0);
 
@@ -88,23 +112,37 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
             : 0;
         
         return {
-            todaysOrders,
+            todaysOrders: actionOrders,
+            activeBookings,
+            approvalRequests,
             monthlyRevenue: `HK$ ${monthlyRevenue.toLocaleString()}`,
             unreadMessages,
             avgOrderValue: `HK$ ${avgOrderValue}`
         };
 
-    }, [orders, messages]);
+    }, [bookings, orders, requests, messages]);
 
 
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">
             <header className="p-6 pt-10">
                 <h1 className="text-2xl font-bold text-[var(--color-text-primary)] mb-1">{t('artisanDashboardTitle')}</h1>
-                <p className="text-[17px] text-[var(--color-text-secondary)]">{t('artisanDashboardWelcome')}</p>
+                <p className="text-[17px] text-[var(--color-text-secondary)]">
+                    {activeArtisanId ? activePersona.label[language] : t('artisanDashboardWelcome')}
+                </p>
             </header>
 
             <div className="flex-grow p-6 space-y-4">
+                {!activeArtisanId && (
+                    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-secondary)]">
+                        Choose an artisan identity in Profile before managing artisan records.
+                    </div>
+                )}
+                {error && (
+                    <div className="rounded-2xl border border-[var(--color-error)]/40 bg-[var(--color-error)]/10 p-4 text-sm text-[var(--color-error)]">
+                        {error}
+                    </div>
+                )}
                 <div className="grid grid-cols-2 gap-4">
                     <StatCard 
                         title={t('artisanDashboardTodaysOrders')}
@@ -114,10 +152,10 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
                         isLoading={isLoading}
                     />
                     <StatCard 
-                        title={t('artisanDashboardUnreadMessages')}
-                        value={stats.unreadMessages}
+                        title="Workshop bookings"
+                        value={stats.activeBookings}
                         icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-primary-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>}
-                        onClick={() => setActiveTab(ArtisanTab.Messages)}
+                        onClick={() => setActiveTab(ArtisanTab.Orders)}
                         isLoading={isLoading}
                     />
                      <StatCard 
@@ -127,12 +165,18 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
                         isLoading={isLoading}
                     />
                     <StatCard 
-                        title={t('artisanDashboardAvgOrderValue')}
-                        value={stats.avgOrderValue}
+                        title="Approvals"
+                        value={stats.approvalRequests}
                         icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-primary-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>}
+                        onClick={() => setActiveTab(ArtisanTab.Orders)}
                         isLoading={isLoading}
                     />
                 </div>
+                {!isLoading && activeArtisanId && !error && orders.length === 0 && bookings.length === 0 && requests.length === 0 && (
+                    <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-secondary)]">
+                        No orders, bookings, or co-creation requests for this artisan yet.
+                    </div>
+                )}
                 
                 <div className="pt-6">
                      <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4">{t('artisanDashboardQuickActions')}</h2>

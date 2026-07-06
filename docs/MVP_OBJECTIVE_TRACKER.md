@@ -377,13 +377,15 @@ Notes:
 
 Description: Give artisans a production-ready dashboard for schedules, orders, products, messages, and co-creation requests.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-artisan-portal`
 
-Owner: `TBD`
+Branch: `mvp/artisan-portal`
 
-Last Updated: `2026-07-06`
+Owner: `Codex`
+
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -401,6 +403,11 @@ Notes:
 - Objective 1 merged co-creation approve/reject/request-changes into artisan Orders (`OrderManagement.tsx`), but the queue is not scoped to the authenticated artisan and broader dashboard requirements remain open.
 - "Authenticated artisan" is satisfied for MVP by the selectable demo persona switcher (see Confirmed Product Decisions). This objective owns building the persona switcher and scoping dashboard data to the selected persona.
 - This objective also absorbs two adjacent follow-ups: wiring the Objective 5 `Contact artisan` button to chat, and subscribing the Objective 7 artisan inbox (`Messages.tsx`) to `thread:updated` socket events.
+- Claimed on 2026-07-06 in worktree `worktrees/mvp-artisan-portal` on branch `mvp/artisan-portal`. Scope confirmed by Lane B kickoff: demo persona switcher, selected-artisan dashboard scoping, status update endpoints/actions using existing contracts, Contact artisan messaging, artisan inbox socket refresh, and dashboard loading/empty/error/unauthorized states. Contract boundary: consume existing order/payment contracts only; coordinate through the user if Lane A contract changes are needed. UI gate: standalone preview required before persona/dashboard production UI edits.
+- UI gate progress on 2026-07-06: standalone preview added at `design-previews/artisan-portal-persona-dashboard.html`; waiting for approval before React persona/dashboard production edits.
+- Review evidence on 2026-07-07: added `DemoPersonaContext` with localStorage-backed customer/artisan identities, Profile persona switcher, selected-artisan scoping for dashboard/orders/messages/co-creation requests, order and booking status update endpoints/actions using existing shared transition maps, co-creation ownership checks, Contact artisan chat wiring, and artisan inbox `thread:updated` refresh. Product create/edit management remains out of scope/lowest priority for this pass.
+- Verification on 2026-07-07: `npm run typecheck`, `npm run test:contracts`, `npm run build`, `npm run server:build`, and `npm --prefix server run test` passed. Browser smoke: Profile selector displayed customer plus seeded artisans; customer persona disabled Artisan Mode; selecting Master Wong opened Artisan Mode scoped to that persona. Full browser API QA was limited because the in-app browser control timed out after reload and a separate server already occupied port 3001; direct worktree backend startup on alternate port was blocked by sandbox listen permissions.
+- Follow-up fix on 2026-07-07: hardened API GET fallback so selected-artisan dashboard reads no longer fail when the backend is absent or an older dev backend lacks `/api/bookings`; scoped local seed fallback now covers orders/messages and returns empty booking/co-creation queues. Verification: `npm run typecheck`, `npm run build`.
 
 ## Objective 7: Real-Time Messaging With AI Translation
 
