@@ -130,10 +130,12 @@ Only mark an objective `Done` after the work is accepted, tested, and merged int
 ## Confirmed Product Decisions
 
 - Workshops are modeled as `events`.
-- Payments use Stripe.
+- Payments use Stripe, in test mode for MVP. A dev-only simulated payment-success path behind an env flag is acceptable so the demo journey never dead-ends while Stripe account setup is pending.
 - Artisan/customer messaging should be real-time.
 - Co-creation requests require artisan approval before becoming an order or booking.
-- Hosting target is Vercel with the production domain `craftscape.studio`.
+- Hosting split (decided 2026-07-06): frontend on Vercel with production domain `craftscape.studio`; backend (NestJS with WebSockets and SQLite) on Cloud Run, reusing the existing `server/Dockerfile`, `cloudbuild.yaml`, and deploy scripts. The backend cannot run on Vercel. Supabase (hosting, Postgres, or Auth) is deferred post-MVP; do not migrate toward it in feature worktrees.
+- MVP ships with selectable demo identities: a lightweight persona switcher (customer plus seeded artisans) stored in context/localStorage and sent with API calls, replacing hardcoded `demo-customer` / `demo-artisan` / `customer-demo` strings. Real authentication is deferred post-MVP. Do not half-build auth in feature worktrees; the persona switcher is the seam where a real session slots in later.
+- One shared confirmation/success surface serves workshop bookings, product orders, and co-creation orders.
 
 ## Objective 0: Shared MVP Contracts
 
@@ -397,6 +399,8 @@ Notes:
 - Existing artisan dashboard, product list, order list, and messages are mostly read-only prototype surfaces.
 - Current product add button is an alert and order statuses cannot be updated.
 - Objective 1 merged co-creation approve/reject/request-changes into artisan Orders (`OrderManagement.tsx`), but the queue is not scoped to the authenticated artisan and broader dashboard requirements remain open.
+- "Authenticated artisan" is satisfied for MVP by the selectable demo persona switcher (see Confirmed Product Decisions). This objective owns building the persona switcher and scoping dashboard data to the selected persona.
+- This objective also absorbs two adjacent follow-ups: wiring the Objective 5 `Contact artisan` button to chat, and subscribing the Objective 7 artisan inbox (`Messages.tsx`) to `thread:updated` socket events.
 
 ## Objective 7: Real-Time Messaging With AI Translation
 
@@ -433,7 +437,7 @@ Notes:
 - Fix/re-review pass on 2026-07-06: repairing DTO validation for whitelisted Nest request bodies, customer pending-send persistence, artisan optimistic dedupe, craft-detail context links, and chat composer containment before re-running objective validation.
 - Review evidence on 2026-07-06: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build` passed. Runtime smoke on a clean SQLite database passed for REST thread creation, persisted message send, idempotent duplicate send, replay, craft context creation, and WebSocket message echo. Translation path attempted backend AI translation and stored fallback metadata when the provider returned errors in this environment.
 - PR handoff on 2026-07-06: branch `codex/real-time-messaging` is ready for rebase, final verification, push, and pull request creation against `main`.
-- Rebase evidence on 2026-07-06: rebased onto `origin/main` (`0f80a25`) after resolving additive conflicts with Objective 4 workshop booking entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
+- Rebase evidence on 2026-07-06: rebased onto `origin/main` (`0f80a25`) after resolving additive conflicts with Objective 2 workshop booking entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
 - Pull request: https://github.com/ambr-0-se/CraftscapeHK/pull/6
 - Rebase refresh on 2026-07-06: rebased onto latest `origin/main` (`268fea8`) after resolving additive conflicts with listing pages and AI co-creation entities. Post-rebase verification passed: `npm run test:contracts`, `npm --prefix server run test`, `npm run typecheck`, `npm run server:build`, and `npm run build`.
 - Merged via PR #6 (`2e42d3f`) on 2026-07-06.
@@ -452,7 +456,7 @@ Worktree: `N/A`
 
 Owner: `TBD`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
@@ -468,6 +472,10 @@ Notes:
 
 - No Stripe dependency or payment API was found.
 - Seeded chat contains a payment-looking message, but it is not connected to payment processing.
+- Prerequisite discovered in Objective 5 audit: product/workshop pricing currently uses display strings, not money fields. Backend pricing must be normalized to integer cents plus currency before Stripe line items can be generated. This normalization is owned by this objective.
+- Webhooks require a publicly reachable backend URL; production target is the Cloud Run backend (see Confirmed Product Decisions). Local development uses Stripe CLI forwarding.
+- Per Confirmed Product Decisions, a dev-only simulated payment-success endpoint behind an env flag should be built first so checkout, confirmation, and order tracking are demoable before real Stripe keys are wired; real Stripe Checkout then replaces the simulation without UI changes.
+- This objective owns all shared contract changes for orders, payments, and checkout. Other concurrent worktrees consume, never edit, these contracts.
 
 ## Objective 9: Order, Booking, And Confirmation Flow
 
@@ -500,7 +508,7 @@ Notes:
 
 ## Objective 10: Vercel Hosting And `craftscape.studio` Domain
 
-Description: Host the production app on Vercel and configure the production domain `craftscape.studio`.
+Description: Host the production frontend on Vercel with the `craftscape.studio` domain and deploy the NestJS backend to Cloud Run.
 
 Current state: `Partial`
 
@@ -508,31 +516,36 @@ Worktree: `N/A`
 
 Owner: `TBD`
 
-Last Updated: `2026-06-28`
+Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
 - Vercel project is configured for the frontend build.
-- Production domain `craftscape.studio` is added and verified in Vercel.
-- DNS records point `craftscape.studio` to Vercel.
-- Environment variables are configured for frontend and backend endpoints.
-- Backend deployment target is defined and reachable from the Vercel frontend.
+- Backend is deployed to Cloud Run using the existing `server/Dockerfile` / `cloudbuild.yaml` path and is reachable over HTTPS, including the WebSocket gateway.
+- The Vercel frontend reaches the Cloud Run backend via `VITE_API_URL` or a `vercel.json` `/api` rewrite; currently `vercel.json` only rewrites to `index.html`, so the deployed frontend has no working API.
+- Environment variables (AI provider keys, Stripe keys, backend URL) are configured for frontend and backend; secrets never ship to the frontend bundle.
+- Production domain `craftscape.studio` is added and verified in Vercel with DNS pointing to Vercel. If DNS propagation is slow, the `*.vercel.app` URL is an acceptable MVP fallback; do not block launch on the custom domain.
 - Production build passes before deployment.
-- Deployment smoke test covers homepage, Explore, Marketplace, Events, AI route availability, and Stripe checkout route availability.
+- Deployment smoke test covers homepage, Explore, Marketplace, Events, AI route availability, messaging WebSocket connection, and Stripe checkout route availability.
 
 Notes:
 
 - `vercel.json` exists and README references the current Vercel demo URL.
+- Hosting split is confirmed: Vercel frontend plus Cloud Run backend (see Confirmed Product Decisions). The NestJS backend (WebSockets, SQLite, Stripe webhooks) cannot run on Vercel.
+- Cloud Run deploys were exercised during the Foundation objective (repo-root `docker build -f server/Dockerfile .`).
+- Stripe webhook endpoint URL must be registered against the deployed Cloud Run URL after Objective 8 lands.
 - Domain configuration and production smoke test status are not confirmed in repo.
 
-## Suggested Remaining Worktree Split
+## Remaining Execution Plan (revised 2026-07-06 for the final build window)
 
-- `worktrees/mvp-stripe-orders`: Objectives 8 and 9.
-- `worktrees/mvp-artisan-portal`: Objective 6.
-- `worktrees/mvp-listings-followup`: Objective 5 remaining acceptance gaps (artisan workshops/contact, product checkout pricing, Events error state, craft media).
-- `worktrees/mvp-messaging-context`: Objective 7 remaining context-link entry points and artisan inbox live updates.
-- `worktrees/mvp-onboarding-journey`: Objectives 3 and 4 after core flows stabilize.
-- `worktrees/mvp-vercel-domain`: Objective 10.
+Run at most two concurrent lanes, then finish sequentially. Kickoff prompts and live handoff state for each lane are in `docs/HANDOFF.md`.
+
+- Lane A (critical path, ~2.5h) — `worktrees/mvp-stripe-orders`, branch `mvp/stripe-orders`: Objectives 8 and 9 together. Owns all order/payment/checkout contract changes. Build the simulated-payment path first, then real Stripe test mode.
+- Lane B (parallel, ~1.5h) — `worktrees/mvp-artisan-portal`, branch `mvp/artisan-portal`: Objective 6 plus the demo persona switcher, Objective 5 contact-artisan wiring, and Objective 7 artisan inbox socket subscription. Consumes, never edits, order/payment contracts; rebases onto `main` immediately after Lane A merges.
+- Sequential after Lane A merges (~45m) — branch `mvp/onboarding-journey`: Objectives 3 and 4. Update onboarding for the completed flows, then one end-to-end journey QA pass fixing dead ends only.
+- Final (~45m) — branch `mvp/deploy`: Objective 10. Cloud Run backend deploy, Vercel API wiring, production smoke test.
+
+Cut list if time runs out (none block the core journey): craft image gallery, Events fetch error state, live co-creation status refresh, artisan profile workshops section, `craftscape.studio` DNS (fall back to the vercel.app URL).
 
 ## Cross-Worktree Coordination Notes
 
