@@ -532,9 +532,9 @@ Notes:
 - Acceptance partially met: artisan order/booking status updates are Lane B scope; artisan payment-status visibility is limited to existing surfaces until Lane B scopes the dashboard.
 - Commands and QA: see Objective 8 evidence (same worktree/branch).
 
-## Objective 10: Vercel Hosting And `craftscape.studio` Domain
+## Objective 10: Vercel Hosting And `app.craftscape.studio` Domain
 
-Description: Host the production frontend on Vercel with the `craftscape.studio` domain and deploy the NestJS backend to Cloud Run.
+Description: Host the production frontend on Vercel with the `app.craftscape.studio` subdomain and deploy the NestJS backend to Cloud Run. The apex `craftscape.studio` is reserved for a separate landing page and is out of scope for this repo. The domain is registered at name.com.
 
 Current state: `Partial`
 
@@ -546,11 +546,12 @@ Last Updated: `2026-07-06`
 
 Acceptance Requirements:
 
-- Vercel project is configured for the frontend build.
-- Backend is deployed to Cloud Run using the existing `server/Dockerfile` / `cloudbuild.yaml` path and is reachable over HTTPS, including the WebSocket gateway.
-- The Vercel frontend reaches the Cloud Run backend via `VITE_API_URL` or a `vercel.json` `/api` rewrite; currently `vercel.json` only rewrites to `index.html`, so the deployed frontend has no working API.
-- Environment variables (AI provider keys, Stripe keys, backend URL) are configured for frontend and backend; secrets never ship to the frontend bundle.
-- Production domain `craftscape.studio` is added and verified in Vercel with DNS pointing to Vercel. If DNS propagation is slow, the `*.vercel.app` URL is an acceptable MVP fallback; do not block launch on the custom domain.
+- A fresh Vercel project and a fresh GCP project are created under the user's own accounts (the repo was forked from a teammate; the Cloud Run URLs hardcoded in `server/src/main.ts` CORS belong to the teammate's project and are not reusable).
+- Backend is deployed to Cloud Run from the repo-root Docker context (`docker build -f server/Dockerfile .`) and is reachable over HTTPS, including the WebSocket gateway. Note: `cloudbuild.yaml` is stale — its backend step uses `./server` as build context, which breaks the shared-contracts `COPY`; fix it or bypass it with a direct build-and-push.
+- The Vercel frontend reaches the Cloud Run backend via `VITE_API_BASE_URL` (REST) and `VITE_SOCKET_BASE_URL` (WebSocket) build-time env vars — these are the actual names read by `services/apiService.ts` and `services/messagingService.ts`. Do not use a `vercel.json` rewrite: Vercel rewrites do not proxy WebSockets.
+- Backend CORS is configured via the `ALLOWED_ORIGINS` env var on Cloud Run (already supported by `server/src/main.ts`; the WS gateway allows all origins). No code change needed for the new domain.
+- Environment variables (AI provider keys, Stripe keys or `PAYMENTS_SIMULATED=true`, `CHECKOUT_RETURN_BASE_URL`, `ALLOWED_ORIGINS`) are configured on Cloud Run; secrets never ship to the frontend bundle.
+- Production domain `app.craftscape.studio` is added in Vercel with a CNAME at name.com (`app` → `cname.vercel-dns.com`). If DNS propagation is slow, the `*.vercel.app` URL is an acceptable MVP fallback; do not block launch on the custom domain.
 - Production build passes before deployment.
 - Deployment smoke test covers homepage, Explore, Marketplace, Events, AI route availability, messaging WebSocket connection, and Stripe checkout route availability.
 
@@ -559,7 +560,9 @@ Notes:
 - `vercel.json` exists and README references the current Vercel demo URL.
 - Hosting split is confirmed: Vercel frontend plus Cloud Run backend (see Confirmed Product Decisions). The NestJS backend (WebSockets, SQLite, Stripe webhooks) cannot run on Vercel.
 - Cloud Run deploys were exercised during the Foundation objective (repo-root `docker build -f server/Dockerfile .`).
-- Stripe webhook endpoint URL must be registered against the deployed Cloud Run URL after Objective 8 lands.
+- No Stripe keys exist in `.env` as of 2026-07-07 — deploy with `PAYMENTS_SIMULATED=true` unless the user supplies test-mode keys; register the Stripe webhook against the Cloud Run URL only if real mode ships.
+- SQLite on Cloud Run is ephemeral: data resets when an instance is replaced. Acceptable for the demo; seeding must run on startup.
+- CLI-first deployment is preferred (name.com DNS API, `vercel` CLI, `gcloud` CLI); interactive auth steps (`gcloud auth login`, `vercel login`) must be run by the user.
 - Domain configuration and production smoke test status are not confirmed in repo.
 
 ## Remaining Execution Plan (revised 2026-07-06 for the final build window)

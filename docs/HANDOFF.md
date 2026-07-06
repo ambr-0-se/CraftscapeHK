@@ -129,23 +129,24 @@ Branch `mvp/deploy` (~45m).
 
 ### Kickoff prompt (paste to agent)
 
-> You are implementing Objective 10 (hosting) for CraftscapeHK. Read `docs/MVP_OBJECTIVE_TRACKER.md` Objective 10 and Confirmed Product Decisions first. Hosting split is decided: frontend on Vercel, backend on Cloud Run — do not propose alternatives.
+> You are implementing Objective 10 (hosting) for CraftscapeHK. Read `docs/MVP_OBJECTIVE_TRACKER.md` Objective 10 and Confirmed Product Decisions first. Hosting split is decided: frontend on Vercel at `app.craftscape.studio`, backend on Cloud Run — do not propose alternatives. The apex `craftscape.studio` hosts a separate landing page and is out of scope. Everything is a fresh setup under the user's own accounts (the repo is a fork; the teammate's Cloud Run/Vercel infra referenced in `server/src/main.ts` CORS is not reusable). Prefer CLI for every step; the user runs interactive logins themselves (`gcloud auth login`, `vercel login`) and supplies a name.com API token if DNS should be automated.
 >
-> Scope:
-> 1. Deploy the NestJS backend to Cloud Run using the existing repo-root `docker build -f server/Dockerfile .` path (exercised in the Foundation objective; see `cloudbuild.yaml` and deploy scripts). Configure backend env vars (AI provider keys, Stripe keys, `PAYMENTS_SIMULATED` as appropriate) as Cloud Run secrets/env, never in the repo.
-> 2. Point the Vercel frontend at the Cloud Run backend via `VITE_API_URL` or a `vercel.json` `/api` rewrite (currently `vercel.json` only rewrites to `index.html`, so the deployed frontend has no working API). Verify the WebSocket connection works through the chosen path.
-> 3. Register the Stripe webhook endpoint against the deployed Cloud Run URL (if Objective 8 shipped real Stripe mode).
-> 4. Add `craftscape.studio` in Vercel and configure DNS. If propagation is slow, ship on the vercel.app URL and note the domain as pending — do not block launch on DNS.
-> 5. Run `npm run build` before deploying, then smoke test production: homepage, Explore, Marketplace, Events, AI route, messaging WebSocket, checkout route, confirmation screen.
+> Scope, in order:
+> 1. **Tooling:** install `gcloud` (`brew install --cask google-cloud-sdk`) and `vercel` (`npm i -g vercel`) if missing; have the user authenticate both.
+> 2. **Cloud Run backend:** create/select the user's GCP project (billing enabled), enable Cloud Run + Cloud Build + Artifact Registry APIs. Build from the **repo root** Docker context. Warning: `cloudbuild.yaml`'s backend step passes `./server` as context, which breaks the shared-contracts `COPY shared/...` — fix that step to use `.` or bypass it with `gcloud builds submit --tag` from the root plus `gcloud run deploy`. Set env vars: AI provider keys from `.env`, `PAYMENTS_SIMULATED=true` (no Stripe keys exist in `.env`; use real test keys only if the user supplies them), `CHECKOUT_RETURN_BASE_URL=https://app.craftscape.studio`, and `ALLOWED_ORIGINS=https://app.craftscape.studio,https://<project>.vercel.app` (`server/src/main.ts` reads this — no code change needed). Secrets live in Cloud Run env/Secret Manager, never the repo.
+> 3. **Vercel frontend:** `vercel link` a new project, set build-time env vars `VITE_API_BASE_URL=https://<cloud-run-url>/api` and `VITE_SOCKET_BASE_URL=https://<cloud-run-url>` (these are the names `services/apiService.ts` and `services/messagingService.ts` actually read — the tracker's old `VITE_API_URL` name was wrong), then `vercel deploy --prod`. Do NOT use a `vercel.json` `/api` rewrite: Vercel rewrites cannot proxy WebSockets, so the socket must hit Cloud Run directly.
+> 4. **Domain:** `vercel domains add app.craftscape.studio`, then create the CNAME at name.com (`app` → `cname.vercel-dns.com`) via the name.com v4 API (`POST https://api.name.com/v4/domains/craftscape.studio/records` with the user's username + API token) or manually in the name.com dashboard if no token. If propagation is slow, ship on the vercel.app URL — do not block launch on DNS.
+> 5. **Stripe webhook (only if real mode ships):** register `https://<cloud-run-url>/api/payments/stripe/webhook` via the Stripe dashboard or CLI and set `STRIPE_WEBHOOK_SECRET` on Cloud Run.
+> 6. **Smoke test production:** homepage, Explore, Marketplace, Events, AI route, messaging WebSocket connect, workshop booking → checkout (simulated) → confirmation → Profile Orders. SQLite on Cloud Run is ephemeral — verify seed-on-startup works and record that data resets when instances are replaced.
 >
-> Out of scope: feature changes, database migration off SQLite, Supabase.
+> Out of scope: feature changes, database migration off SQLite, Supabase, the apex-domain landing page.
 >
-> Update the tracker with deployment evidence (URLs, smoke test results) and this file's Lane D state when stopping.
+> Update the tracker with deployment evidence (project IDs, URLs, smoke test results) and this file's Lane D state when stopping.
 
 ### Live handoff state — Lane D
 
-- Status: not started (last lane; needs Lane A merged, ideally B and C)
+- Status: not started (Lanes A/B/C merged 2026-07-07; this is the last lane)
 - Last agent/tool: —
-- Done so far: —
-- Next step if resuming: —
-- Blockers / decisions needed: Vercel + GCP access/credentials from the user; Stripe webhook needs Objective 8 merged
+- Done so far: plan finalized and user decisions confirmed (2026-07-07): simulated payments (`PAYMENTS_SIMULATED=true`), fresh GCP project under the user's billable account, DNS automated via name.com API token
+- Next step if resuming: run the kickoff prompt above, starting with tooling install + user logins
+- Blockers / decisions needed: user must run `gcloud auth login` and `vercel login`, and provide the name.com username + API token when the DNS step is reached
