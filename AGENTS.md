@@ -7,6 +7,7 @@
 - Shared contract guidance lives in `docs/SHARED_CONTRACTS.md`. Ownership rules live in `docs/OWNERSHIP_MODEL.md`. New MVP work should import from `shared/contracts.ts` rather than adding private enums or duplicate status values.
 - MVP production-readiness objectives are tracked in `docs/MVP_OBJECTIVE_TRACKER.md`. When starting or finishing work in a concurrent worktree, update the relevant objective status, worktree name, owner, date, and notes.
 - Cross-agent lane kickoff prompts and live handoff state live in `docs/HANDOFF.md`. When picking up or pausing a lane (in any tool: Claude Code, Codex, Cursor), read and update that file so the next agent can resume without re-deriving context.
+- Production topology, redeploy triggers, env vars, and deployment gotchas live in `docs/DEPLOYMENT.md`. Read it before deploying or changing production configuration. **Nothing auto-deploys: merging to `main` does not update production.** After merging user-facing or backend changes, run the manual deploy commands in `docs/DEPLOYMENT.md` (frontend: `vercel deploy --prod`; backend: `scripts/deploy-backend-cloudrun.sh`).
 
 ## Build, Test, and Development Commands
 - Frontend: `npm install` then `npm run dev` launches Vite on port 3000; `npm run build` outputs production assets in `dist/`; `npm run preview` serves that build locally.
