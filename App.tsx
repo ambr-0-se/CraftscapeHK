@@ -13,8 +13,24 @@ import ProductDetail from "./views/ProductDetail";
 import Chatroom from "./views/Chatroom";
 import ArtisanProfile from "./views/ArtisanProfile";
 import TextLab from "./pages/TextLab";
+import CheckoutView from "./views/CheckoutView";
+import OrderConfirmation from "./views/OrderConfirmation";
 import { Tab, View, ArtisanTab, ArtisanView } from "./enums";
-import type { Artisan, Craft, Event, Product, MessageThread } from "./types";
+import type {
+  Artisan,
+  CheckoutIntent,
+  Craft,
+  Event,
+  Product,
+  MessageThread,
+} from "./types";
+import type {
+  CheckoutSessionResultContract,
+  CustomerOrderHistoryEntryContract,
+  OrderContract,
+} from "./shared/contracts";
+import { cancelCheckoutOrder, getCheckoutOrder } from "./services/apiService";
+import type { ProfileTab } from "./pages/Profile";
 import { AnimatePresence, motion } from "framer-motion";
 import { CRAFTS, PRODUCTS } from "./constants";
 import OnboardingGuide from "./components/OnboardingGuide";
@@ -64,6 +80,17 @@ export default function App() {
   const [artisanReturnView, setArtisanReturnView] = useState<View>(View.Explore);
   const [aiStudioReturnView, setAiStudioReturnView] = useState<View>(View.CraftDetail);
 
+  // Checkout & order confirmation (Objectives 8/9)
+  const [checkoutIntent, setCheckoutIntent] = useState<CheckoutIntent | null>(null);
+  const [confirmationEntry, setConfirmationEntry] =
+    useState<CustomerOrderHistoryEntryContract | null>(null);
+  const [confirmationHint, setConfirmationHint] = useState<
+    "success" | "cancelled" | undefined
+  >(undefined);
+  const [profileInitialTab, setProfileInitialTab] = useState<ProfileTab | undefined>(
+    undefined
+  );
+
   // Artisan view management
   const [currentArtisanView, setCurrentArtisanView] = useState<ArtisanView>(
     ArtisanView.List
@@ -92,6 +119,81 @@ export default function App() {
 
   const handleReopenOnboarding = useCallback(() => {
     setShowOnboarding(true);
+  }, []);
+
+  // Handle the Stripe Checkout return redirect (?checkout=success|cancelled&orderId=…)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const checkoutParam = params.get("checkout");
+    const orderId = params.get("orderId");
+    if (!checkoutParam || !orderId) {
+      return;
+    }
+    window.history.replaceState({}, "", window.location.pathname);
+    getCheckoutOrder(orderId)
+      .then((entry) => {
+        setConfirmationHint(checkoutParam === "success" ? "success" : "cancelled");
+        setConfirmationEntry(entry);
+        setCurrentView(View.OrderConfirmation);
+      })
+      .catch((error) => {
+        console.error("Failed to load order after Stripe redirect:", error);
+      });
+  }, []);
+
+  const handleStartCheckout = useCallback((intent: CheckoutIntent) => {
+    setCheckoutIntent(intent);
+    setCurrentView(View.Checkout);
+  }, []);
+
+  const handleCheckoutClose = useCallback(() => {
+    setCurrentView(
+      checkoutIntent?.kind === "workshop"
+        ? View.EventDetail
+        : checkoutIntent?.kind === "product"
+          ? View.ProductDetail
+          : View.Explore
+    );
+    setCheckoutIntent(null);
+  }, [checkoutIntent]);
+
+  const handleCheckoutComplete = useCallback(
+    (result: CheckoutSessionResultContract) => {
+      setConfirmationEntry({ order: result.order, booking: result.booking });
+      setConfirmationHint(undefined);
+      setCheckoutIntent(null);
+      setCurrentView(View.OrderConfirmation);
+    },
+    []
+  );
+
+  const handleConfirmationClose = useCallback(() => {
+    setConfirmationEntry(null);
+    setConfirmationHint(undefined);
+    setCurrentView(View.Explore);
+  }, []);
+
+  const handleViewOrders = useCallback(() => {
+    setConfirmationEntry(null);
+    setConfirmationHint(undefined);
+    setProfileInitialTab("orders");
+    setActiveTab(Tab.Profile);
+    setCurrentView(View.Explore);
+  }, []);
+
+  const handleConfirmationRetry = useCallback(
+    (order: OrderContract) => {
+      setConfirmationEntry(null);
+      setConfirmationHint(undefined);
+      handleStartCheckout({ kind: "retry", order });
+    },
+    [handleStartCheckout]
+  );
+
+  const handleConfirmationCancelOrder = useCallback(async (order: OrderContract) => {
+    const entry = await cancelCheckoutOrder(order.id);
+    setConfirmationHint(undefined);
+    setConfirmationEntry(entry);
   }, []);
 
   const toggleArtisanMode = useCallback(() => {
@@ -258,8 +360,11 @@ export default function App() {
       case Tab.Profile:
         return (
           <Profile
+            key={profileInitialTab ?? "default"}
             onToggleArtisanMode={toggleArtisanMode}
             onReopenOnboarding={handleReopenOnboarding}
+            onStartCheckout={handleStartCheckout}
+            initialTab={profileInitialTab}
           />
         );
       default:
@@ -401,6 +506,7 @@ export default function App() {
                   <EventDetail
                     event={selectedEvent}
                     onClose={handleCloseDetail}
+                    onStartCheckout={handleStartCheckout}
                   />
                 </motion.div>
               )}
@@ -419,6 +525,13 @@ export default function App() {
                     onClose={handleCloseProductDetail}
                     onContact={handleOpenChatroom}
                     onAiGen={handleOpenProductCustomization}
+                    onPurchase={() =>
+                      handleStartCheckout({
+                        kind: "product",
+                        product: selectedProduct,
+                        quantity: 1,
+                      })
+                    }
                     onViewArtisan={
                       getArtisanForProduct(selectedProduct)
                         ? handleShowProductArtisan
@@ -472,6 +585,43 @@ export default function App() {
                     product={selectedProduct ?? undefined}
                     craft={selectedProduct ? undefined : selectedCraft ?? undefined}
                     onClose={handleCloseChatroom}
+                  />
+                </motion.div>
+              )}
+
+              {currentView === View.Checkout && checkoutIntent && (
+                <motion.div
+                  key="checkout"
+                  className="absolute inset-0 z-40"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <CheckoutView
+                    intent={checkoutIntent}
+                    onClose={handleCheckoutClose}
+                    onComplete={handleCheckoutComplete}
+                  />
+                </motion.div>
+              )}
+
+              {currentView === View.OrderConfirmation && confirmationEntry && (
+                <motion.div
+                  key="order-confirmation"
+                  className="absolute inset-0 z-40"
+                  initial={{ y: "100%" }}
+                  animate={{ y: 0 }}
+                  exit={{ y: "100%" }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                >
+                  <OrderConfirmation
+                    entry={confirmationEntry}
+                    hint={confirmationHint}
+                    onViewOrders={handleViewOrders}
+                    onRetry={handleConfirmationRetry}
+                    onCancelOrder={handleConfirmationCancelOrder}
+                    onClose={handleConfirmationClose}
                   />
                 </motion.div>
               )}

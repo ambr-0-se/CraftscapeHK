@@ -450,13 +450,15 @@ Notes:
 
 Description: Integrate Stripe for workshop bookings, product purchases, and approved co-creation requests.
 
-Current state: `Not Started`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-stripe-orders`
 
-Owner: `TBD`
+Branch: `mvp/stripe-orders`
 
-Last Updated: `2026-07-06`
+Owner: `Claude Code`
+
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -476,18 +478,26 @@ Notes:
 - Webhooks require a publicly reachable backend URL; production target is the Cloud Run backend (see Confirmed Product Decisions). Local development uses Stripe CLI forwarding.
 - Per Confirmed Product Decisions, a dev-only simulated payment-success endpoint behind an env flag should be built first so checkout, confirmation, and order tracking are demoable before real Stripe keys are wired; real Stripe Checkout then replaces the simulation without UI changes.
 - This objective owns all shared contract changes for orders, payments, and checkout. Other concurrent worktrees consume, never edit, these contracts.
+- Review evidence (2026-07-07): added checkout/order contracts to `shared/contracts.ts` (checkout item inputs, `CreateCheckoutSessionInputContract`, `CheckoutSessionResultContract`, `CustomerOrderHistoryEntryContract`, `formatMoneyDisplay`); new `server/src/payments` module with `POST /api/checkout/session`, `GET /api/checkout/orders[/:id]`, `POST /api/checkout/orders/:id/cancel`, and `POST /api/payments/stripe/webhook`; `checkout_orders` entity; product pricing normalized to integer cents (`priceMoney`) on the products API from decimal DB price — display strings never charge.
+- Simulated mode: `PAYMENTS_SIMULATED=true` confirms checkout immediately as if the webhook succeeded (supports `simulatedOutcome: success|failure|cancelled` for demoing failure states). Real mode: Stripe Checkout Sessions built from backend cents pricing with `orderId` metadata; webhook verifies signature (`STRIPE_WEBHOOK_SECRET`) and handles `checkout.session.completed`/`async_payment_succeeded|failed`/`expired` and `payment_intent.payment_failed` with `stripeLatestEventId` dedupe. Raw request body preserved on the webhook route for signature verification. Env vars: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `CHECKOUT_RETURN_BASE_URL`, `PAYMENTS_SIMULATED` — backend only, never the frontend bundle. Stripe CLI local forwarding: `stripe listen --forward-to localhost:3001/api/payments/stripe/webhook`.
+- Confirmed payments transition orders `pending_payment → paid`, bookings `pending_payment → confirmed` with the schedule capacity snapshot decremented (and schedule set to `full` at zero availability); failure moves booking to `payment_failed` with retry back to `pending_payment`; cancellation cancels the order/booking per the transition maps.
+- Commands run: `npm run typecheck`, `npm run test:contracts` (25 passed), `npm run contracts:build`, `npm run build`, `npm run server:build`, `npm --prefix server run test` (20 passed, incl. 10 new payments specs).
+- Manual API QA (simulated mode, via Vite proxy): pending booking → checkout → order paid + booking confirmed + capacity decremented; product priced-on-request rejected; co-creation checkout blocked before approval and converts to order after; failed payment retryable via `orderId`; cancel endpoint cancels order and booking.
+- Acceptance not verified in this pass: real Stripe test-mode round trip (needs test keys from the user — code path implemented and unit-tested); in-browser visual QA (Chrome extension unavailable in session; run `npm run dev:stack` with `PAYMENTS_SIMULATED=true`).
 
 ## Objective 9: Order, Booking, And Confirmation Flow
 
 Description: Create and track product orders, workshop bookings, and approved co-creation orders from checkout through completion.
 
-Current state: `Partial`
+Current state: `Review`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-stripe-orders`
 
-Owner: `TBD`
+Branch: `mvp/stripe-orders`
 
-Last Updated: `2026-07-06`
+Owner: `Claude Code`
+
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -501,10 +511,13 @@ Acceptance Requirements:
 
 Notes:
 
-- Existing backend orders are read-only.
-- Existing artisan order management lists seeded data only; co-creation decisions are now actionable via Objective 1, but order/booking status updates are not.
-- Objective 2 creates pending workshop bookings at `/api/bookings/workshops/pending`, but there is no customer-facing booking history, confirmation screen, or booking read API yet.
-- No customer-facing order history or booking confirmation flow exists yet.
+- Existing backend orders are read-only (legacy seeded `orders` table kept for prototype artisan surfaces; real checkout orders live in `checkout_orders` matching `OrderContract`).
+- Review evidence (2026-07-07): approved design preview `design-previews/checkout-orders.html`; one shared `CheckoutView` sheet serves workshop seats, product purchases, and approved co-creation deposits; one shared `OrderConfirmation` surface covers success, processing, failed, and cancelled outcomes (Confirmed Product Decision); Profile gains an Orders tab with status chips, retry CTA on failed payments, and loading/empty/error states; failed/cancelled payments are visible and retryable, never dead ends.
+- Checkout entry points wired: workshop reserved-for-checkout state (EventDetail `Continue to checkout`), product detail purchase CTA (purchasable, non-quote products), approved co-creation requests in Profile (`Pay deposit` CTA). Stripe return redirect (`?checkout=success|cancelled&orderId=`) routes into the confirmation surface.
+- In-app confirmation surfaces serve as the MVP notification mechanism (no email; per MVP scope the confirmation screen plus Profile → Orders is the specified implementation).
+- Customer ownership check: checkout, history, and cancel APIs take `customerId` (demo `customer-demo`) and reject cross-customer access; artisan-side order status updates remain with Lane B (Objective 6) using `ORDER_STATUS_TRANSITIONS`.
+- Acceptance partially met: artisan order/booking status updates are Lane B scope; artisan payment-status visibility is limited to existing surfaces until Lane B scopes the dashboard.
+- Commands and QA: see Objective 8 evidence (same worktree/branch).
 
 ## Objective 10: Vercel Hosting And `craftscape.studio` Domain
 

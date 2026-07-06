@@ -60,6 +60,9 @@ export async function createNestServer() {
     optionsSuccessStatus: 204,
   });
 
+  // Stripe webhook signature verification needs the unparsed request body,
+  // so mount the raw parser for that route before the JSON parser.
+  app.use('/api/payments/stripe/webhook', express.raw({ type: '*/*' }));
   app.use(express.json({ limit: '50mb' }));
   app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
@@ -87,6 +90,7 @@ export async function createNestServer() {
 if (require.main === module) {
   (async () => {
     const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+      bodyParser: false, // Parsers are registered manually below (raw body for Stripe webhook)
       cors: true // Enable CORS at creation
     });
     
@@ -145,6 +149,8 @@ if (require.main === module) {
       optionsSuccessStatus: 204,
     });
 
+    // Stripe webhook signature verification needs the unparsed request body.
+    app.use('/api/payments/stripe/webhook', express.raw({ type: '*/*' }));
     app.use(express.json({ limit: '50mb' }));
     app.use(express.urlencoded({ limit: '50mb', extended: true }));
     app.useStaticAssets(join(__dirname, '..', '..', 'public'), {

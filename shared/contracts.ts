@@ -468,6 +468,9 @@ export interface OrderItemContract {
   productId?: string;
   bookingId?: string;
   coCreationRequestId?: string;
+  /** Denormalized bilingual display title for order history and confirmation surfaces. */
+  title?: LocalizedString;
+  imageUrl?: string;
 }
 
 export interface OrderContract {
@@ -483,6 +486,59 @@ export interface OrderContract {
   bookingIds?: string[];
   coCreationRequestId?: string;
   stripe?: StripePaymentReferenceContract;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export type CheckoutMode = 'simulated' | 'stripe';
+
+/** Dev-only outcome hint, honored only when the backend runs with PAYMENTS_SIMULATED=true. */
+export type SimulatedCheckoutOutcome = 'success' | 'failure' | 'cancelled';
+
+export interface ProductCheckoutItemInputContract {
+  type: CartItemType.Product;
+  productId: string;
+  quantity: number;
+}
+
+/** Checkout for a workshop seat attaches to an existing pending booking record. */
+export interface WorkshopBookingCheckoutItemInputContract {
+  type: CartItemType.WorkshopSeat;
+  bookingId: string;
+}
+
+/** Checkout for co-creation charges the artisan-approved deposit on the request. */
+export interface CoCreationDepositCheckoutItemInputContract {
+  type: CartItemType.CoCreationDeposit;
+  coCreationRequestId: string;
+}
+
+export type CheckoutItemInputContract =
+  | ProductCheckoutItemInputContract
+  | WorkshopBookingCheckoutItemInputContract
+  | CoCreationDepositCheckoutItemInputContract;
+
+export interface CreateCheckoutSessionInputContract {
+  customerId?: string;
+  item: CheckoutItemInputContract;
+  /** Reuse an existing pending order (payment retry) instead of creating a new one. */
+  orderId?: string;
+  simulatedOutcome?: SimulatedCheckoutOutcome;
+}
+
+/** One row of customer order/booking history for the Profile tracking surface. */
+export interface CustomerOrderHistoryEntryContract {
+  order: OrderContract;
+  booking?: BookingContract;
+}
+
+export interface CheckoutSessionResultContract {
+  mode: CheckoutMode;
+  order: OrderContract;
+  booking?: BookingContract;
+  /** Present only in stripe mode; the browser should redirect here. */
+  checkoutUrl?: string;
+  message: LocalizedString;
 }
 
 export interface AiCreationContract {
@@ -581,6 +637,20 @@ export function canTransition<TStatus extends string>(
   to: TStatus,
 ): boolean {
   return (transitions[from] ?? []).includes(to);
+}
+
+/** Formats an integer-cents amount for display, e.g. HK$680. */
+export function formatMoneyDisplay(
+  amount: MoneyAmountCents,
+  currency: CurrencyCode,
+  locale: LocaleCode,
+): string {
+  return new Intl.NumberFormat(locale === 'zh' ? 'zh-HK' : 'en-HK', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: amount % 100 === 0 ? 0 : 2,
+  }).format(amount / 100);
 }
 
 export function calculateWorkshopCapacityAvailable(input: WorkshopCapacityInput): number {

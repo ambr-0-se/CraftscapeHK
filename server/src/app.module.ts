@@ -11,6 +11,7 @@ import { DebugModule } from './debug/debug.module';
 import { AdminModule } from './admin/admin.module';
 import { AdminService } from './admin/admin.service';
 import { CoCreationModule } from './co-creation/co-creation.module';
+import { PaymentsModule } from './payments/payments.module';
 
 @Controller()
 export class AppController {
@@ -27,6 +28,8 @@ export class AppController {
         bookings: '/api/bookings',
         messages: '/api/messages',
         coCreation: '/api/co-creation',
+        checkout: '/api/checkout',
+        stripeWebhook: '/api/payments/stripe/webhook (POST)',
         admin: '/admin/seed (POST)',
         debug: '/debug (development only)'
       }
@@ -44,6 +47,7 @@ export class AppController {
     BookingsModule,
     MessagesModule,
     CoCreationModule,
+    PaymentsModule,
     AiModule,
     DebugModule,
     AdminModule,
