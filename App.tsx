@@ -90,6 +90,10 @@ export default function App() {
     setShowOnboarding(false);
   }, []);
 
+  const handleReopenOnboarding = useCallback(() => {
+    setShowOnboarding(true);
+  }, []);
+
   const toggleArtisanMode = useCallback(() => {
     setIsArtisanMode((prev) => {
       if (!prev) {
@@ -252,7 +256,12 @@ export default function App() {
       case Tab.Play:
         return <Play />;
       case Tab.Profile:
-        return <Profile onToggleArtisanMode={toggleArtisanMode} />;
+        return (
+          <Profile
+            onToggleArtisanMode={toggleArtisanMode}
+            onReopenOnboarding={handleReopenOnboarding}
+          />
+        );
       default:
         return <Explore onShowDetails={handleShowCraftDetails} />;
     }
@@ -283,7 +292,9 @@ export default function App() {
       style={{ minHeight: "var(--app-vh, 100vh)" }}
     >
       <AnimatePresence>
-        {showOnboarding && <OnboardingGuide onClose={handleCloseOnboarding} />}
+        {showOnboarding && (
+          <OnboardingGuide key="onboarding-guide" onClose={handleCloseOnboarding} />
+        )}
       </AnimatePresence>
       <main className="flex-grow relative">
         {isArtisanMode ? (

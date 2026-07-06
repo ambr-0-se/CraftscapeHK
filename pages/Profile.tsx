@@ -41,9 +41,13 @@ const SettingsIcon = () => (
 
 interface ProfileProps {
   onToggleArtisanMode: () => void;
+  onReopenOnboarding: () => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
+const Profile: React.FC<ProfileProps> = ({
+  onToggleArtisanMode,
+  onReopenOnboarding,
+}) => {
   const {
     favorites,
     aiCreations,
@@ -295,6 +299,47 @@ const Profile: React.FC<ProfileProps> = ({ onToggleArtisanMode }) => {
               <span className="relative">English</span>
             </button>
           </div>
+        </div>
+
+        {/* App Guide */}
+        <div>
+          <h2 className="text-sm font-semibold text-[var(--color-text-secondary)] mb-3 uppercase tracking-wide">
+            {t("profileHelpSetting")}
+          </h2>
+          <motion.button
+            type="button"
+            onClick={onReopenOnboarding}
+            className="w-full museum-card p-4 text-left transition-all duration-200 hover:shadow-lg hover:shadow-[var(--color-primary-accent)]/10"
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            aria-label={t("profileReopenOnboarding")}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold text-[var(--color-text-primary)]">
+                  {t("profileReopenOnboarding")}
+                </p>
+                <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
+                  {t("profileReopenOnboardingDesc")}
+                </p>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 shrink-0 text-[var(--color-primary-accent)]"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </div>
+          </motion.button>
         </div>
 
         {/* Content Tabs */}

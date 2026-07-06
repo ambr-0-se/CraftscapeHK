@@ -50,7 +50,7 @@ const CRAFTS = [
     artisan: { zh: "王師傅", en: "Master Wong" },
     short_description: { zh: "展現東方女性美的經典服飾", en: "Classic attire that showcases Eastern female beauty" },
     full_description: { zh: "香港的長衫製作技藝以其精湛的剪裁和手工聞名，被稱為「海派」風格。它貼合女性身體曲線，優雅含蓄，是中西合璧的時尚典範。", en: "Hong Kong's cheongsam-making is renowned for its exquisite tailoring and craftsmanship, known as the 'Shanghai style'. It fits the female body's curves, is elegant and subtle, and a prime example of fashion that blends Eastern and Western aesthetics." },
-    images: ["https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/A_White_cheongsam_at_Shum_Shui_Po.jpg/1024px-A_White_cheongsam_at_Shum_Shui_Po.jpg?20211210172938"],
+    images: ["/images/crafts/cheongsam-making.jpg"],
     history: { zh: "1920年代，長衫在上海興起，後隨大量上海裁縫南下傳入香港，並在香港發揚光大。從日常穿著到電影《花樣年華》中的經典形象，長衫記錄了香港社會的變遷。", en: "The cheongsam rose to popularity in Shanghai in the 1920s and was later brought to Hong Kong by a large number of Shanghainese tailors, where it was further developed. From daily wear to the iconic images in the film 'In the Mood for Love', the cheongsam has recorded the changes in Hong Kong society." },
     story: { zh: "王師傅從16歲開始跟隨父親學習製作長衫，至今已有50個年頭。他堅持為每一位客人量身定做，從選料、畫樣、裁剪到縫製、盤扣，每一個步驟都親力為。他說，一件好的長衫是有生命的，能陪伴主人度過許多重要時刻。", en: "Master Wong began learning to make cheongsams from his father at the age of 16 and has been doing it for 50 years. He insists on custom-tailoring for every client, handling every step himself, from fabric selection and pattern drawing to cutting, sewing, and knot buttons. He says a good cheongsam has a life of its own and can accompany its owner through many important moments." }
   },
