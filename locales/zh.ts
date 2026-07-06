@@ -92,6 +92,7 @@ export const zh = {
     craftDetailCtaTitle: '想發揮創意，設計屬於你的版本嗎？',
     craftDetailCtaDesc: '結合傳統美學與你的靈感，讓 AI 助你一臂之力。',
     craftDetailCtaButton: '進入 AI 創作室',
+    craftDetailContactButton: '聯絡師傅',
     craftDetailHistory: '歷史源流',
     craftDetailStory: '師傅的故事',
 
@@ -204,6 +205,14 @@ export const zh = {
     // Chatroom
     chatroomWith: '與 {name} 聊天中',
     chatroomPlaceholder: '輸入訊息...',
+    chatroomClose: '關閉對話',
+    chatroomSend: '發送訊息',
+    chatroomSending: '發送中...',
+    chatroomLoadError: '未能讀取訊息，請再試一次。',
+    chatroomOfflineDraftNotice: '已用離線模式開啟對話；後端重新連線前會保留你的草稿。',
+    chatroomSendError: '訊息未能送出，草稿已保留。',
+    chatroomEmptyThread: '可以先就這件工藝品向師傅提問。',
+    chatroomContextProduct: '商品對話',
 
     // Onboarding
     onboardingTitle1: '滑動探索傳統工藝',
@@ -279,6 +288,8 @@ export const zh = {
     
     // Artisan Chatroom
     artisanChatroomProductInquiry: '查詢商品：',
+    artisanChatroomContextFallback: '工藝對話',
+    artisanChatroomContextLabel: '關聯內容：{context}',
     artisanChatroomShowTranslated: '顯示中文翻譯',
     artisanChatroomShowOriginal: '顯示原文',
     artisanChatroomOriginalLabel: '原文（{language}）',
@@ -286,6 +297,7 @@ export const zh = {
     artisanChatroomAutoTranslationFallback: '自動翻譯:',
     artisanChatroomAutoTranslatedTag: '自動翻譯',
     artisanChatroomAutoTranslateNotice: '系統會自動以英文發送：',
+    artisanChatroomBackendTranslateNotice: '發送後會由 AI 加入翻譯。',
     artisanChatroomYouLabel: '我',
     artisanChatroomCustomerLabel: '顧客',
     languageEnglish: '英文',

@@ -14,6 +14,10 @@ const stripMarkup = (value: string): { text: string; hadImage: boolean } => {
 };
 
 const getPreviewText = (thread: MessageThread, language: 'en' | 'zh'): string => {
+    if (thread.lastMessagePreview) {
+        return thread.lastMessagePreview;
+    }
+
     if (!thread.messages || thread.messages.length === 0) {
         const { text: fallbackText, hadImage } = stripMarkup(thread.lastMessage);
         if (fallbackText.length === 0 && hadImage) {
@@ -58,6 +62,11 @@ const MessageThreadCard: React.FC<{ thread: MessageThread; onSelect: () => void;
             <p className={`text-sm text-[var(--color-text-secondary)] truncate ${thread.unread ? 'font-semibold text-[var(--color-text-primary)]' : ''}`}>
                 {getPreviewText(thread, language)}
             </p>
+            {(thread.contextLabel || thread.contextType || thread.contextId) && (
+                <p className="mt-1 text-xs font-medium text-[var(--color-primary-accent)] truncate">
+                    {thread.contextLabel || `${thread.contextType}: ${thread.contextId}`}
+                </p>
+            )}
         </div>
     </button>
 );

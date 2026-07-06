@@ -7,6 +7,7 @@ import { generateMahjongTileReference } from '../utils/text-to-image.util';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import type { TranslationOption, TranslationStrategy } from '../types/translation.types';
+import type { LanguageCode } from '@craftscape/contracts';
 
 @Injectable()
 export class AiService {
@@ -549,6 +550,55 @@ Respond strictly as JSON matching the provided schema.`;
 
     return applySpecialCaseSuggestions(input.trim(), baseOptions);
   }
+
+  async translateChatMessage(
+    text: string,
+    sourceLanguage: LanguageCode,
+    targetLanguage: LanguageCode,
+  ): Promise<string> {
+    const trimmed = text.trim();
+    if (!trimmed || sourceLanguage === targetLanguage) {
+      return trimmed;
+    }
+
+    const targetLabel =
+      targetLanguage === 'zh' || targetLanguage === 'yue'
+        ? 'Traditional Chinese written for Hong Kong readers, preserving Cantonese tone where natural'
+        : 'clear English';
+
+    const sourceLabel =
+      sourceLanguage === 'zh' || sourceLanguage === 'yue'
+        ? 'Traditional Chinese or Cantonese'
+        : 'English';
+
+    try {
+      const jsonText = await this.generateStructuredJson(
+        `Translate this ${sourceLabel} customer/artisan message into ${targetLabel}.\n\nMessage:\n${trimmed}`,
+        {
+          type: Type.OBJECT,
+          properties: {
+            translatedText: {
+              type: Type.STRING,
+              description: 'The translated message only.',
+            },
+          },
+          required: ['translatedText'],
+        },
+        'You translate CraftscapeHK customer/artisan chat messages. Preserve craft terms, prices, measurements, order IDs, and approval/payment status wording exactly. Respond only as JSON.',
+      );
+      const parsed = JSON.parse(jsonText) as { translatedText?: string };
+      if (parsed.translatedText?.trim()) {
+        return parsed.translatedText.trim();
+      }
+    } catch (error) {
+      console.warn('Chat translation AI unavailable; storing fallback translation metadata.', error);
+    }
+
+    return targetLanguage === 'zh' || targetLanguage === 'yue'
+      ? `[待翻譯] ${trimmed}`
+      : `[Translation pending] ${trimmed}`;
+  }
+
   private ai?: GoogleGenAI;
 
   constructor() {

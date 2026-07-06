@@ -116,16 +116,20 @@ export const getMessageThreads = async (): Promise<MessageThread[]> => {
 
         return threads.map(thread => {
             const enriched = enrichedMap.get(thread.id);
-            if (!enriched) {
-                return thread;
+            if (!enriched || (thread.messages && thread.messages.length > 0)) {
+                return {
+                    ...thread,
+                    lastMessage: thread.lastMessagePreview || thread.lastMessage,
+                    timestamp: thread.timestamp,
+                };
             }
 
             return {
                 ...thread,
-                lastMessage: enriched.lastMessage,
-                timestamp: enriched.timestamp,
-                avatar: enriched.avatar,
-                messages: enriched.messages,
+                lastMessage: thread.lastMessagePreview || enriched.lastMessage,
+                timestamp: thread.timestamp || enriched.timestamp,
+                avatar: thread.avatar || enriched.avatar,
+                messages: thread.messages || enriched.messages,
             };
         });
     } catch (error) {

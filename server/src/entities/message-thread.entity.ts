@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column } from 'typeorm';
+import { MessageThreadContextType } from '@craftscape/contracts';
 
 @Entity('message_threads')
 export class MessageThread {
@@ -19,15 +20,30 @@ export class MessageThread {
   @Column()
   lastMessage: string;
 
+  @Column({ nullable: true })
+  lastMessageAt?: string;
+
   @Column()
   timestamp: string;
 
   @Column({ default: false })
   unread: boolean;
 
+  @Column({ default: 0 })
+  unreadCount: number;
+
   @Column()
   avatar: string;
 
-  @Column()
-  productId: number;
+  @Column({ type: 'text', default: MessageThreadContextType.Product })
+  contextType: MessageThreadContextType;
+
+  @Column({ nullable: true })
+  contextId?: string;
+
+  @Column({ nullable: true })
+  contextLabel?: string;
+
+  @Column({ nullable: true })
+  productId?: number;
 }

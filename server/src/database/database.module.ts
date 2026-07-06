@@ -7,6 +7,7 @@ import { Event } from '../entities/event.entity';
 import { Artisan } from '../entities/artisan.entity';
 import { Order } from '../entities/order.entity';
 import { Booking } from '../entities/booking.entity';
+import { ChatMessage } from '../entities/chat-message.entity';
 import { MessageThread } from '../entities/message-thread.entity';
 import { User } from '../entities/user.entity';
 import { AiCreation } from '../entities/ai-creation.entity';
@@ -40,6 +41,7 @@ const envFilePath = [
           Order,
           Booking,
           MessageThread,
+          ChatMessage,
           User,
           AiCreation,
           CoCreationRequest,

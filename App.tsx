@@ -159,10 +159,10 @@ export default function App() {
   }, [selectedCraft]);
 
   const handleOpenChatroom = useCallback(() => {
-    if (selectedProduct) {
+    if (selectedProduct || selectedCraft) {
       setCurrentView(View.Chatroom);
     }
-  }, [selectedProduct]);
+  }, [selectedCraft, selectedProduct]);
 
   const handleCloseStudio = useCallback(
     () => setCurrentView(aiStudioReturnView),
@@ -172,10 +172,10 @@ export default function App() {
     () => setCurrentView(View.Explore),
     []
   );
-  const handleCloseChatroom = useCallback(
-    () => setCurrentView(View.ProductDetail),
-    []
-  );
+  const handleCloseChatroom = useCallback(() => {
+    setCurrentView(selectedProduct ? View.ProductDetail : View.CraftDetail);
+  }, [selectedProduct]);
+
   const handleCloseArtisanProfile = useCallback(() => {
     setCurrentView(artisanReturnView);
   }, [artisanReturnView]);
@@ -302,8 +302,7 @@ export default function App() {
             </AnimatePresence>
             <AnimatePresence>
               {currentArtisanView === ArtisanView.Chatroom &&
-                selectedMessageThread &&
-                selectedThreadProduct && (
+                selectedMessageThread && (
                   <motion.div
                     key="artisan-chatroom"
                     className="absolute inset-0 z-30"
@@ -314,7 +313,7 @@ export default function App() {
                   >
                     <ArtisanChatroom
                       thread={selectedMessageThread}
-                      product={selectedThreadProduct}
+                      product={selectedThreadProduct ?? undefined}
                       onClose={handleCloseArtisanChatroom}
                     />
                   </motion.div>
@@ -372,6 +371,7 @@ export default function App() {
                     craft={selectedCraft}
                     onClose={handleCloseDetail}
                     onStartCreation={handleStartCreation}
+                    onContactArtisan={handleOpenChatroom}
                     onStartTextLab={handleOpenCraftTextLab}
                     onViewArtisan={handleShowCraftArtisan}
                   />
@@ -448,7 +448,7 @@ export default function App() {
                 </motion.div>
               )}
 
-              {currentView === View.Chatroom && selectedProduct && (
+              {currentView === View.Chatroom && (selectedProduct || selectedCraft) && (
                 <motion.div
                   key="chatroom"
                   className="absolute inset-0 z-30"
@@ -458,7 +458,8 @@ export default function App() {
                   transition={{ type: "spring", stiffness: 300, damping: 30 }}
                 >
                   <Chatroom
-                    artisanName={selectedProduct.artisan[language]}
+                    product={selectedProduct ?? undefined}
+                    craft={selectedProduct ? undefined : selectedCraft ?? undefined}
                     onClose={handleCloseChatroom}
                   />
                 </motion.div>

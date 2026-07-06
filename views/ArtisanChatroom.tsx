@@ -1,57 +1,37 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import type { MessageThread, Product, ChatMessage } from "../types";
 import { useLanguage } from "../contexts/LanguageContext";
+import { MessageSenderRole, MessageType } from "../shared/contracts";
+import type { LanguageCode } from "../shared/contracts";
+import {
+  sendMessageRest,
+  subscribeToThread,
+} from "../services/messagingService";
 
 interface ArtisanChatroomProps {
   thread: MessageThread;
-  product: Product;
+  product?: Product;
   onClose: () => void;
 }
 
-const QUICK_TRANSLATIONS: Array<[RegExp, string]> = [
-  [/你好/g, "Hello"],
-  [/多謝晒?/g, "Thank you so much"],
-  [/多謝/g, "Thank you"],
-  [/麻煩/g, "Please"],
-  [/報一報價錢/g, "Could you share the pricing"],
-  [/可以/g, "Can"],
-  [/唔會?/g, "Will it not"],
-  [/唔/g, "not"],
-  [/圖案/g, "pattern"],
-  [/顏色/g, "colour"],
-  [/柔和/g, "softer"],
-  [/龍鳳呈祥/g, "dragon and phoenix motif"],
-  [/幫到你/g, "help you"],
-  [/換成/g, "switch to"],
-  [/鴛鴦/g, "mandarin ducks"],
-  [/價錢/g, "price"],
-  [/今晚/g, "tonight"],
-  [/樣板/g, "sample"],
-  [/冇問題/g, "No problem"],
-  [/霓虹燈/g, "neon sign"],
-  [/唔同/g, "different"],
-  [/收到/g, "Received"],
-];
+const mergeMessages = (
+  current: ChatMessage[],
+  incoming: ChatMessage[]
+): ChatMessage[] => {
+  const getKey = (message: ChatMessage) => message.clientMutationId || message.id;
+  const map = new Map(current.map((message) => [getKey(message), message]));
+  incoming.forEach((message) => map.set(getKey(message), message));
+  return Array.from(map.values()).sort(
+    (a, b) => (a.sequence ?? 0) - (b.sequence ?? 0)
+  );
+};
 
-const buildEnglishTranslation = (
-  text: string,
-  fallbackPrefix: string
-): string => {
-  const trimmed = text.trim();
-  if (!trimmed) {
-    return "";
-  }
-
-  let result = trimmed;
-  QUICK_TRANSLATIONS.forEach(([pattern, replacement]) => {
-    result = result.replace(pattern, replacement);
-  });
-
-  if (result === trimmed) {
-    return `${fallbackPrefix} ${trimmed}`;
-  }
-
-  return result;
+const connectionLabels = {
+  connecting: { en: "Connecting", zh: "連線中" },
+  connected: { en: "Live", zh: "即時連線" },
+  reconnecting: { en: "Reconnecting, draft kept", zh: "重新連線中，草稿已保留" },
+  offline: { en: "Offline, retry ready", zh: "離線中，可稍後重試" },
+  error: { en: "Connection issue", zh: "連線異常" },
 };
 
 const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
@@ -60,6 +40,11 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
   onClose,
 }) => {
   const { language, t } = useLanguage();
+  const contextLabel =
+    product?.name[language] ||
+    thread.contextLabel ||
+    thread.contextId ||
+    t("artisanChatroomContextFallback");
   const [viewMode, setViewMode] = useState<"translated" | "original">(
     "translated"
   );
@@ -82,6 +67,13 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [draft, setDraft] = useState("");
   const [draftTranslation, setDraftTranslation] = useState("");
+  const [connectionState, setConnectionState] = useState<
+    "connecting" | "connected" | "reconnecting" | "offline" | "error"
+  >("connecting");
+  const [sendError, setSendError] = useState("");
+  const subscriptionRef = React.useRef<ReturnType<typeof subscribeToThread> | null>(
+    null
+  );
 
   useEffect(() => {
     setMessages(
@@ -102,8 +94,31 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
     setDraftTranslation("");
   }, [thread]);
 
+  useEffect(() => {
+    const afterSequence = Math.max(
+      0,
+      ...(thread.messages ?? []).map((message) => message.sequence ?? 0)
+    );
+    subscriptionRef.current?.disconnect();
+    subscriptionRef.current = subscribeToThread(thread.id, {
+      afterSequence,
+      onConnectionChange: setConnectionState,
+      onReplay: (incoming) => {
+        setMessages((prev) => mergeMessages(prev, incoming));
+      },
+      onMessage: (message) => {
+        setMessages((prev) => mergeMessages(prev, [message]));
+      },
+    });
+
+    return () => {
+      subscriptionRef.current?.disconnect();
+      subscriptionRef.current = null;
+    };
+  }, [thread.id, thread.messages]);
+
   const getLanguageLabel = useCallback(
-    (code: "en" | "zh") =>
+    (code: LanguageCode) =>
       code === "en" ? t("languageEnglish") : t("languageChinese"),
     [t]
   );
@@ -267,18 +282,13 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const value = event.target.value;
       setDraft(value);
-      setDraftTranslation(
-        buildEnglishTranslation(
-          value,
-          t("artisanChatroomAutoTranslationFallback")
-        )
-      );
+      setDraftTranslation(value.trim() ? t("artisanChatroomBackendTranslateNotice") : "");
     },
     [t]
   );
 
   const handleSend = useCallback(
-    (
+    async (
       event:
         | React.FormEvent<HTMLFormElement>
         | React.MouseEvent<HTMLButtonElement>
@@ -289,29 +299,53 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
         return;
       }
 
-      const englishVersion = buildEnglishTranslation(
-        trimmed,
-        t("artisanChatroomAutoTranslationFallback")
-      );
-      const timestamp = new Date().toLocaleTimeString([], {
-        hour: "numeric",
-        minute: "2-digit",
-      });
-
+      const clientMutationId = `artisan-${Date.now()}`;
       const newMessage: ChatMessage = {
-        id: `artisan-${Date.now()}`,
+        id: clientMutationId,
+        threadId: thread.id,
+        sequence: Math.max(0, ...messages.map((message) => message.sequence ?? 0)) + 1,
         sender: "artisan",
+        senderRole: MessageSenderRole.Artisan,
+        type: MessageType.Text,
         originalText: trimmed,
-        translatedText: englishVersion,
+        sourceLanguage: "zh",
+        targetLanguage: "en",
         language: "zh",
-        timestamp,
+        timestamp: t("chatroomSending"),
+        clientMutationId,
       };
 
-      setMessages((prev) => [...prev, newMessage]);
+      setMessages((prev) => mergeMessages(prev, [newMessage]));
       setDraft("");
       setDraftTranslation("");
+      setSendError("");
+
+      const payload = {
+        senderRole: MessageSenderRole.Artisan,
+        type: MessageType.Text,
+        originalText: trimmed,
+        sourceLanguage: "zh" as const,
+        targetLanguage: "en" as const,
+        clientMutationId,
+      };
+
+      try {
+        if (subscriptionRef.current?.socket.connected) {
+          subscriptionRef.current.send(payload);
+        } else {
+          const saved = await sendMessageRest(thread.id, payload);
+          setMessages((prev) => mergeMessages(prev, [saved]));
+        }
+      } catch (error) {
+        console.error("Failed to send artisan message:", error);
+        setMessages((prev) =>
+          prev.filter((message) => message.clientMutationId !== clientMutationId)
+        );
+        setDraft(trimmed);
+        setSendError(t("chatroomSendError"));
+      }
     },
-    [draft, t]
+    [draft, messages, t, thread.id]
   );
 
   const translationToggle = (
@@ -342,12 +376,15 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
   );
 
   return (
-    <div className="h-full w-full bg-[var(--color-bg)] flex flex-col">
+    <div className="relative h-full w-full bg-[var(--color-bg)] flex flex-col overflow-hidden">
       <header className="flex items-center justify-between p-4 flex-shrink-0 border-b border-[var(--color-border)] bg-[var(--color-surface)]/80 backdrop-blur-md">
         <div className="text-left">
           <h1 className="text-[22px] font-bold text-[var(--color-text-primary)]">
             {t("chatroomWith", { name: thread.customerName })}
           </h1>
+          <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+            {connectionLabels[connectionState][language]}
+          </p>
         </div>
         <button
           onClick={onClose}
@@ -373,23 +410,30 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
       <div className="p-3 border-b border-[var(--color-border)] bg-[var(--color-surface)]">
         <div className="flex items-center space-x-3">
           <img
-            src={product.image}
-            alt={product.name[language]}
+            src={product?.image || thread.avatar}
+            alt={contextLabel}
             className="w-12 h-12 object-cover rounded-lg flex-shrink-0"
           />
           <div>
             <p className="font-semibold text-[var(--color-text-secondary)] text-sm">
-              {t("artisanChatroomProductInquiry")}
+              {t("artisanChatroomContextLabel", {
+                context: thread.contextType || "product",
+              })}
             </p>
             <p className="font-bold text-[var(--color-text-primary)]">
-              {product.name[language]}
+              {contextLabel}
             </p>
           </div>
         </div>
         <div className="mt-3 flex justify-end">{translationToggle}</div>
+        {sendError && (
+          <p className="mt-3 rounded-xl border border-[var(--color-accent-red-light)] bg-[var(--color-accent-red)]/10 px-3 py-2 text-sm text-[var(--color-text-red)]">
+            {sendError}
+          </p>
+        )}
       </div>
 
-      <div className="flex-grow p-4 space-y-4 overflow-y-auto">
+      <div className="flex-grow p-4 pb-32 space-y-4 overflow-y-auto">
         {messages.map((message) => {
           const isArtisan = message.sender === "artisan";
           const { primaryText, secondary } = computeDisplayContent(message);
@@ -480,7 +524,7 @@ const ArtisanChatroom: React.FC<ArtisanChatroomProps> = ({
       </div>
 
       <form
-        className="fixed bottom-0 left-0 w-full z-30 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)] space-y-2"
+        className="absolute bottom-0 left-0 right-0 z-30 p-4 bg-[var(--color-surface)]/70 backdrop-blur-xl border-t border-[var(--color-border)] space-y-2"
         style={{
           background: "var(--color-nav-bg, var(--color-surface))",
           backdropFilter: "blur(20px)",
