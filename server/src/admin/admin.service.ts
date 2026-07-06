@@ -6,6 +6,7 @@ import { Product } from '../entities/product.entity';
 import { Event } from '../entities/event.entity';
 import { Artisan } from '../entities/artisan.entity';
 import { Order } from '../entities/order.entity';
+import { Booking } from '../entities/booking.entity';
 import { MessageThread } from '../entities/message-thread.entity';
 
 // Import seed data from constants.cjs
@@ -31,6 +32,8 @@ export class AdminService {
     private artisanRepository: Repository<Artisan>,
     @InjectRepository(Order)
     private orderRepository: Repository<Order>,
+    @InjectRepository(Booking)
+    private bookingRepository: Repository<Booking>,
     @InjectRepository(MessageThread)
     private messageThreadRepository: Repository<MessageThread>,
   ) {}
@@ -48,6 +51,7 @@ export class AdminService {
             events: await this.eventRepository.count(),
             artisans: await this.artisanRepository.count(),
             orders: await this.orderRepository.count(),
+            bookings: await this.bookingRepository.count(),
             messageThreads: await this.messageThreadRepository.count(),
           },
         };
@@ -69,6 +73,7 @@ export class AdminService {
           events: await this.eventRepository.count(),
           artisans: await this.artisanRepository.count(),
           orders: await this.orderRepository.count(),
+          bookings: await this.bookingRepository.count(),
           messageThreads: await this.messageThreadRepository.count(),
         },
       };
@@ -84,6 +89,7 @@ export class AdminService {
     try {
       // Clear all data first
       await this.messageThreadRepository.clear();
+      await this.bookingRepository.clear();
       await this.orderRepository.clear();
       await this.artisanRepository.clear();
       await this.craftRepository.clear();

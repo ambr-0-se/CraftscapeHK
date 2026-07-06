@@ -7,6 +7,7 @@ import { Product } from '../entities/product.entity';
 import { Event } from '../entities/event.entity';
 import { Artisan } from '../entities/artisan.entity';
 import { Order } from '../entities/order.entity';
+import { Booking } from '../entities/booking.entity';
 import { MessageThread } from '../entities/message-thread.entity';
 
 @Module({
@@ -17,6 +18,7 @@ import { MessageThread } from '../entities/message-thread.entity';
       Event,
       Artisan,
       Order,
+      Booking,
       MessageThread,
     ]),
   ],

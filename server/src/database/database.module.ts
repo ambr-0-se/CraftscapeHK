@@ -6,6 +6,7 @@ import { Product } from '../entities/product.entity';
 import { Event } from '../entities/event.entity';
 import { Artisan } from '../entities/artisan.entity';
 import { Order } from '../entities/order.entity';
+import { Booking } from '../entities/booking.entity';
 import { MessageThread } from '../entities/message-thread.entity';
 import { User } from '../entities/user.entity';
 import * as path from 'path';
@@ -29,7 +30,7 @@ const envFilePath = [
       useFactory: (configService: ConfigService) => ({
         type: 'sqlite',
         database: configService.get('DATABASE_PATH', 'database.sqlite'),
-        entities: [Craft, Product, Event, Artisan, Order, MessageThread, User],
+        entities: [Craft, Product, Event, Artisan, Order, Booking, MessageThread, User],
         synchronize: true, // Auto-create tables (safe for SQLite)
         logging: configService.get('NODE_ENV') === 'development',
       }),

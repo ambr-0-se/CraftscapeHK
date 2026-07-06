@@ -4,6 +4,7 @@ import { getEvents } from "../services/apiService";
 import type { Event } from "../types";
 import Spinner from "../components/Spinner";
 import { useLanguage } from "../contexts/LanguageContext";
+import { EventType, WorkshopScheduleStatus } from "../shared/contracts";
 
 const dateFilters = [
   "dateAll",
@@ -24,6 +25,21 @@ const categoryFilters = [
 
 type CategoryFilterKey = (typeof categoryFilters)[number];
 type DateFilterKey = (typeof dateFilters)[number];
+
+const formatMoney = (amount: number, currency = "HKD") =>
+  new Intl.NumberFormat("en-HK", {
+    style: "currency",
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount / 100);
+
+const getOpenWorkshopSeatCount = (event: Event) =>
+  event.schedules
+    ?.filter((schedule) => schedule.status === WorkshopScheduleStatus.Open)
+    .reduce((sum, schedule) => sum + schedule.capacity.capacityAvailable, 0) ?? 0;
+
+const isWorkshopEvent = (event: Event) =>
+  event.eventType === EventType.Workshop || event.type === "工作坊";
 
 const FilterButton: FC<{
   label: string;
@@ -48,6 +64,9 @@ const EventCard: FC<{
   className?: string;
 }> = ({ event, onSelect, className = "" }) => {
   const { language } = useLanguage();
+  const isWorkshop = isWorkshopEvent(event);
+  const openSeats = getOpenWorkshopSeatCount(event);
+  const seatLabel = language === "zh" ? `尚餘 ${openSeats} 位` : `${openSeats} seats`;
   return (
     <motion.button
       onClick={onSelect}
@@ -75,6 +94,11 @@ const EventCard: FC<{
           <p className="text-sm text-[var(--color-text-secondary)] truncate">
             {event.location[language]}
           </p>
+          {isWorkshop && event.price && (
+            <p className="text-sm font-semibold text-[var(--color-primary-accent)]">
+              {formatMoney(event.price, event.currency)} · {seatLabel}
+            </p>
+          )}
         </div>
       </div>
     </motion.button>
@@ -86,6 +110,9 @@ const FeaturedEventCard: FC<{ event: Event; onSelect: () => void }> = ({
   onSelect,
 }) => {
   const { language } = useLanguage();
+  const isWorkshop = isWorkshopEvent(event);
+  const openSeats = getOpenWorkshopSeatCount(event);
+  const seatLabel = language === "zh" ? `尚餘 ${openSeats} 位` : `${openSeats} seats`;
   return (
     <motion.button
       onClick={onSelect}
@@ -111,6 +138,11 @@ const FeaturedEventCard: FC<{ event: Event; onSelect: () => void }> = ({
           <p className="text-sm text-white/90 truncate">
             {event.location[language]}
           </p>
+          {isWorkshop && event.price && (
+            <p className="text-sm font-semibold text-white mt-1">
+              {formatMoney(event.price, event.currency)} · {seatLabel}
+            </p>
+          )}
         </div>
       </div>
     </motion.button>
