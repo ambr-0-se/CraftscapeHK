@@ -51,11 +51,11 @@ Worktree `worktrees/mvp-stripe-orders`, branch `mvp/stripe-orders`. Critical pat
 
 ### Live handoff state — Lane A
 
-- Status: not started
-- Last agent/tool: —
-- Done so far: —
-- Next step if resuming: create the worktree and run the kickoff prompt above
-- Blockers / decisions needed: Stripe test-mode API keys from the user (simulated mode unblocks everything else)
+- Status: in progress
+- Last agent/tool: Claude Code (Fable 5)
+- Done so far: worktree created from `origin/main` (`acfe1a0`); Objectives 8/9 claimed in tracker; implementing pricing normalization → simulated checkout → Stripe test mode → frontend surfaces
+- Next step if resuming: see tracker Objectives 8/9 notes and this worktree's commit history
+- Blockers / decisions needed: Stripe test-mode API keys from the user (simulated mode unblocks everything else); design preview approval before React checkout/confirmation edits
 
 ---
 

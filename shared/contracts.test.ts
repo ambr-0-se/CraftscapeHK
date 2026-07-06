@@ -41,8 +41,13 @@ import {
   WORKSHOP_SCHEDULE_STATUS_LABELS,
   WorkshopCapacityHoldContract,
   WorkshopScheduleStatus,
+  CheckoutItemInputContract,
+  CheckoutSessionResultContract,
+  CreateCheckoutSessionInputContract,
+  OrderContract,
   calculateWorkshopCapacityAvailable,
   canTransition,
+  formatMoneyDisplay,
   getLocalizedLabel,
   toWorkshopCapacitySnapshot,
 } from './contracts';
@@ -310,6 +315,68 @@ describe('MVP cart and messaging contracts', () => {
       CartItemType.WorkshopSeat,
       CartItemType.CoCreationDeposit,
     ]);
+  });
+
+  it('defines checkout inputs for product, workshop booking, and co-creation deposit', () => {
+    const items: CheckoutItemInputContract[] = [
+      { type: CartItemType.Product, productId: '1', quantity: 2 },
+      { type: CartItemType.WorkshopSeat, bookingId: 'booking_123' },
+      { type: CartItemType.CoCreationDeposit, coCreationRequestId: 'request_123' },
+    ];
+    const input: CreateCheckoutSessionInputContract = {
+      customerId: 'customer-demo',
+      item: items[0],
+    };
+
+    expect(items.map((item) => item.type)).toEqual([
+      CartItemType.Product,
+      CartItemType.WorkshopSeat,
+      CartItemType.CoCreationDeposit,
+    ]);
+    expect(input.simulatedOutcome).toBeUndefined();
+  });
+
+  it('returns checkout results with an order created before payment confirms', () => {
+    const order: OrderContract = {
+      id: 'order_123',
+      customerId: 'customer-demo',
+      artisanId: 'artisan-1',
+      items: [
+        {
+          id: 'item_1',
+          type: CartItemType.WorkshopSeat,
+          quantity: 2,
+          unitAmount: 68000,
+          currency: 'HKD',
+          bookingId: 'booking_123',
+          title: { zh: '活字印刷工作坊', en: 'Letterpress Workshop' },
+        },
+      ],
+      subtotal: 136000,
+      total: 136000,
+      currency: 'HKD',
+      status: OrderStatus.PendingPayment,
+      paymentStatus: PaymentStatus.PendingCheckout,
+      bookingIds: ['booking_123'],
+      createdAt: '2026-07-06T10:00:00.000Z',
+    };
+    const result: CheckoutSessionResultContract = {
+      mode: 'stripe',
+      order,
+      checkoutUrl: 'https://checkout.stripe.com/c/pay/cs_test_123',
+      message: { zh: '前往付款', en: 'Proceed to payment' },
+    };
+
+    expect(result.order.status).toBe(OrderStatus.PendingPayment);
+    expect(result.order.paymentStatus).toBe(PaymentStatus.PendingCheckout);
+    expect(canTransition(ORDER_STATUS_TRANSITIONS, result.order.status, OrderStatus.Paid)).toBe(true);
+  });
+
+  it('formats integer-cents money for bilingual display', () => {
+    expect(formatMoneyDisplay(68000, 'HKD', 'en')).toContain('680');
+    expect(formatMoneyDisplay(68000, 'HKD', 'zh')).toContain('680');
+    expect(formatMoneyDisplay(68000, 'HKD', 'en')).not.toContain('.');
+    expect(formatMoneyDisplay(68050, 'HKD', 'en')).toContain('680.5');
   });
 
   it('separates thread summaries from paginated message history', () => {

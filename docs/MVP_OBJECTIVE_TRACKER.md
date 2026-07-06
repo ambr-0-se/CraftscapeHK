@@ -450,11 +450,13 @@ Notes:
 
 Description: Integrate Stripe for workshop bookings, product purchases, and approved co-creation requests.
 
-Current state: `Not Started`
+Current state: `In Progress`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-stripe-orders`
 
-Owner: `TBD`
+Branch: `mvp/stripe-orders`
+
+Owner: `Claude Code`
 
 Last Updated: `2026-07-06`
 
@@ -481,11 +483,13 @@ Notes:
 
 Description: Create and track product orders, workshop bookings, and approved co-creation orders from checkout through completion.
 
-Current state: `Partial`
+Current state: `In Progress`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-stripe-orders`
 
-Owner: `TBD`
+Branch: `mvp/stripe-orders`
+
+Owner: `Claude Code`
 
 Last Updated: `2026-07-06`
 
