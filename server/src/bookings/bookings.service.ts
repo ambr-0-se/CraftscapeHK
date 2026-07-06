@@ -62,13 +62,13 @@ export class BookingsService {
     const existingPendingBookings = await this.bookingRepository.find({
       where: { scheduleId: dto.scheduleId },
     });
+    // Confirmed bookings are already reflected in the schedule's persisted
+    // capacity snapshot (payments workflow), so only count in-flight holds here.
     const locallyHeldSeats = existingPendingBookings
       .filter((booking) =>
-        [
-          BookingStatus.HoldPending,
-          BookingStatus.PendingPayment,
-          BookingStatus.Confirmed,
-        ].includes(booking.status as BookingStatus),
+        [BookingStatus.HoldPending, BookingStatus.PendingPayment].includes(
+          booking.status as BookingStatus,
+        ),
       )
       .reduce((sum, booking) => sum + booking.quantity, 0);
     const capacityAvailable = Math.max(schedule.capacity.capacityAvailable - locallyHeldSeats, 0);

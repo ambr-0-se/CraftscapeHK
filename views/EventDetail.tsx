@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import type { Event } from '../types';
+import type { CheckoutIntent, Event } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useCart } from '../contexts/CartContext';
 import { useDemoPersona } from '../contexts/DemoPersonaContext';
@@ -7,12 +7,14 @@ import { createPendingWorkshopBooking } from '../services/apiService';
 import {
   EventType,
   WorkshopScheduleStatus,
+  type BookingContract,
   type WorkshopScheduleContract,
 } from '../shared/contracts';
 
 interface EventDetailProps {
   event: Event;
   onClose: () => void;
+  onStartCheckout: (intent: CheckoutIntent) => void;
 }
 
 type IconProps = {
@@ -71,7 +73,7 @@ const formatScheduleRange = (schedule: WorkshopScheduleContract, language: 'zh' 
   return `${date} · ${startTime} - ${endTime}`;
 };
 
-const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
+const EventDetail: React.FC<EventDetailProps> = ({ event, onClose, onStartCheckout }) => {
   const { language, t } = useLanguage();
   const { addWorkshopSeats } = useCart();
   const { activePersonaId } = useDemoPersona();
@@ -88,6 +90,8 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
   const [quantity, setQuantity] = useState(1);
   const [bookingStatus, setBookingStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle');
   const [bookingError, setBookingError] = useState('');
+  const [reservedBooking, setReservedBooking] = useState<BookingContract | null>(null);
+  const [reservedSchedule, setReservedSchedule] = useState<WorkshopScheduleContract | null>(null);
   const seatCountLabel = quantity === 1 ? t('workshopSeatShort') : t('workshopSeatsShort');
 
   const selectedTotal = useMemo(
@@ -113,13 +117,15 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
     setBookingError('');
 
     try {
-      await createPendingWorkshopBooking({
+      const response = await createPendingWorkshopBooking({
         eventId: String(event.id),
         scheduleId: selectedSchedule.id,
         quantity,
         customerId: activePersonaId,
       });
       addWorkshopSeats({ event, schedule: selectedSchedule, quantity });
+      setReservedBooking(response.booking);
+      setReservedSchedule(selectedSchedule);
       setBookingStatus('success');
     } catch (error) {
       setBookingStatus('error');
@@ -330,12 +336,22 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
             </div>
             <button
               type="button"
-              onClick={handleReserveSeats}
+              onClick={() => {
+                if (bookingStatus === 'success' && reservedBooking && reservedSchedule) {
+                  onStartCheckout({
+                    kind: 'workshop',
+                    booking: reservedBooking,
+                    event,
+                    schedule: reservedSchedule,
+                  });
+                  return;
+                }
+                handleReserveSeats();
+              }}
               disabled={
-                !selectedSchedule ||
-                selectedSchedule.capacity.capacityAvailable <= 0 ||
                 bookingStatus === 'submitting' ||
-                bookingStatus === 'success'
+                (bookingStatus !== 'success' &&
+                  (!selectedSchedule || selectedSchedule.capacity.capacityAvailable <= 0))
               }
               className={`h-[52px] flex-1 rounded-xl text-white font-bold disabled:opacity-55 ${
                 bookingStatus === 'success' ? 'bg-[var(--color-primary-accent)]' : 'bg-[var(--color-button-cta)]'
@@ -344,7 +360,7 @@ const EventDetail: React.FC<EventDetailProps> = ({ event, onClose }) => {
               {bookingStatus === 'submitting'
                 ? t('workshopReservingSeats')
                 : bookingStatus === 'success'
-                  ? t('workshopSeatsReserved')
+                  ? t('workshopContinueCheckout')
                   : t('workshopReserveSeats')}
             </button>
           </div>

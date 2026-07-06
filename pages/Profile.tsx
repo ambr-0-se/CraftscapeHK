@@ -1,13 +1,27 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useAppContext } from "../contexts/AppContext";
-import { getCoCreationRequests, getCrafts } from "../services/apiService";
+import {
+  getCheckoutOrderHistory,
+  getCoCreationRequests,
+  getCrafts,
+} from "../services/apiService";
 import ThemeToggle from "../components/ThemeToggle";
 import { motion } from "framer-motion";
-import type { Craft } from "../types";
-import type { CoCreationRequestContract } from "../shared/contracts";
+import type { CheckoutIntent, Craft } from "../types";
+import type {
+  CoCreationRequestContract,
+  CustomerOrderHistoryEntryContract,
+} from "../shared/contracts";
 import {
+  BOOKING_STATUS_LABELS,
   CO_CREATION_REQUEST_STATUS_LABELS,
+  CartItemType,
   CoCreationRequestStatus,
+  ORDER_STATUS_LABELS,
+  OrderStatus,
+  PAYMENT_STATUS_LABELS,
+  PaymentStatus,
+  formatMoneyDisplay,
   getLocalizedLabel,
 } from "../shared/contracts";
 import Spinner from "../components/Spinner";
@@ -15,7 +29,7 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
 import { useDemoPersona } from "../contexts/DemoPersonaContext";
 
-type ProfileTab = "favorites" | "creations" | "wardrobe";
+export type ProfileTab = "favorites" | "creations" | "orders" | "wardrobe";
 
 const bentoLayoutClasses = [
   "col-span-2 row-span-2",
@@ -43,11 +57,15 @@ const SettingsIcon = () => (
 interface ProfileProps {
   onToggleArtisanMode: () => void;
   onReopenOnboarding: () => void;
+  onStartCheckout: (intent: CheckoutIntent) => void;
+  initialTab?: ProfileTab;
 }
 
 const Profile: React.FC<ProfileProps> = ({
   onToggleArtisanMode,
   onReopenOnboarding,
+  onStartCheckout,
+  initialTab,
 }) => {
   const {
     favorites,
@@ -74,6 +92,9 @@ const Profile: React.FC<ProfileProps> = ({
     CoCreationRequestContract[]
   >([]);
   const [isRequestsLoading, setIsRequestsLoading] = useState(false);
+  const [orderEntries, setOrderEntries] = useState<CustomerOrderHistoryEntryContract[]>([]);
+  const [isOrdersLoading, setIsOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState(false);
   const [faceUploadError, setFaceUploadError] = useState<string | null>(null);
   const [isFaceUploading, setIsFaceUploading] = useState(false);
   const faceUploadInputRef = useRef<HTMLInputElement | null>(null);
@@ -104,12 +125,63 @@ const Profile: React.FC<ProfileProps> = ({
       .finally(() => setIsRequestsLoading(false));
   }, [activePersonaId, activeTab]);
 
+  useEffect(() => {
+    if (activeTab !== "orders") {
+      return;
+    }
+    setIsOrdersLoading(true);
+    setOrdersError(false);
+    getCheckoutOrderHistory()
+      .then(setOrderEntries)
+      .catch((error) => {
+        console.error("Failed to load order history:", error);
+        setOrderEntries([]);
+        setOrdersError(true);
+      })
+      .finally(() => setIsOrdersLoading(false));
+  }, [activeTab]);
+
   const favoriteCrafts = allCrafts.filter((craft) => favorites.has(craft.id));
   const tabs = [
     { id: "favorites", label: t("profileTabFavorites") },
     { id: "creations", label: t("profileTabCreations") },
+    { id: "orders", label: t("profileTabOrders") },
     { id: "wardrobe", label: t("profileTabWardrobe") },
   ];
+
+  const getOrderStatusChip = (
+    entry: CustomerOrderHistoryEntryContract,
+  ): { label: string; tone: "green" | "red" | "grey" } => {
+    const { order, booking } = entry;
+    if (order.paymentStatus === PaymentStatus.Failed) {
+      return {
+        label: getLocalizedLabel(PAYMENT_STATUS_LABELS, order.paymentStatus, language),
+        tone: "red",
+      };
+    }
+    if (order.status === OrderStatus.Cancelled) {
+      return {
+        label: getLocalizedLabel(ORDER_STATUS_LABELS, order.status, language),
+        tone: "grey",
+      };
+    }
+    if (booking && order.paymentStatus === PaymentStatus.Paid) {
+      return {
+        label: getLocalizedLabel(BOOKING_STATUS_LABELS, booking.status, language),
+        tone: "green",
+      };
+    }
+    if (order.paymentStatus === PaymentStatus.Paid) {
+      return {
+        label: getLocalizedLabel(ORDER_STATUS_LABELS, order.status, language),
+        tone: "green",
+      };
+    }
+    return {
+      label: getLocalizedLabel(PAYMENT_STATUS_LABELS, order.paymentStatus, language),
+      tone: "grey",
+    };
+  };
 
   const handleTriggerFaceUpload = useCallback(() => {
     setShowFaceUploadOptions(true);
@@ -554,13 +626,30 @@ const Profile: React.FC<ProfileProps> = ({
                           </p>
                         )}
                         {approved && request.deposit && (
-                          <p className="rounded-xl bg-[var(--color-success)]/10 p-3 text-xs font-medium text-[var(--color-success)]">
-                            {t("profileCoCreationApprovedPaymentReady", {
-                              deposit: (
-                                request.deposit.amount / 100
-                              ).toLocaleString(),
-                            })}
-                          </p>
+                          <>
+                            <p className="rounded-xl bg-[var(--color-success)]/10 p-3 text-xs font-medium text-[var(--color-success)]">
+                              {t("profileCoCreationApprovedPaymentReady", {
+                                deposit: (
+                                  request.deposit.amount / 100
+                                ).toLocaleString(),
+                              })}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                onStartCheckout({ kind: "cocreation", request })
+                              }
+                              className="w-full rounded-full bg-[var(--color-button-cta)] py-3 text-sm font-bold text-white"
+                            >
+                              {t("profileCoCreationPayDeposit", {
+                                amount: formatMoneyDisplay(
+                                  request.deposit.amount,
+                                  request.deposit.currency,
+                                  language
+                                ),
+                              })}
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
@@ -572,6 +661,104 @@ const Profile: React.FC<ProfileProps> = ({
                 </p>
               )}
             </section>
+          </div>
+        )}
+        {activeTab === "orders" && (
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+                {t("profileOrdersTitle")}
+              </h2>
+              <p className="text-sm text-[var(--color-text-secondary)]">
+                {t("profileOrdersDesc")}
+              </p>
+            </div>
+            {isOrdersLoading ? (
+              <Spinner text={t("loading")} />
+            ) : ordersError ? (
+              <p className="museum-card p-4 text-sm text-[var(--color-error)]">
+                {t("profileOrdersError")}
+              </p>
+            ) : orderEntries.length === 0 ? (
+              <p className="museum-card p-4 text-sm text-[var(--color-text-secondary)]">
+                {t("profileOrdersEmpty")}
+              </p>
+            ) : (
+              <div className="museum-card overflow-hidden">
+                {orderEntries.map((entry, index) => {
+                  const item = entry.order.items[0];
+                  const chip = getOrderStatusChip(entry);
+                  const retryable =
+                    entry.order.status === OrderStatus.PendingPayment;
+                  const createdDate = entry.order.createdAt
+                    ? new Date(entry.order.createdAt).toLocaleDateString(
+                        language === "zh" ? "zh-HK" : "en-HK",
+                        { month: "short", day: "numeric" }
+                      )
+                    : "";
+                  return (
+                    <div
+                      key={entry.order.id}
+                      className={`flex items-start gap-3 p-4 ${
+                        index < orderEntries.length - 1
+                          ? "border-b border-[var(--color-border)]"
+                          : ""
+                      }`}
+                    >
+                      {item?.imageUrl && (
+                        <img
+                          src={item.imageUrl}
+                          alt={item.title?.[language] ?? ""}
+                          className="h-14 w-14 flex-none rounded-xl object-cover"
+                        />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold leading-snug text-[var(--color-text-primary)]">
+                          {item?.title?.[language] ?? entry.order.id}
+                        </p>
+                        <p className="mt-0.5 text-xs text-[var(--color-text-secondary)]">
+                          {item?.type === CartItemType.WorkshopSeat
+                            ? `${t("checkoutSeatsLabel")} ${item.quantity}`
+                            : t("profileOrdersQuantity", {
+                                count: item?.quantity ?? 1,
+                              })}
+                          {createdDate ? ` · ${createdDate}` : ""}
+                        </p>
+                        <span
+                          className={`mt-1.5 inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                            chip.tone === "green"
+                              ? "bg-[var(--color-success)]/12 text-[var(--color-success)]"
+                              : chip.tone === "red"
+                                ? "bg-[var(--color-error)]/12 text-[var(--color-error)]"
+                                : "bg-[var(--color-border)]/30 text-[var(--color-text-secondary)]"
+                          }`}
+                        >
+                          {chip.label}
+                        </span>
+                        {retryable && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              onStartCheckout({ kind: "retry", order: entry.order })
+                            }
+                            className="mt-1.5 block text-xs font-bold text-[var(--color-text-red)]"
+                          >
+                            {t("profileOrdersRetryPayment")} →
+                          </button>
+                        )}
+                      </div>
+                      <p className="whitespace-nowrap text-sm font-bold text-[var(--color-text-primary)]">
+                        {formatMoneyDisplay(
+                          entry.order.total,
+                          entry.order.currency,
+                          language
+                        )}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
         {activeTab === "wardrobe" && (

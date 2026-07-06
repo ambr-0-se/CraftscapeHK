@@ -13,6 +13,7 @@ interface ProductDetailProps {
   onContact: () => void;
   onViewArtisan?: () => void;
   onAiGen?: () => void;
+  onPurchase?: () => void;
 }
 
 const ProductDetail: React.FC<ProductDetailProps> = ({
@@ -21,10 +22,16 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   onContact,
   onViewArtisan,
   onAiGen,
+  onPurchase,
 }) => {
   const { language, t } = useLanguage();
   const [intentVisible, setIntentVisible] = useState(false);
   const isCustomizable = product.productKind === "customizable";
+  const isPurchasable =
+    !isCustomizable &&
+    product.price > 0 &&
+    product.availability !== "quote_only" &&
+    product.availability !== "sold_out";
   const primaryActionLabel = getPurchaseCtaLabel(product, language);
   const descriptionLabel = isCustomizable
     ? language === "zh" ? "客製說明" : "Customization details"
@@ -33,6 +40,11 @@ const ProductDetail: React.FC<ProductDetailProps> = ({
   const handlePrimaryAction = () => {
     if (isCustomizable && onAiGen) {
       onAiGen();
+      return;
+    }
+
+    if (isPurchasable && onPurchase) {
+      onPurchase();
       return;
     }
 

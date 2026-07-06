@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CraftscapeHK Checkout, Confirmation & Order Tracking Preview</title>
+    <style>
+      :root {
+        --color-bg: #f8f9fa;
+        --color-page-bg: #f3f4f6;
+        --color-surface: #ffffff;
+        --color-primary-accent: #053a6a;
+        --color-secondary-accent: #085ea7;
+        --color-text-primary: #053a6a;
+        --color-text-secondary: #747b83;
+        --color-text-red: #972226;
+        --color-border: rgba(5, 58, 106, 0.18);
+        --color-button-cta: #972226;
+        --color-success: #1f7a4d;
+        --color-error: #a63232;
+        --shadow-soft: 0 8px 24px rgba(5, 58, 106, 0.12);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        background:
+          linear-gradient(180deg, rgba(5, 58, 106, 0.08), transparent 34rem),
+          var(--color-bg);
+        color: var(--color-text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Roboto, Helvetica, Arial, sans-serif;
+        line-height: 1.5;
+      }
+
+      button { font: inherit; }
+
+      .intro {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 28px 16px 4px;
+      }
+      .intro h1 { font-size: 22px; margin: 0 0 6px; }
+      .intro p { margin: 0; color: var(--color-text-secondary); font-size: 14px; max-width: 70ch; }
+
+      .stage {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 28px;
+        justify-content: center;
+        padding: 24px 12px 64px;
+      }
+
+      .frame-label {
+        text-align: center;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--color-text-secondary);
+        margin-bottom: 10px;
+      }
+
+      .phone {
+        position: relative;
+        width: 390px;
+        height: 844px;
+        overflow: hidden;
+        border: 1px solid rgba(5, 58, 106, 0.2);
+        border-radius: 28px;
+        background: var(--color-page-bg);
+        box-shadow: 0 24px 70px rgba(5, 58, 106, 0.22);
+      }
+
+      .scroll { height: 100%; overflow-y: auto; padding-bottom: 120px; }
+
+      /* ---------- shared bits ---------- */
+      .topbar {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 18px 16px 8px;
+      }
+      .topbar .back-btn {
+        width: 38px; height: 38px;
+        border-radius: 50%;
+        border: 1px solid var(--color-border);
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .topbar h1 { font-size: 21px; margin: 0; }
+      .topbar .sub { display: block; font-size: 12.5px; font-weight: 400; color: var(--color-text-secondary); }
+
+      .card {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 18px;
+        box-shadow: var(--shadow-soft);
+        margin: 12px 16px;
+        overflow: hidden;
+      }
+      .card .pad { padding: 16px; }
+
+      .row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--color-border); font-size: 14.5px; }
+      .row:last-child { border-bottom: none; }
+      .row .k { color: var(--color-text-secondary); }
+      .row .v { font-weight: 600; text-align: right; }
+
+      .item-head { display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid var(--color-border); }
+      .item-head img { width: 74px; height: 74px; border-radius: 12px; object-fit: cover; background: #dfe5ec; }
+      .item-head .t { font-weight: 700; font-size: 16px; line-height: 1.3; }
+      .item-head .zh { font-size: 13.5px; color: var(--color-text-secondary); margin-top: 2px; }
+      .item-head .meta { font-size: 12.5px; color: var(--color-text-secondary); margin-top: 6px; }
+
+      .chip {
+        display: inline-block;
+        border-radius: 999px;
+        padding: 3px 10px;
+        font-size: 11.5px;
+        font-weight: 700;
+      }
+      .chip.blue { background: rgba(8, 94, 167, 0.1); color: var(--color-secondary-accent); }
+      .chip.green { background: rgba(31, 122, 77, 0.12); color: var(--color-success); }
+      .chip.red { background: rgba(166, 50, 50, 0.12); color: var(--color-error); }
+      .chip.grey { background: rgba(116, 123, 131, 0.14); color: var(--color-text-secondary); }
+
+      .cta-dock {
+        position: absolute;
+        left: 0; right: 0; bottom: 0;
+        padding: 12px 16px 20px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        border-top: 1px solid var(--color-border);
+      }
+      .cta {
+        display: block;
+        width: 100%;
+        border: none;
+        border-radius: 999px;
+        padding: 15px;
+        font-weight: 700;
+        font-size: 16px;
+        color: #fff;
+        background: var(--color-button-cta);
+        cursor: pointer;
+      }
+      .cta.blue { background: var(--color-primary-accent); }
+      .cta.ghost {
+        background: transparent;
+        color: var(--color-primary-accent);
+        border: none;
+        padding: 10px;
+        font-weight: 700;
+        width: 100%;
+        cursor: pointer;
+      }
+      .secure-note {
+        display: flex; align-items: center; justify-content: center; gap: 6px;
+        font-size: 12px; color: var(--color-text-secondary);
+        margin-top: 8px;
+      }
+
+      .section-label {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--color-text-secondary);
+        margin: 18px 16px 4px;
+      }
+
+      /* ---------- confirmation ---------- */
+      .confirm-hero { text-align: center; padding: 46px 24px 10px; }
+      .confirm-hero .seal {
+        width: 74px; height: 74px;
+        margin: 0 auto 14px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 34px;
+        color: #fff;
+      }
+      .seal.ok { background: var(--color-success); }
+      .seal.warn { background: var(--color-error); }
+      .seal.grey { background: var(--color-text-secondary); }
+      .confirm-hero h2 { margin: 0 0 4px; font-size: 22px; }
+      .confirm-hero .zh { color: var(--color-text-secondary); font-size: 15px; }
+
+      .next-steps { list-style: none; margin: 0; padding: 0; }
+      .next-steps li { display: flex; gap: 10px; padding: 9px 0; font-size: 14px; border-bottom: 1px solid var(--color-border); }
+      .next-steps li:last-child { border-bottom: none; }
+      .next-steps .n {
+        flex: none;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: rgba(8, 94, 167, 0.1);
+        color: var(--color-secondary-accent);
+        font-size: 12px; font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+        margin-top: 1px;
+      }
+
+      /* ---------- profile orders ---------- */
+      .tabs {
+        display: flex;
+        background: rgba(5, 58, 106, 0.07);
+        border-radius: 14px;
+        padding: 4px;
+        margin: 10px 16px;
+      }
+      .tabs button {
+        flex: 1;
+        border: none;
+        background: transparent;
+        border-radius: 10px;
+        padding: 10px 0;
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+      }
+      .tabs button.active { background: var(--color-surface); color: var(--color-text-red); box-shadow: var(--shadow-soft); }
+
+      .order-row { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--color-border); align-items: flex-start; }
+      .order-row:last-child { border-bottom: none; }
+      .order-row img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; background: #dfe5ec; }
+      .order-row .t { font-weight: 700; font-size: 14.5px; line-height: 1.3; }
+      .order-row .m { font-size: 12.5px; color: var(--color-text-secondary); margin-top: 2px; }
+      .order-row .amount { margin-left: auto; text-align: right; }
+      .order-row .amount .p { font-weight: 700; font-size: 14.5px; white-space: nowrap; }
+      .order-row .retry {
+        border: none; background: none; color: var(--color-text-red);
+        font-weight: 700; font-size: 12.5px; padding: 0; margin-top: 6px; cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="intro">
+      <h1>Checkout · Confirmation · Order tracking</h1>
+      <p>
+        Four states for Objectives 8+9. One checkout sheet serves workshops, products, and approved
+        co-creation deposits (the summary card adapts); one confirmation surface serves success,
+        failed, and cancelled outcomes; Profile gains an Orders tab. All copy ships bilingual —
+        English shown large, 繁體中文 as the paired line, matching current app patterns.
+      </p>
+    </div>
+
+    <div class="stage">
+      <!-- 1. CHECKOUT -->
+      <div>
+        <div class="frame-label">1 · Checkout (workshop example)</div>
+        <div class="phone">
+          <div class="scroll">
+            <div class="topbar">
+              <button class="back-btn" aria-label="Back">↓</button>
+              <h1>Checkout <span class="sub">結帳</span></h1>
+            </div>
+
+            <div class="card">
+              <div class="item-head">
+                <img src="https://www.pmq.org.hk/media/upload/H403_Obellery_Beginner-Jewellery-Workshop-by-Obellery_updated_20230601_KV.jpg" alt="Obellery workshop" />
+                <div>
+                  <div class="t">Obellery Metal &amp; Silver Jewellery Workshop</div>
+                  <div class="zh">Obellery 金工銀飾製作工作坊</div>
+                  <div class="meta">Sun, Jul 12 · 10:30 – 13:00 · PMQ, Central</div>
+                  <span class="chip blue">Workshop seat 工作坊名額</span>
+                </div>
+              </div>
+              <div class="pad">
+                <div class="row"><span class="k">Seats 名額</span><span class="v">2</span></div>
+                <div class="row"><span class="k">Price per seat 每位</span><span class="v">HK$680</span></div>
+                <div class="row"><span class="k">Total 總計</span><span class="v" style="font-size: 17px;">HK$1,360</span></div>
+              </div>
+            </div>
+
+            <div class="section-label">Before you pay 付款前</div>
+            <div class="card"><div class="pad" style="font-size: 13.5px; color: var(--color-text-secondary);">
+              Your seats stay reserved while you pay. If payment fails or is cancelled, the booking
+              returns to pending and nothing is charged.<br />付款期間名額保留；付款失敗或取消不會扣款。
+            </div></div>
+          </div>
+
+          <div class="cta-dock">
+            <button class="cta">Pay HK$1,360 付款</button>
+            <button class="cta ghost">Cancel and keep booking pending 取消付款</button>
+            <div class="secure-note">🔒 Secure payment via Stripe · 由 Stripe 安全處理</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. CONFIRMATION SUCCESS -->
+      <div>
+        <div class="frame-label">2 · Confirmation — success (shared surface)</div>
+        <div class="phone">
+          <div class="scroll">
+            <div class="confirm-hero">
+              <div class="seal ok">✓</div>
+              <h2>Workshop seat confirmed</h2>
+              <div class="zh">工作坊名額已確認</div>
+            </div>
+
+            <div class="card">
+              <div class="item-head">
+                <img src="https://www.pmq.org.hk/media/upload/H403_Obellery_Beginner-Jewellery-Workshop-by-Obellery_updated_20230601_KV.jpg" alt="Obellery workshop" />
+                <div>
+                  <div class="t">Obellery Metal &amp; Silver Jewellery Workshop</div>
+                  <div class="zh">Obellery 金工銀飾製作工作坊</div>
+                  <div class="meta">Sun, Jul 12 · 10:30 – 13:00 · PMQ, Central</div>
+                </div>
+              </div>
+              <div class="pad">
+                <div class="row"><span class="k">Payment 付款</span><span class="v"><span class="chip green">Paid 付款成功</span></span></div>
+                <div class="row"><span class="k">Seats 名額</span><span class="v">2</span></div>
+                <div class="row"><span class="k">Paid total 已付</span><span class="v">HK$1,360</span></div>
+                <div class="row"><span class="k">Order 訂單</span><span class="v" style="font-weight: 500; font-size: 12.5px;">order_45c7…</span></div>
+              </div>
+            </div>
+
+            <div class="section-label">What happens next 之後會發生</div>
+            <div class="card"><div class="pad">
+              <ul class="next-steps">
+                <li><span class="n">1</span><span>Your seats are held under your name — just arrive 10 minutes early.<br />名額已登記，工作坊當日提前十分鐘到場即可。</span></li>
+                <li><span class="n">2</span><span>The artisan may message you about materials before the session.<br />師傅或會在課前與你聯絡物料安排。</span></li>
+                <li><span class="n">3</span><span>Track this booking anytime in Profile → Orders.<br />可隨時在「個人檔案 → 訂單」查看。</span></li>
+              </ul>
+            </div></div>
+          </div>
+
+          <div class="cta-dock">
+            <button class="cta blue">View my orders 查看訂單</button>
+            <button class="cta ghost">Message the artisan 聯絡師傅</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. CONFIRMATION FAILED / CANCELLED -->
+      <div>
+        <div class="frame-label">3 · Confirmation — payment failed (cancelled uses grey seal)</div>
+        <div class="phone">
+          <div class="scroll">
+            <div class="confirm-hero">
+              <div class="seal warn">!</div>
+              <h2>Payment failed</h2>
+              <div class="zh">付款失敗 — 未有扣款</div>
+            </div>
+
+            <div class="card">
+              <div class="item-head">
+                <img src="https://www.pmq.org.hk/media/upload/H403_Obellery_Beginner-Jewellery-Workshop-by-Obellery_updated_20230601_KV.jpg" alt="Obellery workshop" />
+                <div>
+                  <div class="t">Obellery Metal &amp; Silver Jewellery Workshop</div>
+                  <div class="zh">Obellery 金工銀飾製作工作坊</div>
+                  <div class="meta">Sun, Jul 12 · 10:30 – 13:00 · PMQ, Central</div>
+                </div>
+              </div>
+              <div class="pad">
+                <div class="row"><span class="k">Payment 付款</span><span class="v"><span class="chip red">Payment failed 付款失敗</span></span></div>
+                <div class="row"><span class="k">Booking 預約</span><span class="v"><span class="chip grey">Not confirmed 未確認</span></span></div>
+                <div class="row"><span class="k">Amount due 應付</span><span class="v">HK$1,360</span></div>
+              </div>
+            </div>
+
+            <div class="card"><div class="pad" style="font-size: 13.5px; color: var(--color-text-secondary);">
+              Nothing was charged. Your booking is kept as pending — retry the payment or cancel the
+              booking below.<br />未有扣款。預約仍保留為待付款，可重新付款或取消預約。
+            </div></div>
+          </div>
+
+          <div class="cta-dock">
+            <button class="cta">Try payment again 重新付款</button>
+            <button class="cta ghost">Cancel this booking 取消預約</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4. PROFILE ORDERS -->
+      <div>
+        <div class="frame-label">4 · Profile — Orders tab (history &amp; tracking)</div>
+        <div class="phone">
+          <div class="scroll">
+            <div class="topbar">
+              <h1>Profile <span class="sub">個人檔案</span></h1>
+            </div>
+
+            <div class="tabs">
+              <button>Favorites</button>
+              <button>Creations</button>
+              <button class="active">Orders 訂單</button>
+              <button>Wardrobe</button>
+            </div>
+
+            <div class="section-label">Orders &amp; bookings 訂單與預約</div>
+            <div class="card">
+              <div class="order-row">
+                <img src="https://www.pmq.org.hk/media/upload/H403_Obellery_Beginner-Jewellery-Workshop-by-Obellery_updated_20230601_KV.jpg" alt="Workshop" />
+                <div>
+                  <div class="t">Obellery Metal &amp; Silver Jewellery Workshop</div>
+                  <div class="m">2 seats · Jul 12, 10:30 · order_45c7…</div>
+                  <span class="chip green">Workshop seat confirmed 名額已確認</span>
+                </div>
+                <div class="amount"><div class="p">HK$1,360</div></div>
+              </div>
+              <div class="order-row">
+                <img src="https://image.hkstandard.com.hk/f/1024p0/0x0/100/none/f72127d693b9c8564b72757c39274a81/images/2022-06/20220626131153indexPhoto.jpeg" alt="Tea set" />
+                <div>
+                  <div class="t">Canton Porcelain Dragon &amp; Phoenix Tea Set</div>
+                  <div class="m">Qty 1 · Jul 6 · order_e0ab…</div>
+                  <span class="chip green">Payment received 已付款</span>
+                </div>
+                <div class="amount"><div class="p">HK$1,888</div></div>
+              </div>
+              <div class="order-row">
+                <img src="https://media.timeout.com/images/105549477/750/562/image.jpg" alt="Co-creation deposit" />
+                <div>
+                  <div class="t">Co-creation deposit 共創訂金</div>
+                  <div class="m">Cheongsam commission · order_2cd9…</div>
+                  <span class="chip green">Paid — in artisan's hands 已付訂金</span>
+                </div>
+                <div class="amount"><div class="p">HK$1,500</div></div>
+              </div>
+              <div class="order-row">
+                <img src="https://picsum.photos/seed/product6/400/400" alt="Neon light" />
+                <div>
+                  <div class="t">Mini Desktop Neon Light</div>
+                  <div class="m">Qty 1 · Jul 6 · order_9a1f…</div>
+                  <span class="chip red">Payment failed 付款失敗</span><br />
+                  <button class="retry">Try payment again 重新付款 →</button>
+                </div>
+                <div class="amount"><div class="p">HK$890</div></div>
+              </div>
+              <div class="order-row">
+                <img src="https://picsum.photos/seed/product5/400/400" alt="Coffee cup" />
+                <div>
+                  <div class="t">Canton Porcelain Coffee Cup</div>
+                  <div class="m">Qty 2 · Jul 5 · order_77bd…</div>
+                  <span class="chip grey">Cancelled 已取消</span>
+                </div>
+                <div class="amount"><div class="p">HK$1,160</div></div>
+              </div>
+            </div>
+
+            <div class="card"><div class="pad" style="font-size: 13px; color: var(--color-text-secondary); text-align: center;">
+              Empty state: “No orders yet — book a workshop or commission a craft to begin.”<br />
+              尚未有訂單 — 預約工作坊或訂製工藝，開始你的旅程。
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

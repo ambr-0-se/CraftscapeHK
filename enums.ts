@@ -16,6 +16,8 @@
    Chatroom = 'chatroom',
    TextLab = 'textLab',
    Play = 'play',
+   Checkout = 'checkout',
+   OrderConfirmation = 'orderConfirmation',
  }
  
  export enum ArtisanView {

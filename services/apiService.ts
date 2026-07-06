@@ -8,8 +8,13 @@ import type {
     MessageThread,
     PendingWorkshopBookingResponse,
 } from '../types';
-import type { AiCreationContract, CoCreationRequestContract } from '../shared/contracts';
-import type { BookingContract, BookingStatus, OrderStatus } from '../shared/contracts';
+import type {
+    AiCreationContract,
+    CheckoutSessionResultContract,
+    CoCreationRequestContract,
+    CreateCheckoutSessionInputContract,
+    CustomerOrderHistoryEntryContract,
+} from '../shared/contracts';
 import { authService } from './authService';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -248,6 +253,50 @@ export const updateBookingStatus = async (
         method: 'PATCH',
         body: JSON.stringify(input),
     });
+};
+
+/**
+ * Checkout & orders API (Objectives 8/9). Customer IDs stay parameterized so
+ * the demo persona switcher (Lane B) can slot in without contract changes.
+ */
+export const DEMO_CUSTOMER_ID = 'customer-demo';
+
+export const createCheckoutSession = async (
+    input: CreateCheckoutSessionInputContract,
+): Promise<CheckoutSessionResultContract> => {
+    return apiRequest<CheckoutSessionResultContract>('/checkout/session', {
+        method: 'POST',
+        body: JSON.stringify({ customerId: DEMO_CUSTOMER_ID, ...input }),
+    });
+};
+
+export const getCheckoutOrderHistory = async (
+    customerId: string = DEMO_CUSTOMER_ID,
+): Promise<CustomerOrderHistoryEntryContract[]> => {
+    return apiRequest<CustomerOrderHistoryEntryContract[]>(
+        `/checkout/orders?customerId=${encodeURIComponent(customerId)}`,
+    );
+};
+
+export const getCheckoutOrder = async (
+    orderId: string,
+): Promise<CustomerOrderHistoryEntryContract> => {
+    return apiRequest<CustomerOrderHistoryEntryContract>(
+        `/checkout/orders/${encodeURIComponent(orderId)}`,
+    );
+};
+
+export const cancelCheckoutOrder = async (
+    orderId: string,
+    customerId: string = DEMO_CUSTOMER_ID,
+): Promise<CustomerOrderHistoryEntryContract> => {
+    return apiRequest<CustomerOrderHistoryEntryContract>(
+        `/checkout/orders/${encodeURIComponent(orderId)}/cancel`,
+        {
+            method: 'POST',
+            body: JSON.stringify({ customerId }),
+        },
+    );
 };
 
 /**

@@ -12,6 +12,7 @@ import { MessageThread } from '../entities/message-thread.entity';
 import { User } from '../entities/user.entity';
 import { AiCreation } from '../entities/ai-creation.entity';
 import { CoCreationRequest } from '../entities/co-creation-request.entity';
+import { CheckoutOrder } from '../entities/checkout-order.entity';
 import * as path from 'path';
 
 const envFilePath = [
@@ -45,6 +46,7 @@ const envFilePath = [
           User,
           AiCreation,
           CoCreationRequest,
+          CheckoutOrder,
         ],
         synchronize: true, // Auto-create tables (safe for SQLite)
         logging: configService.get('NODE_ENV') === 'development',

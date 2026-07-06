@@ -51,11 +51,11 @@ Worktree `worktrees/mvp-stripe-orders`, branch `mvp/stripe-orders`. Critical pat
 
 ### Live handoff state — Lane A
 
-- Status: not started
-- Last agent/tool: —
-- Done so far: —
-- Next step if resuming: create the worktree and run the kickoff prompt above
-- Blockers / decisions needed: Stripe test-mode API keys from the user (simulated mode unblocks everything else)
+- Status: ready for review (Objectives 8+9 implemented, all verification green)
+- Last agent/tool: Claude Code (Fable 5)
+- Done so far: pricing normalized to cents (`priceMoney` on products API); `server/src/payments` module (simulated checkout behind `PAYMENTS_SIMULATED=true`, Stripe Checkout Sessions + signature-verified webhook, capacity decrement, co-creation conversion); approved preview `design-previews/checkout-orders.html`; shared CheckoutView + OrderConfirmation surfaces; Profile Orders tab; all three checkout CTAs wired; Stripe return redirect handled. Rebased on `origin/main` (`acfe1a0`); commits `eab90a2`, `4d77699` (+docs). Verification: typecheck, 25 contract tests, frontend build, server build, 20 server tests, manual simulated-mode API journey — all pass. Full evidence in tracker Objectives 8/9.
+- Next step if resuming: in-browser visual QA at mobile viewport (`PAYMENTS_SIMULATED=true npm run dev:stack`), then push and open the PR against `main`; optionally exercise real Stripe test mode with keys + `stripe listen --forward-to localhost:3001/api/payments/stripe/webhook`
+- Blockers / decisions needed: Stripe test-mode API keys from the user for a real-mode round trip (simulated mode fully demoable without them)
 
 ---
 

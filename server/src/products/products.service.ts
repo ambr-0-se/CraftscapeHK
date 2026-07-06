@@ -2,7 +2,9 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { GoogleGenAI } from '@google/genai';
+import type { MoneyContract } from '@craftscape/contracts';
 import { Product } from '../entities/product.entity';
+import { getProductMoney } from '../payments/pricing.util';
 import { getGeminiApiKey } from '../config/gemini.config';
 import { getDoubaoConfig, isDoubaoConfigured } from '../config/doubao.config';
 import { generateDoubaoImage } from '../ai/doubao.client';
@@ -23,16 +25,17 @@ export class ProductsService {
     this.ai = new GoogleGenAI({ apiKey });
   }
 
-  async findAll(): Promise<Product[]> {
-    return this.productsRepository.find();
+  async findAll(): Promise<Array<Product & { priceMoney: MoneyContract }>> {
+    const products = await this.productsRepository.find();
+    return products.map((product) => ({ ...product, priceMoney: getProductMoney(product) }));
   }
 
-  async findOne(id: number): Promise<Product> {
+  async findOne(id: number): Promise<Product & { priceMoney: MoneyContract }> {
     const product = await this.productsRepository.findOne({ where: { id } });
     if (!product) {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
-    return product;
+    return { ...product, priceMoney: getProductMoney(product) };
   }
 
   private containsChineseCharacters(value: string): boolean {
