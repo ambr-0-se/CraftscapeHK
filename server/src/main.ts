@@ -69,10 +69,10 @@ export async function createNestServer() {
   app.useStaticAssets(join(__dirname, '..', '..', 'public'), {
     prefix: '/',
   });
-  app.useStaticAssets(join(__dirname, '..', '..', 'assets'), {
+  app.useStaticAssets(join(__dirname, '..', 'assets'), {
     prefix: '/assets',
   });
-  app.useStaticAssets(join(__dirname, '..', '..', 'assets', 'mahjong'), {
+  app.useStaticAssets(join(__dirname, '..', 'assets', 'mahjong'), {
     prefix: '/',
   });
 

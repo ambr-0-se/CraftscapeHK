@@ -9,7 +9,9 @@ import { Order } from './entities/order.entity';
 import { ChatMessage } from './entities/chat-message.entity';
 import { MessageThread } from './entities/message-thread.entity';
 import { MessageSenderRole, MessageType } from '@craftscape/contracts';
-const { CRAFTS, PRODUCTS, EVENTS, ARTISANS, ORDERS, MESSAGE_THREADS } = require('../../constants.cjs');
+// Resolve to server/constants.cjs (co-located with the backend and copied into the
+// production image) in both ts-node dev (server/src) and compiled prod (server/dist).
+const { CRAFTS, PRODUCTS, EVENTS, ARTISANS, ORDERS, MESSAGE_THREADS } = require('../constants.cjs');
 
 async function seed() {
   console.log('🌱 Starting database seeding...');
