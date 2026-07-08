@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 - Frontend React and TypeScript code lives at the repository root: UI components in `components/`, routed screens in `pages/`, reusable views in `views/`, and shared state in `contexts/`. Prototype UI types remain in `types.ts`, canonical MVP domain contracts live in `shared/contracts.ts`, and domain seed/display data is in `constants.ts`.
-- Assets for localization reside in `locales/`, while seed scripts and database helpers are kept in `seed-data.cjs`, `database.cjs`, and the mirrored `.js` builds.
+- Assets for localization reside in `locales/`. Database seeding and persistence live in the NestJS backend under `server/` (`server/src/seed.ts` seeds from `server/constants.cjs` and the bundled assets on startup).
 - The NestJS backend is isolated under `server/`.
 - Shared contract guidance lives in `docs/SHARED_CONTRACTS.md`. Ownership rules live in `docs/OWNERSHIP_MODEL.md`. New MVP work should import from `shared/contracts.ts` rather than adding private enums or duplicate status values.
 - Engineering guardrails (security baseline, data/persistence, contract/i18n discipline, dead-code and repo hygiene, verification gates) live in `docs/CODE_QUALITY_GUARDRAILS.md`. Read it before shipping backend, data-layer, or cross-cutting frontend changes.

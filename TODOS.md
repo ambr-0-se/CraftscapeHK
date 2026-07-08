@@ -16,17 +16,19 @@
 
 ## Retire or consolidate legacy seed/data mirrors
 
-**What:** Retire or consolidate legacy root Sequelize helpers and mirrored runtime constants.
+**Status:** Largely done in `mvp/quality-cleanup`. The dead root Sequelize cluster (`auth`/`config`/`database`/`seed-data`/`constants` `.cjs`/`.js` twins) was deleted; NestJS/TypeORM under `server/` is the only supported backend. Only the drift risk between `constants.ts` (frontend display data) and `server/constants.cjs` (server seed) remains.
 
-**Why:** `constants.ts`, `constants.cjs`, `server/constants.cjs`, `database.cjs`, and `seed-data.cjs` can drift from the Nest/TypeORM backend.
+**What:** Keep the two remaining constants sources aligned; there is no longer a legacy Sequelize backend to retire.
+
+**Why:** `constants.ts` and `server/constants.cjs` are separate copies of the same domain data and can drift from the Nest/TypeORM backend.
 
 **Pros:** Fewer duplicate data sources, cleaner seed path, and less confusion for parallel worktrees.
 
-**Cons:** Requires care because existing scripts still import these files.
+**Cons:** Requires care because both files are consumed at build/runtime.
 
-**Context:** The contract-first worktree should document seed impact without cleaning the whole data layer. Follow-up cleanup should decide whether Nest/TypeORM is the only supported backend path.
+**Context:** The parallel `.cjs`/`.js` backend is gone (see `docs/CODE_QUALITY_GUARDRAILS.md`). Remaining follow-up is a single source of truth for seed/display constants.
 
-**Depends on / blocked by:** Shared contracts landing and a decision on supported local seed paths.
+**Depends on / blocked by:** A decision on how to derive one constants file from the other.
 
 ## Package shared contracts for backend runtime imports
 

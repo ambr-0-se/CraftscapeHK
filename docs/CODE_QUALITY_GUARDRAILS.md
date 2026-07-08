@@ -79,13 +79,15 @@ Mechanism: `contexts/LanguageContext.tsx` → `t(key, replacements)` over `local
 - **All user-facing copy goes through `t()`.** No inline `language === 'zh' ? '…' : '…'` ternaries and
   no raw CJK/English string literals in JSX. (Allowlist the seal-carving glyph content in
   `TextLab*`/`GLYPH_LIBRARY`, which is craft data, not UI copy.)
-- **No English-only (or Chinese-only) UI strings.** `artisan/Dashboard.tsx` and `pages/Events.tsx`
-  ship English-only literals that are broken for 繁體中文 users.
-- **`en.ts` and `zh.ts` keys must match exactly.** Add a CI parity test (`Object.keys(en)` deep-equals
-  `Object.keys(zh)`). Delete the orphaned `locales/en.json` (imported by nothing; pure drift bait).
-- **Fix the fallback direction.** `t()` currently falls back active-language → `zh` → key, so a
-  missing English key renders Chinese to an English user. Fall back to the key (with a dev warning),
-  not to the other language.
+- **No English-only (or Chinese-only) UI strings.** Every visible label must resolve in both locales.
+  (`artisan/Dashboard.tsx` and `pages/Events.tsx` previously shipped English-only literals broken for
+  繁體中文 users — now routed through `t()`; do not reintroduce raw literals.)
+- **`en.ts` and `zh.ts` keys must match exactly** — enforced by the parity test in
+  `locales/locales.test.ts` (`Object.keys(en)` deep-equals `Object.keys(zh)`). The orphaned
+  `locales/en.json` has been removed; do not reintroduce a third, unimported copy.
+- **Keep the fallback direction correct.** `t()` falls back active-language → `en` (default) → key
+  (`contexts/LanguageContext.tsx`), so a missing English key never renders Chinese to an English user.
+  Do not fall back to the other language.
 
 ## 5. Frontend quality
 
@@ -93,12 +95,12 @@ Mechanism: `contexts/LanguageContext.tsx` → `t(key, replacements)` over `local
   (~780) all ship in the entry chunk today (single ~700 KB bundle). Lazy-load overlay views behind
   `React.lazy`/`Suspense`.
 - **`loading="lazy"` on every non-hero `<img>`.** Currently 0 of ~34.
-- **One theming system.** The app owns a `data-theme` toggle on `<html>`. Do not use Tailwind `dark:`
-  variants (they follow OS `prefers-color-scheme`, not the toggle) and do not hardcode
-  `bg-white`/`gray-*` in modals — use the CSS-variable tokens defined in `index.css`.
+- **One theming system.** The app owns a `data-theme` toggle on `<html>`, and Tailwind's `dark:`
+  variant is bound to it via the `@custom-variant` in `index.css` (so `dark:` follows the in-app
+  toggle, not OS `prefers-color-scheme`). Do not hardcode `bg-white`/`gray-*` in modals — use the
+  CSS-variable tokens defined in `index.css`.
 - **Data-fetching effects handle their own errors.** Every `await`/`.then()` in a fetch effect needs
-  a `.catch`/`.finally` so a thrown fallback can't leave a spinner stuck (`Profile` favorites,
-  `Events`, `ProductManagement` currently don't).
+  a `.catch`/`.finally` so a thrown fallback can't leave a spinner stuck.
 - **No dead code in the tree.** Delete on sight, don't leave for later: unused components
   (`SwipeableCard`, `Icon`), unused services (`authService`), dead branches
   (`textLabGeminiService` ships an unused `@google/genai` SDK to the client), and stub buttons
@@ -110,24 +112,29 @@ Mechanism: `contexts/LanguageContext.tsx` → `t(key, replacements)` over `local
 
 ## 6. Repo hygiene
 
-- **Retire the parallel Sequelize backend.** The root `auth.cjs`/`database.cjs`/`seed-data.cjs`/
-  `config.cjs`/`.js` twins are a dead second backend superseded by NestJS `server/`. Remove them (or
-  fence behind CI) so they stop rotting and drifting from the real data layer.
-- **Don't commit assets twice.** Mahjong fonts live in both `assets/mahjong/` and
-  `server/assets/mahjong/`; only the `server/` copy is loaded at runtime (`text-to-image.util.ts`).
-  Keep one copy.
+- **One backend, no parallel data layer.** The dead root Sequelize cluster
+  (`auth`/`config`/`database`/`seed-data`/`constants` `.cjs`/`.js` twins, plus `api/index.ts` and
+  `backend/api.ts`) has been removed; NestJS `server/` is the only backend. Do not reintroduce a
+  second backend or a root `.cjs` data layer.
+- **Don't commit assets twice.** Mahjong fonts live only in `server/assets/mahjong/` (the copy loaded
+  at runtime by `text-to-image.util.ts`); the duplicate root `assets/mahjong/` has been removed. Keep
+  a single copy.
 - **One deployment source of truth.** [`docs/DEPLOYMENT.md`](DEPLOYMENT.md) is canonical
-  (Vercel frontend + Cloud Run backend). Stale/contradictory `*.ps1` scripts, `cloudbuild.yaml`,
-  `nginx.conf`, and the root `Dockerfile` should be reconciled against it or removed. **The canonical
-  backend deploy command it names — `scripts/deploy-backend-cloudrun.sh` — does not exist in the
-  repo.** Commit the real script (or fix the docs to point at the command actually used) so the
-  documented deploy path is runnable.
-- **The container must contain everything it loads at runtime.** `server/Dockerfile` copies only
-  `server/src` (plus config), so it ships **without** `assets/mahjong/` fonts and **without**
-  `constants.cjs`. Result on a fresh deploy: `registerFont()` silently fails (mahjong glyphs render
-  in the wrong font) and the seed's `require('../../constants.cjs')` throws (the backend comes up
-  with an **empty database**). Any file `require()`d or read by path at runtime must be `COPY`d into
-  the image (or bundled), and a smoke test should assert the seeded catalog is non-empty after boot.
+  (Vercel frontend + Cloud Run backend). The stale frontend-on-Cloud-Run path has been removed
+  (`nginx.conf`, the root `Dockerfile`, and the `deploy-all`/`deploy-frontend-to-cloudrun`/
+  `setup-cloudbuild-trigger` `.ps1` scripts); `cloudbuild.yaml` and `deploy-to-cloudrun.ps1` remain
+  because they touch external GCP state. Reconcile any remaining deploy config against `DEPLOYMENT.md`
+  or remove it. **Note:** the backend deploy command `DEPLOYMENT.md` names —
+  `scripts/deploy-backend-cloudrun.sh` — does not exist in the repo; fix the docs to point at the
+  command actually used (`npm run deploy:backend`) or commit the real script so the documented deploy
+  path is runnable.
+- **The container must contain everything it loads at runtime.** `server/Dockerfile` now `COPY`s
+  `server/assets` (mahjong fonts loaded by `registerFont()` in `utils/text-to-image.util.ts`) and
+  `server/constants.cjs` (required by the boot seed + `admin.service`) alongside `server/src`. This
+  was previously broken — the image shipped without them, so a fresh deploy rendered wrong mahjong
+  glyphs and booted an **empty database**. Any file `require()`d or read by path at runtime must stay
+  `COPY`d into the image (or bundled); a smoke test should assert the seeded catalog is non-empty
+  after boot.
 
 ## 7. Verification gates (must pass before merge)
 

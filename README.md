@@ -190,42 +190,33 @@ Do this:
 
 ## Deployment
 
+Full production topology, redeploy triggers, and env vars are in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). **Nothing auto-deploys — merging to `main` does not update production;** every surface is a manual CLI command.
+
 ### Production Deployment
-Both frontend and backend are containerized and deployed to Google Cloud Run:
+The frontend and backend deploy independently to different platforms:
 
-**Quick Deploy (Both Services)**
+- **Frontend** → Vercel. From an up-to-date checkout linked to the Vercel project, run `vercel deploy --prod`.
+- **Backend** (NestJS + WebSocket + SQLite) → Google Cloud Run. The container is built from the **repo root** context so `server/Dockerfile` can `COPY` the `shared/` contracts and the seed assets/constants.
+
 ```bash
-npm run deploy:all
-```
-
-**Deploy Individual Services**
-```bash
-# Deploy frontend only
-npm run deploy:frontend
-
-# Deploy backend only
+# Deploy backend to Cloud Run
 npm run deploy:backend
 ```
 
 **Architecture**
-- Frontend: React + Nginx on Cloud Run (Port 8080)
+- Frontend: React + Vite static bundle on Vercel
 - Backend: NestJS API on Cloud Run (Port 8080)
-- Database: SQLite (bundled with backend)
-- Container Registry: Google Container Registry (GCR)
-
+- Database: SQLite (bundled with the backend image; ephemeral, reseeded on startup)
+- Container image: built from repo root via `server/Dockerfile`
 
 #### Local Docker Testing
 ```bash
-# Test frontend container
-npm run docker:test:frontend
-
-# Test backend container (builds from repo root so shared contracts are included)
+# Test the backend container (builds from repo root so shared contracts and seed assets are included)
 npm run docker:test
 
 # Or manually
 docker build -f server/Dockerfile -t craftscape-backend .
-docker build -t craftscape-frontend .
-docker run -p 8080:8080 craftscape-frontend
+docker run -p 8080:8080 --env-file .env craftscape-backend
 ```
 
 ## License
