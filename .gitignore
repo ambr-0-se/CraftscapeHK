@@ -59,12 +59,6 @@ public/debug-references/
 # Compiled JavaScript files (since we have TypeScript)
 *.js.map
 server/src/**/*.js
-!server-advanced.cjs
-!start-backend.cjs
-!config.cjs
-!auth.cjs
-!database.cjs
-!seed-data.cjs
 
-# Ignore compiled CJS files except the main ones we need
+# Ignore compiled CJS source maps
 *.cjs.map
