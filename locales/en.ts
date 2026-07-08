@@ -3,7 +3,6 @@ export const en = {
     loading: 'Loading...',
     
     // Nav
-    navHome: 'Home',
     navExplore: 'Explore',
     navMarketplace: 'Marketplace',
     navEvents: 'Events',
@@ -36,7 +35,9 @@ export const en = {
     eventsTime: 'Time',
     eventsCategory: 'Category',
     eventsFeatured: 'This Week\'s Highlights',
+    eventsFeaturedSubtitle: 'Curated highlights',
     eventsUpcoming: 'Upcoming Events',
+    eventsUpcomingSubtitle: 'All upcoming events',
     eventsLoadErrorTitle: 'Events unavailable',
     eventsLoadError: 'We could not load events and workshops right now. Please try again soon.',
     eventsEmptyTitle: 'No events match your criteria',
@@ -237,9 +238,6 @@ export const en = {
     onboardingClose: 'Close onboarding',
     onboardingStepIndicator: 'Step {current} of {total}',
 
-    // Explore CTA
-    exploreCardAction: 'Explore',
-
     // Artisan Nav
     artisanNavDashboard: 'Dashboard',
     artisanNavProducts: 'Products',
@@ -254,6 +252,10 @@ export const en = {
     artisanDashboardUnreadMessages: 'Pending Messages',
     artisanDashboardMonthlyRevenue: 'Monthly Revenue',
     artisanDashboardAvgOrderValue: 'Avg. Order Value',
+    artisanDashboardWorkshopBookings: 'Workshop bookings',
+    artisanDashboardApprovals: 'Approvals',
+    artisanDashboardChooseIdentity: 'Choose an artisan identity in Profile before managing artisan records.',
+    artisanDashboardEmptyState: 'No orders, bookings, or co-creation requests for this artisan yet.',
     artisanDashboardQuickActions: 'Quick Actions',
     artisanDashboardAddProduct: 'Add New Product',
     artisanDashboardViewOrders: 'View All Orders',

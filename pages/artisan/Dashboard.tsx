@@ -135,7 +135,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
             <div className="flex-grow p-6 space-y-4">
                 {!activeArtisanId && (
                     <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-secondary)]">
-                        Choose an artisan identity in Profile before managing artisan records.
+                        {t('artisanDashboardChooseIdentity')}
                     </div>
                 )}
                 {error && (
@@ -152,7 +152,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
                         isLoading={isLoading}
                     />
                     <StatCard 
-                        title="Workshop bookings"
+                        title={t('artisanDashboardWorkshopBookings')}
                         value={stats.activeBookings}
                         icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-primary-accent)]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>}
                         onClick={() => setActiveTab(ArtisanTab.Orders)}
@@ -165,7 +165,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
                         isLoading={isLoading}
                     />
                     <StatCard 
-                        title="Approvals"
+                        title={t('artisanDashboardApprovals')}
                         value={stats.approvalRequests}
                         icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--color-primary-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>}
                         onClick={() => setActiveTab(ArtisanTab.Orders)}
@@ -174,7 +174,7 @@ const Dashboard: React.FC<DashboardProps> = ({ setActiveTab }) => {
                 </div>
                 {!isLoading && activeArtisanId && !error && orders.length === 0 && bookings.length === 0 && requests.length === 0 && (
                     <div className="rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] p-5 text-sm text-[var(--color-text-secondary)]">
-                        No orders, bookings, or co-creation requests for this artisan yet.
+                        {t('artisanDashboardEmptyState')}
                     </div>
                 )}
                 
