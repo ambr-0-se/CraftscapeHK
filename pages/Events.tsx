@@ -281,13 +281,23 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
   };
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       setIsLoading(true);
-      const data = await getEvents();
-      setEvents(data);
-      setIsLoading(false);
+      try {
+        const data = await getEvents();
+        if (!cancelled) setEvents(data);
+      } catch (error) {
+        console.error("Failed to load events:", error);
+        if (!cancelled) setEvents([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     };
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const featuredEvents = useMemo(

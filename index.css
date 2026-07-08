@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Bind Tailwind's `dark:` variant to the app's in-app theme toggle (data-theme on
+   <html>) instead of the OS `prefers-color-scheme`, so dark: utilities match the
+   theme the user actually selected. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
 .sr-only {
   position: absolute;
   width: 1px;
