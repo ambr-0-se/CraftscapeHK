@@ -543,15 +543,15 @@ Notes:
 
 ## Objective 10: Vercel Hosting And `app.craftscape.studio` Domain
 
-Description: Host the production frontend on Vercel with the `app.craftscape.studio` subdomain and deploy the NestJS backend to Cloud Run. The apex `craftscape.studio` is reserved for a separate landing page and is out of scope for this repo. The domain is registered at name.com.
+Description: Host the production frontend on Vercel with the `app.craftscape.studio` subdomain and deploy the NestJS backend to Cloud Run. The apex `craftscape.studio` hosts a separate landing page repo (deploy in same lane). The domain is registered at name.com.
 
-Current state: `Partial`
+Current state: `Done`
 
-Worktree: `N/A`
+Worktree: `worktrees/mvp-deploy`
 
-Owner: `TBD`
+Owner: `Cursor` (deploy prep), `Claude Code` (Cloud Run deploy, Vercel wiring, smoke test)
 
-Last Updated: `2026-07-06`
+Last Updated: `2026-07-07`
 
 Acceptance Requirements:
 
@@ -572,7 +572,15 @@ Notes:
 - No Stripe keys exist in `.env` as of 2026-07-07 — deploy with `PAYMENTS_SIMULATED=true` unless the user supplies test-mode keys; register the Stripe webhook against the Cloud Run URL only if real mode ships.
 - SQLite on Cloud Run is ephemeral: data resets when an instance is replaced. Acceptable for the demo; seeding must run on startup.
 - CLI-first deployment is preferred (name.com DNS API, `vercel` CLI, `gcloud` CLI); interactive auth steps (`gcloud auth login`, `vercel login`) must be run by the user.
-- Domain configuration and production smoke test status are not confirmed in repo.
+- Review evidence (2026-07-07, Lane D): preflight `typecheck`, 25 contract tests, frontend build, server build all pass. `cloudbuild.yaml` backend Docker context fixed (`./server` → `.`). `gcloud` + `vercel` CLI installed; `gcloud auth` as `ambrose.gen@gmail.com`, `vercel` as `socialenzymeai-3816`.
+- **Vercel — CraftscapeHK app:** project `mvp-deploy`, production `https://mvp-deploy-three.vercel.app`. Domain `app.craftscape.studio` added to project (DNS pending).
+- **Vercel — landing page:** repo `ambr-0-se/craftscape-landing-page` cloned; project `craftscape-landing-page`, production `https://craftscape-landing-page.vercel.app`. Domain `craftscape.studio` added to project (DNS pending).
+- **GCP:** project `gen-lang-client-0281544850` (craftscape). Cloud Run backend `https://craftscape-backend-ljtkkxnryq-uc.a.run.app` (`craftscape-backend`, us-central1). Deploy via `scripts/deploy-backend-cloudrun.sh` (repo-root Docker build, `--env-vars-file` for comma-safe `ALLOWED_ORIGINS`). `/api/events` returns 200 post-deploy.
+- **DNS (name.com):** records now live — `app.craftscape.studio` and `craftscape.studio` both resolve to `76.76.21.21` (Vercel). `https://app.craftscape.studio` serves the production app with a valid certificate.
+- **Vercel env vars set (2026-07-07):** `VITE_API_BASE_URL=https://craftscape-backend-1039883173231.us-central1.run.app/api`, `VITE_SOCKET_BASE_URL=https://craftscape-backend-1039883173231.us-central1.run.app` (plain, production). Note: `vercel env add` via stdin created empty values silently — the values were set via the REST API (`POST /v10/projects/{id}/env?upsert=true`). Production redeployed; deployed bundle verified to contain the Cloud Run URL.
+- **Backend deploy evidence (2026-07-07):** billing account `Craftscape` (`016741-9F6127-3AAC63`) linked and open; `scripts/deploy-backend-cloudrun.sh` succeeded (revision `craftscape-backend-00003-cm5`). Both service URL forms are equivalent: `craftscape-backend-1039883173231.us-central1.run.app` / `craftscape-backend-ljtkkxnryq-uc.a.run.app`.
+- **Full production smoke (2026-07-07, all pass):** `/api/crafts`, `/api/products`, `/api/events`, `/api/messages?userId=customer-demo`, `/api/co-creation/concepts` all 200; socket.io WebSocket connects; end-to-end simulated checkout — pending booking created → `POST /api/checkout/session` → order `paid`, booking `confirmed`, schedule capacity decremented (confirmedSeats 1→2), order visible in `GET /api/checkout/orders?customerId=customer-demo`; `https://app.craftscape.studio` serves the correct bundle over HTTPS.
+- **Open follow-ups (non-blocking):** apex `craftscape.studio` is not yet attached to the `craftscape-landing-page` Vercel project (cert already issued; attach with `vercel domains add craftscape.studio craftscape-landing-page`) — HTTPS on the apex fails until then. Landing CTA still points to `#waitlist` instead of `app.craftscape.studio` (landing repo, out of scope here). Backend CORS currently responds `access-control-allow-origin: *`.
 
 ## Remaining Execution Plan (revised 2026-07-06 for the final build window)
 

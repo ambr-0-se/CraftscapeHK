@@ -7,7 +7,7 @@ steps:
       - 'gcr.io/$PROJECT_ID/craftscape-backend:latest'
       - '-f'
       - 'server/Dockerfile'
-      - './server'
+      - '.'
     id: 'build-backend-image'
 
   # Push the backend container image to Container Registry

@@ -145,11 +145,11 @@ Branch `mvp/deploy` (~45m).
 
 ### Live handoff state — Lane D
 
-- Status: not started (Lanes A/B/C merged 2026-07-07; this is the last lane)
-- Last agent/tool: —
-- Done so far: plan finalized and user decisions confirmed (2026-07-07): simulated payments (`PAYMENTS_SIMULATED=true`), fresh GCP project under the user's billable account, DNS automated via name.com API token
-- Next step if resuming: run the kickoff prompt above, starting with tooling install + user logins
-- Blockers / decisions needed: user must run `gcloud auth login` and `vercel login`, and provide the name.com username + API token when the DNS step is reached
+- Status: **complete** — production live end to end
+- Last agent/tool: Claude Code
+- Done so far: everything. Backend on Cloud Run (`craftscape-backend-00003-cm5`, billing account `Craftscape` linked); Vercel production env `VITE_API_BASE_URL` / `VITE_SOCKET_BASE_URL` set via REST API (CLI stdin add silently stores empty values — avoid) and prod redeployed; DNS live (`app.craftscape.studio` → Vercel, valid cert); full smoke passed: list APIs 200, WebSocket connects, simulated checkout end to end (order paid, booking confirmed, capacity decremented, order history populated)
+- Next step if resuming: none for this repo. Follow-ups elsewhere: attach apex to landing project (`vercel domains add craftscape.studio craftscape-landing-page` — cert already issued), point landing CTA at `https://app.craftscape.studio`
+- Blockers / decisions needed: none. Reminder: production does not auto-deploy — after merging changes, run the manual deploy commands in `docs/DEPLOYMENT.md`
 
 ---
 
