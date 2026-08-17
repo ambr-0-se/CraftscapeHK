@@ -3,24 +3,37 @@ import { getProducts } from '../../services/apiService';
 import { Product } from '../../types';
 import Spinner from '../../components/Spinner';
 import { useLanguage } from '../../contexts/LanguageContext';
-
-const ARTISAN_NAME = "王師傅"; // Hardcoded for this demo
+import { useDemoPersona } from '../../contexts/DemoPersonaContext';
 
 const ProductManagement: React.FC = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const { language, t } = useLanguage();
+    const { activeArtisan, activeArtisanId } = useDemoPersona();
 
     useEffect(() => {
+        let cancelled = false;
         const fetchData = async () => {
             setIsLoading(true);
-            const data = await getProducts();
-            const artisanProducts = data.filter(p => p.artisan.zh === ARTISAN_NAME);
-            setProducts(artisanProducts);
-            setIsLoading(false);
+            try {
+                const data = await getProducts();
+                // Scope to the active artisan persona rather than a hardcoded name.
+                const artisanProducts = activeArtisan
+                    ? data.filter(p => p.artisanId === activeArtisan.id)
+                    : [];
+                if (!cancelled) setProducts(artisanProducts);
+            } catch (error) {
+                console.error('Failed to load artisan products:', error);
+                if (!cancelled) setProducts([]);
+            } finally {
+                if (!cancelled) setIsLoading(false);
+            }
         };
         fetchData();
-    }, []);
+        return () => {
+            cancelled = true;
+        };
+    }, [activeArtisanId]);
 
     return (
         <div className="h-full w-full flex flex-col bg-[var(--color-bg)] overflow-y-auto">

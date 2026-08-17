@@ -8,7 +8,6 @@
   },
   "include": [
     "App.tsx",
-    "backend/**/*.ts",
     "components/**/*.ts",
     "components/**/*.tsx",
     "contexts/**/*.ts",

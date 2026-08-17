@@ -128,10 +128,13 @@ export const getProducts = async (): Promise<Product[]> => {
 
     try {
         const { PRODUCTS } = await import('../constants');
-        const remoteMap = new Map(products.map(product => [product.id, product]));
+        const localMap = new Map(PRODUCTS.map(product => [product.id, product]));
 
-        return PRODUCTS.map(product => ({
-            ...remoteMap.get(product.id),
+        // Iterate the authoritative backend list so backend-only products are kept and
+        // never dropped; overlay local display metadata as a base, with backend fields
+        // (price, availability, ...) winning where present.
+        return products.map(product => ({
+            ...localMap.get(product.id),
             ...product,
         }));
     } catch (error) {

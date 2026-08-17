@@ -281,13 +281,23 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
   };
 
   useEffect(() => {
+    let cancelled = false;
     const fetchData = async () => {
       setIsLoading(true);
-      const data = await getEvents();
-      setEvents(data);
-      setIsLoading(false);
+      try {
+        const data = await getEvents();
+        if (!cancelled) setEvents(data);
+      } catch (error) {
+        console.error("Failed to load events:", error);
+        if (!cancelled) setEvents([]);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
     };
     fetchData();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const featuredEvents = useMemo(
@@ -454,7 +464,7 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
               {t("eventsFeatured")}
             </h2>
             <p className="text-sm text-[var(--color-text-secondary)]">
-              Curated highlights
+              {t("eventsFeaturedSubtitle")}
             </p>
           </div>
           <div
@@ -481,7 +491,7 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
             {t("eventsUpcoming")}
           </h2>
           <p className="text-sm text-[var(--color-text-secondary)]">
-            All upcoming events
+            {t("eventsUpcomingSubtitle")}
           </p>
         </div>
         <div className="grid grid-cols-2 gap-4 pb-24">
@@ -496,10 +506,10 @@ const Events: React.FC<EventsProps> = ({ onSelectEvent }) => {
           ) : (
             <div className="col-span-2 text-center py-12">
               <p className="text-[var(--color-text-secondary)] mb-2">
-                No events match your criteria
+                {t("eventsEmptyTitle")}
               </p>
               <p className="text-sm text-[var(--color-text-secondary)]">
-                Try adjusting your filters
+                {t("eventsEmptyHint")}
               </p>
             </div>
           )}

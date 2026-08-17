@@ -23,33 +23,17 @@
     "dev:stack:watch": "nodemon --config nodemon.env.json",
     "verify:cors": "node verify-cors.cjs",
     "deploy:backend": "pwsh -ExecutionPolicy Bypass -File ./deploy-to-cloudrun.ps1",
-    "deploy:frontend": "pwsh -ExecutionPolicy Bypass -File ./deploy-frontend-to-cloudrun.ps1",
-    "deploy:all": "pwsh -ExecutionPolicy Bypass -File ./deploy-all.ps1",
     "docker:build": "docker build -f server/Dockerfile -t craftscape-backend .",
-    "docker:build:frontend": "docker build -t craftscape-frontend .",
     "docker:run": "docker run -p 8080:8080 --env-file .env craftscape-backend",
-    "docker:run:frontend": "docker run -p 8080:8080 craftscape-frontend",
-    "docker:test": "npm run docker:build && npm run docker:run",
-    "docker:test:frontend": "npm run docker:build:frontend && npm run docker:run:frontend"
+    "docker:test": "npm run docker:build && npm run docker:run"
   },
   "dependencies": {
     "@google/genai": "^2.10.0",
-    "@nestjs/common": "^11.1.6",
-    "@nestjs/core": "^11.1.6",
-    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
-    "dotenv": "^17.2.2",
-    "express": "^5.1.0",
     "framer-motion": "^12.23.19",
-    "jsonwebtoken": "^9.0.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "sequelize": "^6.37.7",
-    "socket.io-client": "^4.8.3",
-    "sqlite3": "^5.1.7",
-    "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1",
-    "uuid": "^13.0.0"
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.16",

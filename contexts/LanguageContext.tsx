@@ -34,7 +34,9 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   }, []);
   
   const t = useCallback((key: keyof typeof zh, replacements?: { [key: string]: string | number }): string => {
-    let translation = translations[language][key] || translations['zh'][key] || key;
+    // Fall back to the default language (en), not zh, so a key missing in the active
+    // language never renders Chinese to an English user; then fall back to the key itself.
+    let translation = translations[language][key] || translations['en'][key] || key;
     if (replacements) {
         Object.keys(replacements).forEach(rKey => {
             translation = translation.replace(`{${rKey}}`, String(replacements[rKey]));

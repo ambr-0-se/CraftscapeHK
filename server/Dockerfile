@@ -27,6 +27,13 @@ RUN npm ci
 COPY server/nest-cli.json server/tsconfig.json ./
 COPY server/src ./src
 
+# Runtime assets loaded by path (NOT bundled into dist):
+#  - assets/mahjong/*.ttf  -> registerFont() in utils/text-to-image.util.ts
+#  - constants.cjs         -> require('../constants.cjs') in seed + admin.service (boot seed)
+# Without these the container renders wrong mahjong glyphs and boots an EMPTY database.
+COPY server/assets ./assets
+COPY server/constants.cjs ./constants.cjs
+
 RUN npm run build
 RUN npm prune --omit=dev
 
